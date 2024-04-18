@@ -96,14 +96,14 @@ void UEditorEngine::Init()
 
 					// Rebuild the class from its directory.
 					char Spec[256];
-					appSprintf( Spec, "%sSource\\%s\\Classes\\*.uc",appBaseDir(), Pkg );
+					appSprintf( Spec, "..\\%s\\Classes\\*.uc", Pkg );
 					TArray<FString> Files = appFindFiles( Spec );
 					if( Files.Num() == 0 )
 						appErrorf( "Can't find files matching %s", Spec );
 					for( INT i=0; i<Files.Num(); i++ )
 					{
 						// Import class.
-						appSprintf( Filename, "%sSource\\%s\\Classes\\%s", appBaseDir(), Pkg, Files(i) );
+						appSprintf( Filename, "..\\%s\\Classes\\%s", Pkg, Files(i) );
 						char Temp[256];
 						appStrcpy( Temp, *Files(i) );
 						*appStrchr(Temp,'.') = 0;
@@ -135,14 +135,14 @@ void UEditorEngine::Init()
 								It->SetFlags( RF_TagExp );
 
 						// Export the header.
-						appSprintf( Filename, "%sSource\\%s\\Inc\\%sClasses.h", appBaseDir(), Pkg, Pkg );
+						appSprintf( Filename, "..\\%s\\Inc\\%sClasses.h", Pkg, Pkg );
 						debugf( NAME_Log, "Generating C++ header: %s", Filename );
 						if( !AActor::StaticClass->ExportToFile( Filename ) )
 							appErrorf( "Failed to export: %s", Filename );
 					}
 
 					// Save package.
-					appSprintf( Filename, "%s%s.u",appScriptDir(), Pkg );
+					appSprintf( Filename, "%s.u", Pkg );
 					GObj.SavePackage( PkgObject, NULL, RF_Standalone, Filename );
 				}
 			}

@@ -72,7 +72,7 @@ typedef signed int  		INT;		// 32-bit signed.
 typedef signed __int64		SQWORD;		// 64-bit signed.
 
 // Other base types.
-using UBOOL =  int			;		// Boolean 0 (false) or 1 (true).
+typedef signed int			UBOOL;		// Boolean 0 (false) or 1 (true).
 typedef float				FLOAT;		// 32-bit IEEE floating point.
 typedef double				DOUBLE;		// 64-bit IEEE double.
 

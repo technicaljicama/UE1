@@ -227,10 +227,7 @@ CORE_API INT appFerror( FILE* F );
 CORE_API const char* appCmdLine();
 CORE_API const char* appBaseDir();
 CORE_API const char* appPackage();
-CORE_API const char* appContentDir(bool Game);
-CORE_API const char* appConfigDir(bool Game);
-CORE_API const char* appLocalizationDir(bool Game);
-CORE_API const char* appScriptDir();
+
 /*-----------------------------------------------------------------------------
 	Timing functions.
 -----------------------------------------------------------------------------*/

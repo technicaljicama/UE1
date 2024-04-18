@@ -1451,19 +1451,13 @@ CORE_API const char* Localize( const char* Section, const char* Key, const char*
 	guard(Localize);
 	char Filename[256];
 	LangExt = LangExt ? LangExt : GLanguage;
-	bool FromGame = true;
 TryAgain:
-	appSprintf( Filename, "%s%s.%s", appLocalizationDir(FromGame), Package, LangExt );
+	appSprintf( Filename, "%s%s.%s", appBaseDir(), Package, LangExt );
 	static char Results[8][256];
 	static INT iResult=0;
 	iResult = (iResult+1) % ARRAY_COUNT(Results);
 	if( !GetConfigString( Section, Key, Results[iResult], ARRAY_COUNT(Results[0]), Filename ) )
 	{
-		if (FromGame)
-		{
-			FromGame = false;
-			goto TryAgain;
-		}
 		if( appStricmp(LangExt,"int")!=0 )
 		{
 			LangExt = "int";

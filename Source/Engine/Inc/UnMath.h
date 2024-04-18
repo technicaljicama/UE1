@@ -496,9 +496,15 @@ public:
 	FSphere( const TArray<FVector>& Pts );
 
 	// Serializer.
-	friend FArchive& operator<<( FArchive &Ar, FSphere &P )
+	friend FArchive& operator<<( FArchive &Ar, FSphere &S )
 	{
-		return Ar << (FVector&)P << P.W;
+		// BUG: this used to be declared as operator<<( FArchive&, FPlane& ),
+		// so spheres were never properly serialized in old versions of ue
+		if (Ar.Ver() <= 61) // unreal v200 and probably up to gold?
+			Ar << (FVector&)S;
+		else
+			Ar << (FVector&)S << S.W;
+		return Ar;
 	}
 };
 

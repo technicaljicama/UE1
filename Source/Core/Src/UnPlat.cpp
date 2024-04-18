@@ -315,25 +315,16 @@ void appInit()
 
 	// Write-ini.
 	char Temp[256];
-
+	appStrcpy( GWriteIni, appBaseDir() );
 	if( Parse( appCmdLine(), "INI=", Temp, ARRAY_COUNT(Temp) ) )
 	{
-		appStrcpy( GWriteIni, Temp );
+		appStrcat( GWriteIni, Temp );
 	}
 	else
 	{
-		appStrcpy(GWriteIni, appConfigDir(false));
-		appStrcat(GWriteIni, appPackage());
-		appStrcat(GWriteIni, ".ini");
+		appStrcat( GWriteIni, appPackage() );
+		appStrcat( GWriteIni, ".ini" );
 	}
-
-	if (appFSize(GWriteIni) < 1)
-	{
-		appStrcpy(GReadIni, appConfigDir(false));
-		appStrcat(GReadIni, "Default.ini");
-		appCopyFile(GReadIni, GWriteIni);
-	}
-
 	FILE* F;
 	F = fopen( GWriteIni, "at" );
 	if( F )
@@ -689,64 +680,16 @@ UBOOL appFindPackageFile( const char* In, const FGuid* Guid, char* Out )
 		// Get directory only.
 		char Temp[256];
 		char* Ext;
-
-		UBOOL Found = 0;
-
-
-	
-		{
-			strcpy(Temp, appScriptDir());
-			strcpy(Out, Temp);
-			strcat(Out, In);
-			Found = (appFSize(Out) >= 0);
-			if (Found)
-			{
-				return 1;
-			}
-			else
-			{
-				strcpy(Temp, appScriptDir());
-				strcpy(Out, Temp);
-				strcat(Out, In);
-				strcat(Out, ".u");
-				Found = (appFSize(Out) >= 0);
-				if (Found)
-				{
-					return 1;
-				}
-			}
-		}
-
-
 		if( i<ARRAY_COUNT(GSys->Paths) )
 		{
 			if( *GSys->Paths[i]==0 )
 				continue;
-	
-			strcpy(Temp, appContentDir(true));
-			strcat( Temp, GSys->Paths[i] );
+			strcpy( Temp, GSys->Paths[i] );
 			Ext = appStrstr(Temp,"*");
 			if( Ext )
 				*Ext++ = 0;
 			strcpy( Out, Temp );
 			strcat( Out, In );
-
-			Found = (appFSize(Out) >= 0);
-			if (!Found && Ext)
-			{
-				strcat(Out, Ext);
-				Found = (appFSize(Out) >= 0);
-			}
-			if (!Found)
-			{
-				strcpy(Temp, appContentDir(false));
-				strcat(Temp, GSys->Paths[i]);
-				Ext = appStrstr(Temp, "*");
-				if (Ext)
-					*Ext++ = 0;
-				strcpy(Out, Temp);
-				strcat(Out, In);
-			}
 		}
 		else
 		{
@@ -758,8 +701,8 @@ UBOOL appFindPackageFile( const char* In, const FGuid* Guid, char* Out )
 		}
 
 		// Check for file.
-		if(!Found)
-			Found = (appFSize(Out) >= 0);
+		UBOOL Found = 0;
+		Found = (appFSize(Out)>=0);
 		if( !Found && Ext )
 		{
 			strcat( Out, Ext );
@@ -1354,18 +1297,6 @@ CORE_API const char* appBaseDir()
 	{
 		// Get directory this executable was launched from.
 		GetModuleFileName( hInstance, BaseDir, ARRAY_COUNT(BaseDir) );
-		for( INT i=strlen(BaseDir)-1; i>0; i-- )
-			if( BaseDir[i-1]=='\\' || BaseDir[i-1]=='/' )
-				break;
-		BaseDir[i]=0;
-		for (INT i = strlen(BaseDir) - 1; i > 0; i--)
-			if (BaseDir[i - 1] == '\\' || BaseDir[i - 1] == '/')
-				break;
-		BaseDir[i] = 0;
-		for (INT i = strlen(BaseDir) - 1; i > 0; i--)
-			if (BaseDir[i - 1] == '\\' || BaseDir[i - 1] == '/')
-				break;
-		BaseDir[i] = 0;
 		for (INT i = strlen(BaseDir) - 1; i > 0; i--)
 			if (BaseDir[i - 1] == '\\' || BaseDir[i - 1] == '/')
 				break;
@@ -1393,51 +1324,6 @@ CORE_API const char* appPackage()
 		appStrcpy( AppPackage, End );
 	}
 	return AppPackage;
-}
-
-CORE_API const char* appContentDir(bool Game)
-{
-	static char Path[256];
-
-	appStrcpy(Path, appBaseDir());
-
-	if (Game)
-	{
-		appStrcat(Path,appPackage());
-	}
-	else
-	{
-		appStrcat(Path, ENGINE_DIR);
-	}
-	appStrcat(Path, "\\");
-	return Path;
-}
-
-CORE_API const char* appConfigDir(bool Game)
-{
-	static char Path[256];
-	appStrcpy(Path, appContentDir(Game));
-	appStrcat(Path, CONFIG_DIR);
-	appStrcat(Path, "\\");
-	return Path;
-}
-
-CORE_API const char* appLocalizationDir(bool Game)
-{
-	static char Path[256];
-	appStrcpy(Path, appContentDir(Game));
-	appStrcat(Path, LOCALIZATION_DIR);
-	appStrcat(Path, "\\");
-	return Path;
-}
-
-CORE_API const char* appScriptDir()
-{
-	static char Path[256];
-	appStrcpy(Path, appContentDir(true));
-	appStrcat(Path, SCRIPTS_DIR);
-	appStrcat(Path, "\\");
-	return Path;
 }
 
 /*-----------------------------------------------------------------------------
