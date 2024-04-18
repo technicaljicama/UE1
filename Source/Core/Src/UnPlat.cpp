@@ -15,6 +15,7 @@
 #include <io.h>
 #include <stdio.h>
 #include <float.h>
+#include <intrin.h>
 #include <time.h>
 #include <sys/stat.h>
 #include <sys/utime.h>
@@ -202,43 +203,12 @@ CORE_API void ClipboardPaste( FString& Result )
 //
 static void FGlobalPlatform_CPUID( int i, DWORD *A, DWORD *B, DWORD *C, DWORD *D )
 {
-#if ASM
-	try
-	{
- 		__asm
-		{			
-			mov eax,[i]
-			_emit 0x0f
-			_emit 0xa2
-
-			mov edi,[A]
-			mov [edi],eax
-
-			mov edi,[B]
-			mov [edi],ebx
-
-			mov edi,[C]
-			mov [edi],ecx
-
-			mov edi,[D]
-			mov [edi],edx
-
-			mov eax,0
-			mov ebx,0
-			mov ecx,0
-			mov edx,0
-			mov esi,0
-			mov edi,0
-		}
-	}
-	catch(...)
-	{
-		debugf( NAME_Init, "CPUID failed!" );
-		*A = *B = *C = *D = 0;
-	}
-#else
-	*A=*B=*C=*D=0;
-#endif
+	int info[4] = { 0, 0, 0, 0 };
+	__cpuid( info, i );
+	*A = info[0];
+	*B = info[1];
+	*C = info[2];
+	*D = info[3];
 }
 
 /*-----------------------------------------------------------------------------
@@ -408,17 +378,8 @@ void appInit()
 	QueryPerformanceFrequency(&lFreq);
 	DOUBLE Frequency = (DOUBLE)(SQWORD)(((QWORD)lFreq.LowPart) + ((QWORD)lFreq.HighPart<<32));
 	check(Frequency!=0);
-	INT Cycles=0;
-	LARGE_INTEGER I1, I2;
-	QueryPerformanceCounter(&I1);
-	clock(Cycles);
-	Sleep(100);
-	QueryPerformanceCounter(&I2);
-	unclock(Cycles);
-	DOUBLE T1 = (DOUBLE)(SQWORD)((QWORD)I1.LowPart + (((QWORD)I1.HighPart)<<32)) / Frequency;
-	DOUBLE T2 = (DOUBLE)(SQWORD)((QWORD)I2.LowPart + (((QWORD)I2.HighPart)<<32)) / Frequency;
-	GSecondsPerCycle = (T2-T1) / (DOUBLE)Cycles;
-	debugf( NAME_Init, "CPU Speed=%f MHz", 0.000001 / GSecondsPerCycle );
+	GSecondsPerCycle = 1.0 / Frequency;
+	debugf( NAME_Init, "CPU Timer Freq=%f Hz", Frequency );
 
 	// Get CPU info.
 	SYSTEM_INFO SI;
@@ -590,27 +551,19 @@ void appDebugBreak()
 //
 // Get time in seconds.
 //
-#if !DEFINED_appSeconds
 CORE_API DOUBLE appSeconds()
 {
-	static DWORD  InitialTime = timeGetTime();
-	static DOUBLE TimeCounter = 0.0;
-
-	// Accumulate difference to prevent wraparound.
-	DWORD NewTime = timeGetTime();
-	TimeCounter += (NewTime - InitialTime) * (1./1000.);
-	InitialTime = NewTime;
-
-	return TimeCounter;
+	static LARGE_INTEGER ret;
+	QueryPerformanceCounter(&ret);
+	return (DOUBLE)ret.QuadPart * GSecondsPerCycle;
 }
-#endif
 
-#if !DEFINED_appCycles
 CORE_API DWORD appCycles()
 {
-	return appSeconds();
+	static LARGE_INTEGER ret;
+	QueryPerformanceCounter(&ret);
+	return ret.LowPart;
 }
-#endif
 
 //
 // Return the system time.

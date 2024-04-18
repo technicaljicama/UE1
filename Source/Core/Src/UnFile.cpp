@@ -330,20 +330,18 @@ CORE_API FLOAT appFrand()
 {
 	return rand() / (FLOAT)RAND_MAX;
 }
-
-#if !DEFINED_appFloor
-CORE_API INT DOUBLE appFloor( FLOAT Value )
+CORE_API INT appFloor( FLOAT Value )
 {
-	return floor(Value);
+	return (INT)floorf(Value);
 }
-#endif
-
-#if !DEFINED_appCeil
 CORE_API INT appCeil( FLOAT Value )
 {
-	return ceil(Value);
+	return (INT)ceilf(Value);
 }
-#endif
+CORE_API INT appRound( FLOAT Value )
+{
+	return (INT)floorf(Value + 0.5f);
+}
 
 /*-----------------------------------------------------------------------------
 	File functions.
@@ -612,210 +610,13 @@ CORE_API char* appStrupr( char* String )
 CORE_API void* appLargeMemset( void* Dest, int C, INT Count )
 {
 	// LARGE Count: larger than 64.
-	if (GIsMMX)
-	{
-		__asm
-		{
-		// Clear using MMX. Adjusts destination alignment & pads if needed.
-			mov		ebx,C
-			mov		ecx,Count
-			and     ebx,0xff
-			mov		edi,Dest
-		// expand ebx to 8:8:8:8
-			mov     eax,ebx
-			shl     ebx,8
-			mov     edx,eax
-			add     eax,ebx  //		 8:8
-			add     edx,ebx  //		 8:8
-			shl     eax,16   //  8:8:0:0
-			add     eax,edx
-		// Expand data to 32:32
-			movd    mm0,eax
-			movd    mm1,eax
-			psllq   mm0,32
-			por     mm0,mm1
-		//////////////////////////////
-			test    edi,7			// Destination alignment on 64 bit boundary ?
-			jz      SkipPad64MMX	
-			test    edi,3          // non-dword boundary ?
-			jz      SkipPad32MMX
-
-			// 1-3 bytes to pad
-			mov     [edi],al
-			inc     edi
-			dec     ecx
-			test    edi,3
-			jz      SkipPad8MMX
-
-			mov     [edi],al
-			inc     edi
-			dec     ecx
-			test    edi,3
-			jz      SkipPad8MMX
-
-			mov     [edi],al
-			inc     edi
-			dec     ecx
-
-		SkipPad8MMX:
-			test    edi,4
-			jz      SkipPad64MMX
-
-		SkipPad32MMX: // one dword left to store ?			
-			mov     [edi],eax		// Single dword start pad.
-			add     edi,4
-			sub     ecx,4
-
-		SkipPad64MMX:				
-		//////////////////////////////
-			mov     ebx,ecx         // store bytes-to-do
-			shr     ecx,3           // qwords
-
-			// Store 64 bits/iteration.
-			align 16				
-		InnerLoop32MMX:				
-			movq    [edi],mm0		
-			add     edi,8			
-			dec     ecx				
-			jnz     InnerLoop32MMX	
-
-			// End padding:
-			mov		ecx,ebx
-			and     ecx,7        // how many bytes left ?
-			jz      SetMMX32End  //
-
-			cmp     ecx,4
-			jb      Skip32End
-			mov     [edi],eax    // single dword
-			add     edi,4
-			sub     ecx,4
-			Skip32End:           // 3-0 bytes left to do.
-
-			cmp     ecx,1
-			jb      SetMMX32End
-			mov     [edi+0],al     //
-			cmp     ecx,2 
-			jb      SetMMX32End
-			mov     [edi+1],al
-			je      SetMMX32End //ecx==2
-			mov     [edi+2],al  //ecx==3
-		SetMMX32End:
-			emms                 
-		}
-		return Dest;
-	}
-	else  
-	{
-		return memset(Dest,C,Count); // VC++, usually the regular movsd		
-	}	
+	return memset( Dest, C, Count );
 }
 
 
 CORE_API void* appLargeMemcpy( void* Dest, const void* Src, INT Count )
 {
-
-	if (GIsMMX)
-	{
-		__asm
-		{
-		// Clear using MMX. Adjusts destination alignment & pads if needed.
-			mov		esi,Src
-			mov		ecx,Count
-			mov		edi,Dest
-		//////////////////////////////
-			test    edi,7			// Destination alignment on 64 bit boundary ?
-			jz      SkipPad64MMX	
-			test    edi,3           // non-dword boundary ?
-			jz      SkipPad32MMX
-
-			// 1-3 bytes to pad
-			mov     al,[esi]
-			inc     esi
-			dec     ecx
-			mov     [edi],al
-			inc     edi
-
-			test    edi,3
-			jz      SkipPad8MMX
-
-			mov     al,[esi]
-			inc     esi
-			dec     ecx
-			mov     [edi],al
-			inc     edi
-
-			test    edi,3
-			jz      SkipPad8MMX
-
-			mov     al,[esi]
-			inc     esi
-			dec     ecx			
-			mov     [edi],al
-			inc     edi
-			
-		SkipPad8MMX:
-			test    edi,4
-			jz      SkipPad64MMX
-
-		SkipPad32MMX: // one dword left to store ?			
-			mov     eax,[esi]
-			add     esi,4
-			sub     ecx,4
-			mov     [edi],eax		// Single dword start pad.
-			add     edi,4
-
-		SkipPad64MMX:				
-		//////////////////////////////
-			mov     ebx,ecx         // store bytes-to-do
-			shr     ecx,3           // qwords
-
-			// Store 64 bits/iteration.
-			align 16				
-		InnerLoop32MMX:				
-			movq    mm0,[esi]
-			add     esi,8
-			movq    [edi],mm0		
-			add     edi,8
-			dec     ecx
-			jnz     InnerLoop32MMX	
-
-			// End padding:
-			mov		ecx,ebx
-			and     ecx,7        // how many bytes left ?
-			jz      SetMMX32End  //
-
-			cmp     ecx,4
-			jb      Skip32End
-			mov     eax,[esi]
-			add     esi,4
-			sub     ecx,4
-			mov     [edi],eax    // single dword
-			add     edi,4
-			Skip32End:           // 3-0 bytes left to do.
-
-			cmp     ecx,1
-			jb      SetMMX32End
-			mov     al,[esi+0]
-			mov     [edi+0],al     //
-			cmp     ecx,2 
-			jb      SetMMX32End
-
-			mov     al,[esi+1]
-			mov     [edi+1],al
-			je      SetMMX32End //ecx==2
-
-			mov     al,[esi+2]
-			mov     [edi+2],al  //ecx==3
-
-		SetMMX32End:
-			emms                 
-		}
-		return Dest;
-	}
-	else  
-	{
-		return memcpy(Dest,Src,Count);
-	}	
+	return memcpy( Dest, Src, Count );
 }
 
 CORE_API void* appMemmove( void* Dest, const void* Src, INT Count )

@@ -144,78 +144,15 @@ typedef struct _iobuf FILE;
 ----------------------------------------------------------------------------*/
 
 //
-// Round a floating point number to an integer.
-// Note that (int+.5) is rounded to (int+1).
-//
-#if ASM
-#define DEFINED_appRound 1
-inline INT appRound( FLOAT F )
-{
-	INT I;
-	__asm fld [F]
-	__asm fistp [I]
-	return I;
-}
-#endif
-
-//
-// Converts to integer equal to or less than.
-//
-#if ASM
-#define DEFINED_appFloor 1
-inline INT appFloor( FLOAT F )
-{
-	static FLOAT Half=0.5;
-	INT I;
-	__asm fld [F]
-	__asm fsub [Half]
-	__asm fistp [I]
-	return I;
-}
-#endif
-
-//
 // CPU cycles, related to GSecondsPerCycle.
 //
-#if ASM
-#define DEFINED_appCycles 1
-#pragma warning (disable : 4035)
-inline DWORD appCycles()
-{
-	__asm
-	{
-		xor   eax,eax	// Required so that VC++ realizes EAX is modified.
-		_emit 0x0F		// RDTSC  -  Pentium+ time stamp register to EDX:EAX.
-		_emit 0x31		// Use only 32 bits in EAX - even a Ghz cpu would have a 4+ sec period.
-		xor   edx,edx	// Required so that VC++ realizes EDX is modified.
-	}
-}
-#pragma warning (default : 4035)
-#endif
+CORE_API DWORD appCycles();
 
 //
 // Seconds, arbitrarily based.
 //
-#if ASM
-#define DEFINED_appSeconds 1
-#pragma warning (disable : 4035)
 extern CORE_API DOUBLE GSecondsPerCycle;
-inline DOUBLE appSeconds()
-{
-	DWORD L,H;
-	__asm
-	{
-		xor   eax,eax	// Required so that VC++ realizes EAX is modified.
-		xor   edx,edx	// Required so that VC++ realizes EDX is modified.
-		_emit 0x0F		// RDTSC  -  Pentium+ time stamp register to EDX:EAX.
-		_emit 0x31		// Use only 32 bits in EAX - even a Ghz cpu would have a 4+ sec period.
-		mov   [L],eax   // Save low value.
-		mov   [H],edx   // Save high value.
-	}
-	return ((DOUBLE)L +  4294967296.0 * (DOUBLE)H) * GSecondsPerCycle;
-}
-#pragma warning (default : 4035)
-#endif
+CORE_API DOUBLE appSeconds();
 
 /*----------------------------------------------------------------------------
 	Globals.

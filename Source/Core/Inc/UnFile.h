@@ -361,18 +361,9 @@ CORE_API DOUBLE appPow( DOUBLE A, DOUBLE B );
 CORE_API UBOOL appIsNan( DOUBLE Value );
 CORE_API INT appRand();
 CORE_API FLOAT appFrand();
-
-#if !DEFINED_appRound
 CORE_API INT appRound( FLOAT Value );
-#endif
-
-#if !DEFINED_appFloor
 CORE_API INT appFloor( FLOAT Value );
-#endif
-
-#if !DEFINED_appCeil
 CORE_API INT appCeil( FLOAT Value );
-#endif
 
 /*-----------------------------------------------------------------------------
 	Memory functions.

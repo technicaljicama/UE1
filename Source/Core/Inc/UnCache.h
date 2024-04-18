@@ -83,8 +83,6 @@ public:
 	INT GetTime() {return Time;}
 
 	// FMemCache inlines.
-#if ASM
-#pragma warning( disable : 4035 )
 	DWORD GHash( DWORD Val )
 	{
 		return (Val ^ (Val>>12) ^ (Val>>24)) & (HASH_COUNT-1);
@@ -118,34 +116,6 @@ public:
 		return NULL;
 		unguardSlow;
 	}
-#pragma warning( default : 4035 )
-#else
-	DWORD GHash( DWORD Val )
-	{
-		return (Val ^ (Val>>12) ^ (Val>>24)) & (HASH_COUNT-1);
-	}
-	BYTE* Get( QWORD Id, FCacheItem*& Item, INT Alignment=DEFAULT_ALIGNMENT )
-	{	
-		guardSlow(FMemCache::Get);
-		clockSlow(GetCycles);
-		NumGets++;
-		for( FCacheItem* HashItem=HashItems[GHash(Id)]; HashItem; HashItem=HashItem->HashNext )
-		{
-			if( HashItem->Id == Id )
-			{
-				// Set the item, lock it, and return its data.
-				Item            = HashItem;
-				HashItem->Time  = Time;
-				HashItem->Cost += COST_INFINITE;
-				unclockSlow(GetCycles);
-				return Align( HashItem->Data, Alignment );
-			}
-		}
-		unclockSlow(GetCycles);
-		return NULL;
-		unguardSlow;
-	}
-#endif
 
 private:
 	// Constants.
