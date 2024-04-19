@@ -496,7 +496,8 @@ static void SetupOverSampling()
 	QWORD Tmp[4];
 	for (int ubits = 0; ubits < 12; ubits++)
 	{
-		for( int j,i=0; i<4; i++ )
+		int j, i;
+		for( i=0; i<4; i++ )
 			Tmp[i] = ((QWORD)KernelDV[i] << (32-4)) + ((QWORD)KernelDU[i] << (64-4-ubits));
 
 		for( i=0,j=3; i<4; j=i++ )
@@ -604,7 +605,8 @@ void USoftwareRenderDevice::InitDrawSurf()
 
 	// Divide table.
 	DivTable[0]=0.0;
-	for(INT i=1; i<ARRAY_COUNT(DivTable); i++ )
+	INT i;
+	for(i=1; i<ARRAY_COUNT(DivTable); i++ )
 		DivTable[i] = FixedMult/i;  // 65536/i.....
 
 	// Mipmap depth lookup table.
