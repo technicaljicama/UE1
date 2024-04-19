@@ -949,7 +949,7 @@ void AActor::processHitWall(FVector HitNormal, AActor *HitActor)
 	unguard;
 }
 
-#pragma DISABLE_OPTIMIZATION 
+DISABLE_OPTIMIZATION 
 void AActor::processLanded(FVector HitNormal, AActor *HitActor, FLOAT remainingTime, INT Iterations)
 {
 	guard(AActor::processLanded);
@@ -1033,7 +1033,7 @@ void AActor::processLanded(FVector HitNormal, AActor *HitActor, FLOAT remainingT
 
 	unguard;
 }
-#pragma ENABLE_OPTIMIZATION 
+ENABLE_OPTIMIZATION 
 
 void AActor::physFalling(FLOAT deltaTime, INT Iterations)
 {
@@ -1713,7 +1713,7 @@ int APawn::findNewFloor(FVector OldLocation, FLOAT deltaTime, FLOAT remainingTim
 	unguard;
 }
 
-//#pragma DISABLE_OPTIMIZATION
+//DISABLE_OPTIMIZATION
 void APawn::physSpider(FLOAT deltaTime, INT Iterations)
 {
 	guard(APawn::physSpider);
@@ -1890,7 +1890,7 @@ void APawn::physSpider(FLOAT deltaTime, INT Iterations)
 		Velocity = (Location - OldLocation) / deltaTime;
 	unguard;
 }
-//#pragma ENABLE_OPTIMIZATION
+//ENABLE_OPTIMIZATION
 
 void AActor::physTrailer(FLOAT deltaTime)
 {

@@ -39,8 +39,8 @@ enum {DEFAULT_ALIGNMENT = 8 }; // Default boundary to align memory allocations o
 enum {CACHE_LINE_SIZE   = 32}; // Cache line size.
 
 // Optimization macros (preceeded by #pragma).
-#define DISABLE_OPTIMIZATION optimize("",off)
-#define ENABLE_OPTIMIZATION  optimize("",on)
+#define DISABLE_OPTIMIZATION __pragma(optimize("",off))
+#define ENABLE_OPTIMIZATION  __pragma(optimize("",on))
 
 // Function type macros.
 #define DLL_IMPORT	__declspec(dllimport)	/* Import function from DLL */

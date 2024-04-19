@@ -15,7 +15,7 @@
 #include "UnRender.h"
 #include "..\..\Engine\Src\UnPath.h"//!!
 
-#pragma DISABLE_OPTIMIZATION /* Not performance-critical */
+DISABLE_OPTIMIZATION /* Not performance-critical */
 
 /*-----------------------------------------------------------------------------
 	UnrealEd safe command line.

@@ -8,7 +8,7 @@
 
 #include "EditorPrivate.h"
 
-#pragma DISABLE_OPTIMIZATION /* Not performance-critical */
+DISABLE_OPTIMIZATION /* Not performance-critical */
 
 /*-----------------------------------------------------------------------------
    Actor adding/deleting functions.
