@@ -85,7 +85,8 @@ void FChannel::ReceivedAck( _WORD Sequence )
 	guard(FChannel::ReceivedAck);
 	check(Connection->Channels[ChIndex]==this);
 
-	for( INT i=0; i<RELIABLE_BUFFER; i++ )
+	INT i;
+	for( i=0; i<RELIABLE_BUFFER; i++ )
 		if( OutRec[i] && OutRec[i]->Header.Sequence==Sequence )
 			break;
 	if( i<RELIABLE_BUFFER )
@@ -115,7 +116,8 @@ void FChannel::ReceivedNak( _WORD Sequence )
 {
 	guard(FBunch::ReceivedNak);
 	check(Connection->Channels[ChIndex]==this);
-	for( INT i=0; i<RELIABLE_BUFFER; i++ )
+	INT i;
+	for( i=0; i<RELIABLE_BUFFER; i++ )
 		if( OutRec[i] && OutRec[i]->Header.Sequence==Sequence )
 			break;
 	if( i < RELIABLE_BUFFER )
@@ -181,7 +183,8 @@ void FChannel::AssertInSequenced()
 	guard(FChannel::AssertInSequenced);
 
 	// Verify that buffer contains no missing entries.
-	for( int i=0; i<RELIABLE_BUFFER; i++ )
+	int i;
+	for( i=0; i<RELIABLE_BUFFER; i++ )
 		if( InRec[i]==NULL )
 			break;
 	while( ++i < RELIABLE_BUFFER )
@@ -226,7 +229,8 @@ void FChannel::ReceivedRawBunch( FInBunch& Bunch, UBOOL bFirstTime )
 	{
 		// If required sequence isn't queued up, speculatively nak it 
 		// to encourage the sender to retransmit it quickly.
-		for( INT i=0; i<RELIABLE_BUFFER; i++ )
+		INT i;
+		for( i=0; i<RELIABLE_BUFFER; i++ )
 			if( InRec[i] && InRec[i]->Header.Sequence==Bunch.Header.PrevSequence )
 				break;
 		if( i==RELIABLE_BUFFER )
@@ -862,7 +866,8 @@ void FActorChannel::ReceivedBunch( FInBunch& Bunch )
 				// See if UnrealScript replication condition is met.
 				guard(EvalRPCCondition);
 				Exchange(Actor->Role,Actor->RemoteRole);
-				for( UFunction* Test=Function; Test->GetSuperFunction(); Test=Test->GetSuperFunction() );
+				UFunction* Test;
+				for( Test=Function; Test->GetSuperFunction(); Test=Test->GetSuperFunction() );
 				FFrame EvalStack( Actor, Test->GetOwnerClass(), Test->RepOffset, NULL );
 				BYTE Buffer[MAX_CONST_SIZE], *Val=Buffer;
 				EvalStack.Step( Actor, Val );
@@ -975,7 +980,8 @@ void FActorChannel::ReplicateActor( UBOOL FullReplication )
 
 	// Owned by connection's player?
 	Actor->bNetOwner = 0;
-	for( AActor* Top=Actor; Top->Owner; Top=Top->Owner );
+	AActor* Top;
+	for( Top=Actor; Top->Owner; Top=Top->Owner );
 	UPlayer* Player = Top->IsA(APlayerPawn::StaticClass) ? ((APlayerPawn*)Top)->Player : NULL;
 
 	// Set quickie replication variables.

@@ -217,7 +217,8 @@ void UConsole::PostRender( FSceneNode* Frame )
 		if( TextLines>0 && MsgType!=NAME_None && (!Viewport->Actor->bShowMenu || Viewport->Actor->bShowScores) )
 		{
 			int iLine=TopLine;
-			for( int i=0; i<NumLines; i++ )
+			int i;
+			for( i=0; i<NumLines; i++ )
 			{
 				if( *MsgText[iLine] )
 					break;

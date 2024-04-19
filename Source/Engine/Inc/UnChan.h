@@ -11,7 +11,7 @@
 -----------------------------------------------------------------------------*/
 
 // Types of channels.
-enum EChannelType
+enum EChannelType : int
 {
 	CHTYPE_None			= 0,  // Invalid type.
 	CHTYPE_Control		= 1,  // Connection control.

@@ -686,7 +686,8 @@ FSceneNode* URender::CreateChildFrame
 	guard(URender::CreateChildFrame);
 
 	// See if the scene frame already exists.
-	for( FSceneNode* Frame=Parent->Child; Frame; Frame=Frame->Sibling )
+	FSceneNode* Frame;
+	for( Frame=Parent->Child; Frame; Frame=Frame->Sibling )
 	{
 		if
 		(	Frame->Level==Level
@@ -1360,7 +1361,8 @@ void URender::OccludeBsp( FSceneNode* Frame )
 	}
 
 	// Init zone span buffers.
-	for( INT i=0; i<UBspNodes::MAX_ZONES; i++ )
+	INT i;
+	for( i=0; i<UBspNodes::MAX_ZONES; i++ )
 		ZoneSpanBuffer[i].AllocIndex(0,0,&GDynMem);
 	ZoneSpanBuffer[iViewZone] = *Frame->Span;
 
@@ -1403,7 +1405,8 @@ void URender::OccludeBsp( FSceneNode* Frame )
 				}
 				if( iViewZone )
 				{
-					for( INT i=0; i<NumActiveZones; i++ )
+					INT i;
+					for( i=0; i<NumActiveZones; i++ )
 					{
 						BYTE iZone = ActiveZones[i];
 						if
@@ -1791,7 +1794,8 @@ void URender::OccludeBsp( FSceneNode* Frame )
 						// Merge in the new volumetrics.
 						for( FVolActorLink* Link=FirstVolumetric; Link; Link=Link->Next )
 						{
-							for( FActorLink* Other=Merge->Volumetrics; Other; Other=Other->Next )
+							FActorLink* Other;
+							for( Other=Merge->Volumetrics; Other; Other=Other->Next )
 								if( Other->Actor == Link->Actor )
 									break;
 							if( Other==NULL && VolumetricOccludes( Link, VolCross, NumVolCross ) )
@@ -1804,7 +1808,8 @@ void URender::OccludeBsp( FSceneNode* Frame )
 					// See if filled up.
 					if( SpanBuffer->ValidLines <= 0 )
 					{
-						for( INT i=0,j=0; i<NumActiveZones; j+=ActiveZones[i++]!=iZone )
+						INT j=0;
+						for( INT i=0; i<NumActiveZones; j+=ActiveZones[i++]!=iZone )
 							ActiveZones[j] = ActiveZones[i];
 						NumActiveZones=j;
 						ActiveZoneMask &= ~(((QWORD)1)<<iZone);
@@ -1901,7 +1906,8 @@ static void GAddCorona( FSceneNode* Frame, FCoronaLight* CoronaLights, INT& iFre
 	&& !Light->bDeleteMe
 	&&  Frame->Level->SingleLineCheck( Hit, NULL, Light->Location, Frame->Coords.Origin, TRACE_VisBlocking, FVector(0,0,0) ) )
 	{
-		for( int i=0; i<MAX_CORONA_LIGHTS; i++ )
+		int i;
+		for( i=0; i<MAX_CORONA_LIGHTS; i++ )
 			if( CoronaLights[i]._Actor == Light )
 				break;
 		if( i<MAX_CORONA_LIGHTS )
@@ -1956,7 +1962,8 @@ void URender::OccludeFrame( FSceneNode* Frame )
 	OccludeBsp( Frame );
 
 	// Remember surface lights.
-	for( INT i=0; i<3; i++ )
+	INT i;
+	for( i=0; i<3; i++ )
 		for( FBspDrawList* Draw=Frame->Draw[i]; Draw; Draw=Draw->Next )
 			Draw->SurfLights = SurfLights[Draw->iSurf];
 
@@ -2005,7 +2012,8 @@ void URender::DrawFrame( FSceneNode* Frame )
 
 	// Count surfaces to draw.
 	INT Num[3]={0,0,0};
-	for( INT Pass=0; Pass<3; Pass++ )
+	INT Pass;
+	for( Pass=0; Pass<3; Pass++ )
 		for( FBspDrawList* Draw = Frame->Draw[Pass]; Draw; Draw = Draw->Next )
 			Num[Pass]++;
 
@@ -2188,7 +2196,8 @@ void URender::DrawFrame( FSceneNode* Frame )
 		static DOUBLE LastTime = appSeconds();
 		FLOAT Delta            = 3.0 * (appSeconds() - LastTime);
 		LastTime               = appSeconds();
-		for( int i=0; i<MAX_CORONA_LIGHTS; i++ )
+		int i;
+		for( i=0; i<MAX_CORONA_LIGHTS; i++ )
 			if( CoronaLights[i]._Actor && (CoronaLights[i].Bright-=Delta)<0 )
 				CoronaLights[i]._Actor = NULL;
 		INT iFree=0;

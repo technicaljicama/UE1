@@ -14,7 +14,7 @@ endif()
 
 option(USE_SDL "Use NSDLDrv instead of WinDrv" OFF)
 option(BUILD_EDITOR "Build Editor (Windows only)" OFF)
-option(BUILD_SOFTDRV "Build SoftDrv (x86 only)" ON)
+option(BUILD_SOFTDRV "Build SoftDrv (x86 only)" OFF)
 option(BUILD_NULLSOUNDDRV "Build SoundDrv (Null driver)" ON)
 
 # Determine target arch and get normalized arch string
@@ -111,9 +111,10 @@ if(MSVC)
   endif()
 else()
   message(STATUS "Building ${CMAKE_BUILD_TYPE} with GCC or Clang")
-  add_compile_options(-ffunction-sections -fno-for-scope -fpack-struct=4)
+  add_compile_options(-ffunction-sections -fpack-struct=4 -fpermissive)
+  add_compile_options(-Wno-write-strings)
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_options(-Od)
+    add_compile_options(-Og)
   else()
     add_compile_options(-O2)
   endif()
@@ -122,6 +123,8 @@ endif()
 # Subprojects
 
 set(INSTALL_TARGETS Core Engine Render IpDrv Fire Unreal)
+
+set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 add_subdirectory(Core)
 add_subdirectory(Engine)
@@ -165,7 +168,7 @@ set(INSTALL_FILES )
 
 foreach(TGT ${INSTALL_TARGETS})
   list(APPEND INSTALL_FILES "$<TARGET_FILE:${TGT}>")
-  if(TARGET_IS_WINDOWS)
+  if(MSVC)
     list(APPEND INSTALL_FILES "$<TARGET_PDB_FILE:${TGT}>")
   endif()
 endforeach()

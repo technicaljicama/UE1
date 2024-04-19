@@ -261,7 +261,8 @@ void FSortedPathList::findAltEndPoint(APawn *Searcher, AActor *&bestPath)
 	int bestDist = ((ANavigationPoint *)Path[0])->visitedWeight + Dist[0]; 
 	FSortedPathList AltEndPoints;
 	AltEndPoints.numPoints = 0;
-	for (int j=1; j<numPoints; j++)
+	int j;
+	for (j=1; j<numPoints; j++)
 	{
 		int newDist = appSqrt(Dist[j]);
 		newDist += ((ANavigationPoint *)Path[j])->visitedWeight;

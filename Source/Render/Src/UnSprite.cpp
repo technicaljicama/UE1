@@ -61,7 +61,8 @@ void URender::SetupDynamics( FSceneNode* Frame, AActor* Exclude )
 			{
 				// Add the dynamic light.
 				FLOAT MaxRadius = Max( Actor->WorldLightRadius(), Actor->WorldVolumetricRadius() );
-				for( int i=0; i<4; i++ )
+				int i;
+				for( i=0; i<4; i++ )
 					if( Frame->ViewPlanes[i].PlaneDot(Actor->Location) < -MaxRadius )
 						break;
 				if( i==4 )
@@ -315,8 +316,9 @@ void FDynamicChunk::Filter( UViewport* Viewport, FSceneNode* Frame, INT iNode, I
 		FLOAT*      D1 = &Dist			     [3];
 		FLOAT*      D2 = &Dist			     [0];
 		INT			NumInt = 0;
+		INT i;
 
-		for( INT i=0; i<4; i++ )
+		for( i=0; i<4; i++ )
 		{
 			if( (*D1)*(*D2) < 0.0 )
 			{	
@@ -491,7 +493,8 @@ FDynamicFinalChunk::FDynamicFinalChunk( INT iNode, FDynamicSprite* InSprite, FRa
 	Z = InSprite->Z;
 
 	// Add into list z-sorted.
-	for( FDynamicItem** Item=&GRender->Dynamic( iNode, IsBack ); *Item && (*Item)->Z<Z; Item=&(*Item)->FilterNext );
+	FDynamicItem** Item;
+	for( Item=&GRender->Dynamic( iNode, IsBack ); *Item && (*Item)->Z<Z; Item=&(*Item)->FilterNext );
 	FilterNext = *Item;
 	*Item      = this;
 
@@ -549,7 +552,8 @@ void FDynamicFinalChunk::PreRender( UViewport* Viewport, FSceneNode* Frame, FSpa
 		{
 			if( Volumetrics->Volumetric )
 			{
-				for( FActorLink* Link=Sprite->Volumetrics; Link; Link=Link->Next )
+				FActorLink* Link;
+				for( Link=Sprite->Volumetrics; Link; Link=Link->Next )
 					if( Link->Actor==Volumetrics->Actor )
 						break;
 				if( !Link )
@@ -622,7 +626,8 @@ void FDynamicLight::Filter( UViewport* Viewport, FSceneNode* Frame, INT iNode, I
 				&&	(Actor->bSpecialLit ? (Surf.PolyFlags&PF_SpecialLit) : !(Surf.PolyFlags&PF_SpecialLit)) )
 				{
 					// Don't apply a light twice.
-					for( FActorLink* Link = GRender->SurfLights[Node.iSurf]; Link; Link=Link->Next )
+					FActorLink* Link;
+					for( Link = GRender->SurfLights[Node.iSurf]; Link; Link=Link->Next )
 						if( Link->Actor == Actor )
 							break;
 					if( !Link )

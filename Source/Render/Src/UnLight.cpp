@@ -323,7 +323,8 @@ static void SetupTable( FLOAT* ManTbl, FLOAT* ExpTbl, FLOAT Power )
 	union {FLOAT F; DWORD D;} Temp;
 
 	Temp.F = 1.0;
-	for( DWORD i=0; i<(1<<APPROX_EXP_BITS); i++ )
+	DWORD i;
+	for( i=0; i<(1<<APPROX_EXP_BITS); i++ )
 	{
 		Temp.D = (Temp.D & 0x007fffff ) + (i << (32-APPROX_EXP_BITS));
 		ExpTbl[ i ] = appPow( Abs(Temp.F), Power );
@@ -351,7 +352,8 @@ void FLightManager::Init()
 	guard(FLightManager::Init);
 
 	// Mutual occlusion blending.
-	for( INT i=0; i<128; i++ )
+	INT i;
+	for( i=0; i<128; i++ )
 		for( int j=0; j<128; j++ )
 			ByteMuck[i*128+j] = i + j - (i*j/127); 
 
@@ -605,7 +607,8 @@ inline FPlane FLightManager::Fog(FTransSample& Vert, DWORD PolyFlags )
 		// Todo: zero/bailout test probably also useful here. Try higher level
 		// optims (bounding spheres etc) first !
 
-		for( FLightInfo* LightInfo=FirstLight; LightInfo<LastLight; LightInfo++ )
+		FLightInfo* LightInfo;
+		for( LightInfo=FirstLight; LightInfo<LastLight; LightInfo++ )
 		{
 			if( LightInfo->IsVolumetric ) 
 			{
@@ -1605,7 +1608,8 @@ void FLightManager::SetupForSurf
 		// Volumetric mover lights.
 		for( FActorLink* Volumetrics=Draw->Volumetrics; Volumetrics && LastLight<FinalLight; Volumetrics=Volumetrics->Next )
 		{
-			for( FLightInfo* Find=FirstLight; Find<LastLight && Find->Actor!=Volumetrics->Actor; Find++ );
+			FLightInfo* Find;
+			for( Find=FirstLight; Find<LastLight && Find->Actor!=Volumetrics->Actor; Find++ );
 			Find->IsVolumetric = 1;
 			if( Find==LastLight )
 			{
@@ -1681,7 +1685,8 @@ void FLightManager::SetupForSurf
 		for( FActorLink* Link=Draw->Volumetrics; Link && LastLight<FinalLight; Link=Link->Next )
 		{
 			// See if volumetric light is already on the list as a regular light.
-			for( FLightInfo* Find=FirstLight; Find<LastLight && Find->Actor!=Link->Actor; Find++ );
+			FLightInfo* Find;
+			for( Find=FirstLight; Find<LastLight && Find->Actor!=Link->Actor; Find++ );
 			Find->IsVolumetric = 1;
 			if( Find==LastLight )
 			{
@@ -2142,7 +2147,8 @@ DWORD FLightManager::SetupForActor( FSceneNode* InFrame, AActor* InActor, FVolAc
 			// Look up actors from cache.
 			guardSlow(CacheLook);
 			Num = (INT*)Senders++;
-			for( INT i=0,NewNum=0; i<*Num; i++ )
+			INT NewNum=0;
+			for( INT i=0; i<*Num; i++ )
 			{
 				if( NewNum!=i )
 					Senders[NewNum] = Senders[i];
@@ -2261,7 +2267,8 @@ DWORD FLightManager::SetupForActor( FSceneNode* InFrame, AActor* InActor, FVolAc
 		for( Volumetrics; Volumetrics && LastLight<FinalLight; Volumetrics=Volumetrics->Next )
 		{
 			Result |= PF_RenderFog;
-			for( FLightInfo* Find=FirstLight; Find<LastLight && Find->Actor!=Volumetrics->Actor; Find++ );
+			FLightInfo* Find;
+			for( Find=FirstLight; Find<LastLight && Find->Actor!=Volumetrics->Actor; Find++ );
 			Find->IsVolumetric = 1;
 			if( Find==LastLight )
 			{

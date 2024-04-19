@@ -36,7 +36,8 @@ void FArchive::String( char* S, INT MaxLength )
 {
 	guardSlow(FArchive::String);
 	check(MaxLength>0);
-	for( INT Count=0; Count<MaxLength-1; Count++ )
+	INT Count;
+	for( Count=0; Count<MaxLength-1; Count++ )
 	{
 		Serialize( &S[Count], 1 );
 		if( S[Count] == 0 )

@@ -142,7 +142,8 @@ void InitTables()
 	if( !Initialized )
 	{
 		// Init 8-bit sine table.
-		for( INT  t=0; t < 256; t++ )
+		INT t;
+		for( t=0; t < 256; t++ )
 		{
 			PhaseTable[t] = appRound(127.45F + 127.5F*appSin( ((FLOAT)t/256.0F) * 6.2831853F ));
 		}
@@ -234,8 +235,8 @@ void CalculateFire( BYTE* BitmapAddr, BYTE* RenderTable, DWORD Xdimension, DWORD
 
 void CalcWrapFire(  BYTE* BitmapAddr,BYTE* RenderTable,DWORD Xdimension,DWORD Ydimension  )
 {
-
-    for  (DWORD Y = 0 ;Y < (Ydimension-2) ; Y++ )
+		DWORD Y;
+    for  (Y = 0 ;Y < (Ydimension-2) ; Y++ )
     {
         BYTE* ThisLine  = BitmapAddr + Y * Xdimension;
         BYTE* BelowLine = ThisLine  +   Xdimension;
@@ -362,7 +363,8 @@ void CalcSlowFire( BYTE* BitmapAddr,BYTE* RenderTable,DWORD Xdimension,DWORD Ydi
 		*StorePtr++ = *BitmapSrc++;
 	}
 
-    for  (DWORD Y = 0 ;Y < (Ydimension-1) ; Y++ )
+		DWORD Y;
+    for  (Y = 0 ;Y < (Ydimension-1) ; Y++ )
     {
         BYTE* ThisLine  =  BitmapAddr + Y * Xdimension;
         BYTE* BelowLine =  ThisLine;
@@ -1242,7 +1244,8 @@ void UFireTexture::DrawFlashRamp( LineSeg LL, BYTE Color1, BYTE Color2 )
 
     // Fill array for the specific length.
     INT  FlashPos = 0;
-    for (int Flash = 0; Flash < MajorLen; Flash++)
+		int Flash;
+    for (Flash = 0; Flash < MajorLen; Flash++)
     {
         FlashPos += ( FlashArray[Flash] = SpeedRand() );
     }

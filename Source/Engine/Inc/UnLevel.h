@@ -113,7 +113,7 @@ enum ETraceActorFlags
 //
 // Level updating.
 //
-enum ELevelTick
+enum ELevelTick : int
 {
 	LEVELTICK_TimeOnly		= 0,	// Update the level time only.
 	LEVELTICK_ViewportsOnly	= 1,	// Update time and viewports.

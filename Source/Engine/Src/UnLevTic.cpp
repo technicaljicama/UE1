@@ -466,7 +466,8 @@ INT ULevel::ServerTickClient( UNetConnection* Connection, FLOAT DeltaSeconds )
 	// Make priority-sorted list.
 	FMemMark Mark(GMem);
 	FActorPriority* PriorityActors = new(GMem,NumRelevant)FActorPriority;
-	for( INT j=0; j<NumRelevant; j++ )
+	INT j;
+	for( j=0; j<NumRelevant; j++ )
 		PriorityActors[j] = FActorPriority( Connection, Relevant[j] );
 	appSort( PriorityActors, NumRelevant );
 
@@ -513,7 +514,8 @@ void ULevel::TickNetServer( FLOAT DeltaSeconds )
 	// Update all clients.
 	clock(NetTickCycles);
 	INT Updated=0;
-	for( INT i=0; i<NetDriver->Connections.Num(); i++ )
+	INT i;
+	for( i=0; i<NetDriver->Connections.Num(); i++ )
 		Updated += ServerTickClient( NetDriver->Connections(i), DeltaSeconds );
 	unclock(NetTickCycles);
 

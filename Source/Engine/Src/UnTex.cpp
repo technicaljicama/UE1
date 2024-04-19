@@ -328,7 +328,8 @@ void UTexture::Export( FOutputDevice& Out, const char* FileType, int Indent )
 
 	// Copy all RLE bytes.
 	BYTE* ScreenPtr = &Mips(0).DataArray(0);
-	for( int i=0; i<USize*VSize; i++ )
+	int i;
+	for( i=0; i<USize*VSize; i++ )
 	{
 		BYTE Color = *ScreenPtr++;
 		if( (Color&0xc0)!=0xc0 )
@@ -746,7 +747,8 @@ void UPalette::FixPalette()
 	guard(UPalette::FixPalette);
 
 	FColor TempColors[256];
-	for( int i=0; i<256; i++ )
+	int i;
+	for( i=0; i<256; i++ )
 		TempColors[i] = Colors(0);
 
 	for( int iColor=0; iColor<8; iColor++ )
@@ -881,7 +883,8 @@ UPalette* UPalette::ReplaceWithExisting()
 		{
 			FColor* C1 = &Colors(0);
 			FColor* C2 = &It->Colors(0);
-			for( int i=0; i<NUM_PAL_COLORS; i++ )
+			int i;
+			for( i=0; i<NUM_PAL_COLORS; i++ )
 				if( *C1++ != *C2++ ) break;
 			if( i == NUM_PAL_COLORS )
 			{

@@ -153,7 +153,8 @@ struct FBoxCheckInfo
 	guardSlow(CLIP_COLLISION_PRIMITIVE); \
 	/* Check collision against hull planes. */ \
 	FVector Hit=FVector(0,0,0); \
-	for( int i=0; i<NumHulls; i++ ) \
+	int i; \
+	for( i=0; i<NumHulls; i++ ) \
 		if( !ClipTo( Hulls[i], HullNodes[i] & ~0x40000000) ) \
 			goto NoBlock; \
 	\

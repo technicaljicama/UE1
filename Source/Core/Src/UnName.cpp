@@ -184,7 +184,8 @@ void FName::DeleteEntry( int i )
 	check(!(Name->Flags & RF_Intrinsic));
 
 	int iHash = appStrihash(Name->Name) & (ARRAY_COUNT(NameHash)-1);
-	for( FNameEntry **HashLink=&NameHash[iHash]; *HashLink && *HashLink!=Name; HashLink=&(*HashLink)->HashNext );
+	FNameEntry **HashLink;
+	for( HashLink=&NameHash[iHash]; *HashLink && *HashLink!=Name; HashLink=&(*HashLink)->HashNext );
 	if( !*HashLink )
 		appErrorf( "Unhashed name '%s'", Name->Name );
 	*HashLink = (*HashLink)->HashNext;

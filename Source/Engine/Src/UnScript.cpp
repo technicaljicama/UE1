@@ -2041,7 +2041,8 @@ UBOOL AActor::ProcessRemoteFunction( UFunction* Function, void* Parms, FFrame* S
 	if( Stack )
 		appMemset( Parms, 0, Function->ParmsSize );
 	INT Count=0;
-	for( TFieldIterator<UProperty> It(Function); It && (It->PropertyFlags & (CPF_Parm|CPF_ReturnParm))==CPF_Parm; ++It,ParmBit=ParmBit<<1 )
+	TFieldIterator<UProperty> It(Function);
+	for( ; It && (It->PropertyFlags & (CPF_Parm|CPF_ReturnParm))==CPF_Parm; ++It,ParmBit=ParmBit<<1 )
 	{
 		if( Stack )
 		{

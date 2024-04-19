@@ -73,6 +73,7 @@ struct FNameEntry
 // into the name table and every name in Unreal is stored once
 // and only once in that table.  Names are case-insensitive.
 //
+enum EName : unsigned short;
 class CORE_API FName 
 {
 public:
@@ -123,7 +124,7 @@ public:
 	// Constructors.
 	FName( const char* Name, EFindName FindType=FNAME_Add );
 	FName() {}
-	FName( enum EName N )
+	FName( EName N )
 	{
 		Index = N;
 	}

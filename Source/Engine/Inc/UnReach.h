@@ -18,7 +18,7 @@ public:
 	INT reachFlags; //see defined bits above
 	BYTE  bPruned;
 
-	inline int supports (int iRadius, int iHeight, int moveFlags);
+	int supports (int iRadius, int iHeight, int moveFlags);
 	FReachSpec operator+ (const FReachSpec &Spec) const;
 	int defineFor (AActor * begin, AActor * dest, APawn * Scout);
 	int operator<= (const FReachSpec &Spec);

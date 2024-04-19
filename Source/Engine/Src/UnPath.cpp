@@ -218,7 +218,8 @@ void ENGINE_API FPathBuilder::definePaths (ULevel *ownerLevel)
 
 	// Add WarpZoneMarkers and InventorySpots
 	debugf( NAME_DevPath, "Add WarpZone and Inventory markers" );
-	for (INT i=0; i<Level->Num(); i++)
+	INT i;
+	for (i=0; i<Level->Num(); i++)
 	{
 		AActor *Actor = Level->Actors(i); 
 		if ( Actor )

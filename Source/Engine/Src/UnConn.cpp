@@ -193,7 +193,8 @@ void UPendingLevel::NotifyReceivedText( UNetConnection* Connection, const char* 
 		Parse( Text, "CHALLENGE=", Connection->Challenge );
 
 		// Make sure all packages we need are downloadable.
-		for( INT i=0; i<Connection->Driver->Map.Num(); i++ )
+		INT i;
+		for( i=0; i<Connection->Driver->Map.Num(); i++ )
 		{
 			char Filename[256];
 			FPackageInfo& Info = Connection->Driver->Map(i);

@@ -240,8 +240,8 @@ public:
 		unguardSlow;
 	}
 	void Remove( int Index, int Count=1 );
-	template< class T >
-	friend	inline FArchive& operator<<(FArchive& Ar, TArray<T>& A);
+	template< class U >
+	friend	inline FArchive& operator<<(FArchive& Ar, TArray<U>& A);
 	void SetNum( INT NewSize )
 	{
 		guardSlow(TArray::SetNum);
@@ -502,7 +502,8 @@ public:
 	}
 	void Add( const TK& Key, const TI& Value )
 	{
-		for( INT i=0; i<Pairs.Num(); i++ )
+		INT i;
+		for( i=0; i<Pairs.Num(); i++ )
 			if( Pairs(i).Key==Key )
 				break;
 		if( i==Pairs.Num() )
@@ -516,7 +517,8 @@ public:
 	}
 	UBOOL Find( const TK& Key, TI& Value ) const
 	{
-		for( INT i=0; i<Pairs.Num(); i++ )
+		INT i;
+		for( i=0; i<Pairs.Num(); i++ )
 			if( Pairs(i).Key==Key )
 				break;
 		if( i<Pairs.Num() )
@@ -525,7 +527,8 @@ public:
 	}
 	UBOOL Find(const TK& Key, TI*& Value) 
 	{
-		for (INT i = 0; i < Pairs.Num(); i++)
+		INT i;
+		for (i = 0; i < Pairs.Num(); i++)
 			if (Pairs(i).Key == Key)
 				break;
 		if (i < Pairs.Num())
@@ -536,7 +539,8 @@ public:
 	}
 	TI* Find(const TK& Key) 
 	{
-		for (INT i = 0; i < Pairs.Num(); i++)
+		INT i;
+		for (i = 0; i < Pairs.Num(); i++)
 			if (Pairs(i).Key == Key)
 				break;
 		if (i < Pairs.Num())

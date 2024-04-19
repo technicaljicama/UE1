@@ -372,7 +372,8 @@ UBOOL UGameEngine::Browse( FURL URL, char* Error256 )
 		if( LoadMap(FURL(&LastURL,Temp,TRAVEL_Partial),NULL,Error256) )
 		{
 			// Copy the hub stack.
-			for( INT i=0; i<GLevel->GetLevelInfo()->HubStackLevel; i++ )
+			INT i;
+			for( i=0; i<GLevel->GetLevelInfo()->HubStackLevel; i++ )
 			{
 				char Src[256], Dest[256];
 				appSprintf( Src, "%s\\Save%i%i.usa", GSys->SavePath, appAtoi(Option), i );
@@ -621,7 +622,8 @@ ULevel* UGameEngine::LoadMap( const FURL& URL, UPendingLevel* Pending, char* Err
 	guard(SetupZoneTable);
 	QWORD OldConvConn[64];
 	QWORD ConvConn[64];
-	for( INT i=0; i<64; i++ )
+	INT i, j;
+	for( i=0; i<64; i++ )
 	{
 		for ( INT j=0; j<64; j++ )
 		{
@@ -634,7 +636,7 @@ ULevel* UGameEngine::LoadMap( const FURL& URL, UPendingLevel* Pending, char* Err
 	}
 	for( i=1; i<64; i++ )
 	{
-		for( INT j=0; j<64; j++ )
+		for( j=0; j<64; j++ )
 			for( INT k=0; k<64; k++ )
 				if( (GLevel->ZoneDist[j][k] > i) && ((OldConvConn[j] & ((QWORD)1 << k)) != 0) )
 					GLevel->ZoneDist[j][k] = i;
@@ -707,7 +709,8 @@ ULevel* UGameEngine::LoadMap( const FURL& URL, UPendingLevel* Pending, char* Err
 		debugf( NAME_Log, "Bringing %s up for play...", GLevel->GetFullName() );
 
 		// Init touching actors.
-		for( INT i=0; i<GLevel->Num(); i++ )
+		INT i;
+		for( i=0; i<GLevel->Num(); i++ )
 			if( GLevel->Actors(i) )
 				for( INT j=0; j<ARRAY_COUNT(GLevel->Actors(i)->Touching); j++ )
 					GLevel->Actors(i)->Touching[j] = NULL;
@@ -788,7 +791,8 @@ ULevel* UGameEngine::LoadMap( const FURL& URL, UPendingLevel* Pending, char* Err
 	TArray<AActor*> Actors;
 	Actors.AddItem(GLevel->Element(0));
 	Actors.AddItem(GLevel->Element(1));
-	for( INT i=2; i<GLevel->Num(); i++ )
+	INT i;
+	for( i=2; i<GLevel->Num(); i++ )
 		if( GLevel->Element(i) && GLevel->Element(i)->bStatic )
 			Actors.AddItem( GLevel->Element(i) );
 	GLevel->iFirstDynamicActor=Actors.Num();
@@ -1189,7 +1193,8 @@ void UGameEngine::SaveGame( INT Position )
 	if( GObj.SavePackage( GLevel->GetParent(), GLevel, 0, Filename ) )
 	{
 		// Copy the hub stack.
-		for( INT i=0; i<GLevel->GetLevelInfo()->HubStackLevel; i++ )
+		INT i;
+		for( i=0; i<GLevel->GetLevelInfo()->HubStackLevel; i++ )
 		{
 			char Src[256], Dest[256];
 			appSprintf( Src, "%s\\Game%i.usa", GSys->SavePath, i );

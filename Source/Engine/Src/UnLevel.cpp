@@ -264,14 +264,15 @@ void ULevel::ReconcileActors()
 	check(GIsEditor);
 
 	// Dissociate all actor Viewports and remember their view properties.
-	for( int i=0; i<Num(); i++ )
+	int i;
+	for( i=0; i<Num(); i++ )
 		if( Actors(i) && Actors(i)->IsA(APlayerPawn::StaticClass) )
 			if( ((APlayerPawn*)Actors(i))->Player )
 				((APlayerPawn*)Actors(i))->Player = NULL;
 
 	// Match Viewports and Viewport-actors with identical names.
 	guard(MatchIdentical);
-	for( int i=0; i<Engine->Client->Viewports.Num(); i++ )
+	for( i=0; i<Engine->Client->Viewports.Num(); i++ )
 	{
 		UViewport* Viewport = Engine->Client->Viewports(i);
 		check(Viewport->Actor==NULL);
@@ -381,7 +382,8 @@ UBOOL ULevel::Listen( char* Error256 )
 			UGameEngine* GameEngine = CastChecked<UGameEngine>( Engine );
 
 			// Load server required packages.
-			for( INT i=0; i<ARRAY_COUNT(GameEngine->ServerPackages); i++ )
+			INT i;
+			for( i=0; i<ARRAY_COUNT(GameEngine->ServerPackages); i++ )
 			{
 				if( *GameEngine->ServerPackages[i] )
 				{

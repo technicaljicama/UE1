@@ -91,7 +91,8 @@ static HRESULT WINAPI ddEnumModesCallback( DDSURFACEDESC* SurfaceDesc, void* Con
 	{
 		Client->ddModeWidth [Client->ddNumModes] = SurfaceDesc->dwWidth;
 		Client->ddModeHeight[Client->ddNumModes] = SurfaceDesc->dwHeight;
-		for( INT i=0; i<Client->ddNumModes; i++ )
+		INT i;
+		for( i=0; i<Client->ddNumModes; i++ )
 			if
 			(	((DWORD)Client->ddModeWidth [i]==SurfaceDesc->dwWidth)
 			&&	((DWORD)Client->ddModeHeight[i]==SurfaceDesc->dwHeight))
@@ -728,7 +729,8 @@ void UWindowsViewport::FindAvailableModes()
 
 	// Completely rebuild the "Size" submenu based on what modes are available.
 	int n=GetMenuItemCount( hSizes );
-	for( int i=0; i<n; i++ )
+	int i;
+	for( i=0; i<n; i++ )
 		if( !DeleteMenu(hSizes,0,MF_BYPOSITION) )
 			appErrorf( "DeleteMenu failed: %s", winError() );
 
@@ -999,7 +1001,8 @@ UViewport* UWindowsClient::CurrentViewport()
 {
 	guard(UWindowsClient::CurrentViewport);
 	UWindowsViewport* TestViewport = NULL;
-	for( int i=0; i<Viewports.Num(); i++ )
+	int i;
+	for( i=0; i<Viewports.Num(); i++ )
 	{
 		TestViewport = (UWindowsViewport*)Viewports(i);
      	if( TestViewport->Current )

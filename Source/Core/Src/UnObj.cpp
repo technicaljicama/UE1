@@ -797,7 +797,8 @@ void UObject::SaveConfig( DWORD Flags, const char* Filename )
 			}
 		}
 	}
-	for( UClass* BaseClass=GetClass(); BaseClass->GetSuperClass(); BaseClass=BaseClass->GetSuperClass() )
+	UClass* BaseClass;
+	for( BaseClass=GetClass(); BaseClass->GetSuperClass(); BaseClass=BaseClass->GetSuperClass() )
 		if( !(BaseClass->GetSuperClass()->ClassFlags & CLASS_Config) )
 			break;
 	if( BaseClass )
@@ -1295,7 +1296,8 @@ private:
 		guard(FArchiveShowReferences<<Obj);
 		if( Obj && Obj->GetParent()!=Parent )
 		{
-			for( INT i=0; i<Exclude.Num(); i++ )
+			INT i;
+			for( i=0; i<Exclude.Num(); i++ )
 				if( Exclude(i) == Obj->GetParent() )
 					break;
 			if( i==Exclude.Num() )
@@ -1512,7 +1514,8 @@ UBOOL FObjectManager::Exec( const char* Cmd, FOutputDevice* Out )
 				INT ThisSize = It->MemUsage();
 				TotalCount++;
 
-				for( int i=0; i<Num; i++ )
+				int i;
+				for( i=0; i<Num; i++ )
 					if( TypeList[i] == It->GetClass() )
 						break;
 				if( i==Num && Num<MAX )
@@ -1669,7 +1672,8 @@ ULinkerLoad* FObjectManager::GetPackageLinker
 		// Verify compatibility.
 		if( CompatibleGuid )
 		{
-			for( INT i=0; i<Result->Heritage.Num(); i++ )
+			INT i;
+			for( i=0; i<Result->Heritage.Num(); i++ )
 				if( Result->Heritage(i)==*CompatibleGuid )
 					break;
 			if( i==Result->Heritage.Num() )
@@ -2221,7 +2225,8 @@ UBOOL FObjectManager::SavePackage( UObject* InParent, UObject* Base, DWORD TopLe
 
 		// Set linker reverse mappings.
 		guard(SetLinkerMappings);
-		for( INT i=0; i<Linker->ExportMap.Num(); i++ )
+		INT i;
+		for( i=0; i<Linker->ExportMap.Num(); i++ )
 			Linker->ObjectIndices(Linker->ExportMap(i)._Object->GetIndex()) = i+1;
 		for( i=0; i<Linker->ImportMap.Num(); i++ )
 			Linker->ObjectIndices(Linker->ImportMap(i).Object->GetIndex()) = -i-1;
@@ -2917,10 +2922,11 @@ void CacheDrivers( UBOOL ForceRefresh )
 	char Buffer[32767];
 	if( ForceRefresh || appStricmp(CachedLanguage,GetLanguage())!=0 )
 	{
+		INT i;
 		appStrcpy( CachedLanguage, GetLanguage() );
 		AllPreferences.Empty();
 		AllDrivers.Empty();
-		for( INT i=0; i<ARRAY_COUNT(GSys->Paths); i++ )
+		for( i=0; i<ARRAY_COUNT(GSys->Paths); i++ )
 		{
 			if( GSys->Paths[i] )
 			{
@@ -3089,7 +3095,8 @@ void UEnum::Export( FOutputDevice& Out, const char* FileType, int Indent )
 	{
 		// C++ header.
 		Out.Logf("%senum %s\r\n{\r\n",appSpc(Indent),GetName());
-		for( int i=0; i<Names.Num(); i++ )
+		int i;
+		for( i=0; i<Names.Num(); i++ )
 			Out.Logf( "%s    %-24s=%i,\r\n", appSpc(Indent), *Names(i), i );
 
 		if( appStrchr(*Names(0),'_') )
@@ -3222,7 +3229,8 @@ void FPackageMap::AddLinker( ULinkerLoad* Linker )
 	guard(FPackageMap::AddLinker);
 
 	// Skip if already on list.
-	for( INT i=0; i<Num(); i++ )
+	INT i;
+	for( i=0; i<Num(); i++ )
 		if( (*this)(i).Parent == Linker->LinkerRoot )
 			return;
 
@@ -3243,7 +3251,8 @@ void FPackageMap::AddLinker( ULinkerLoad* Linker )
 void FPackageMap::Compute()
 {
 	guard(FPackageInfo::Compute);
-	for( INT i=0; i<Num(); i++ )
+	INT i;
+	for( i=0; i<Num(); i++ )
 	{
 		if( (*this)(i).Linker==NULL )
 			(*this)(i).Linker = GObj.GetPackageLinker( (*this)(i).Parent, NULL, LOAD_NoFail | LOAD_KeepImports, NULL, &(*this)(i).Guid );

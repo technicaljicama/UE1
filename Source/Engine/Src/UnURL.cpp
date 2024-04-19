@@ -361,7 +361,8 @@ void FURL::AddOption( const char* Str )
 {
 	guard(FURL::AddOption);
 	int Match = appStrchr(Str,'=') ? appStrchr(Str,'=')+1-Str : appStrlen(Str)+1;
-	for( int i=0; i<Op.Num(); i++ )
+	int i;
+	for( i=0; i<Op.Num(); i++ )
 		if( appStrnicmp( *Op(i), Str, Match )==0 )
 			break;
 	if( i==Op.Num() )	new( Op )FString( Str );

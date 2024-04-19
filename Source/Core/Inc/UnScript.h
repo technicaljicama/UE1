@@ -62,7 +62,7 @@ enum EFunctionFlags
 //
 // Evaluatable expression item types.
 //
-enum EExprToken
+enum EExprToken : unsigned short
 {
 	// Variable references which map onto propery bin numbers.
 	EX_LocalVariable		= 0x00,	// A local variable.
@@ -187,7 +187,7 @@ BYTE CORE_API GRegisterIntrinsic( int iIntrinsic, void* Func );
 // Registering an intrinsic function.
 //
 #define AUTOREGISTER_INTRINSIC(cls,num,func) \
-	extern "C" DLL_EXPORT void (cls::*int##cls##func)( FFrame& Stack, BYTE*& Result ) =&cls::func; \
+	extern "C" { DLL_EXPORT void (cls::*int##cls##func)( FFrame& Stack, BYTE*& Result ) =&cls::func; } \
 	static BYTE func##Temp = GRegisterIntrinsic(num,*(void**)&int##cls##func);
 
 /*-----------------------------------------------------------------------------

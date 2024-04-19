@@ -305,10 +305,10 @@ int FPoly::SplitWithPlaneFast
 	guard(FPoly::SplitWithPlaneFast);
 
 	enum {V_FRONT=0,V_BACK=1} Status,PrevStatus,VertStatus[MAX_VERTICES],*StatusPtr;
-	int Front=0,Back=0;
+	int Front=0,Back=0,i;
 
 	StatusPtr = &VertStatus[0];
-	for( int i=0; i<NumVertices; i++ )
+	for( i=0; i<NumVertices; i++ )
 	{
 		FLOAT Dist = Plane.PlaneDot(Vertex[i]);
 		if( Dist >= 0.0 )

@@ -137,8 +137,8 @@ protected:
 		{BYTE B = (BYTE)E; Ar << B; E=(EnumType)B; return Ar;}
 
 // Serialize these enums as bytes.
+enum EExprToken : unsigned short;
 ARCHIVE_ENUM_AS_BYTE(EExprToken);
-ARCHIVE_ENUM_AS_BYTE(ECodeToken);
 
 /*----------------------------------------------------------------------------
 	The End.

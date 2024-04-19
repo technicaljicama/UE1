@@ -308,7 +308,8 @@ FMovingBrushTracker::FMovingBrushTracker( ULevel* ThisLevel )
 	iTopBrushMap		= 0;
 
 	// Note that all actors are unassimilated.
-	for( INT i=0; i<Level->Num(); i++ )
+	INT i;
+	for( i=0; i<Level->Num(); i++ )
 		if( Level->Actors(i) )
 			Level->Actors(i)->bAssimilated = 0;
 
@@ -1039,7 +1040,8 @@ void FMovingBrushTracker::AddActorBrush( AActor* Actor )
 	FLOAT Orientation = ((ABrush*)Actor)->BuildCoords(&Coords,NULL);
 
 	int Total=0;
-	for( int i=0; i<Brush->Polys->Num(); i++ )
+	int i;
+	for( i=0; i<Brush->Polys->Num(); i++ )
 		Total += Brush->Polys->Element(i).NumVertices;
 
 	FPoly	*TransformedPolys = new( GMem, Brush->Polys->Num() )FPoly;
@@ -1303,7 +1305,8 @@ void FMovingBrushTracker::UpdateBrushes( AActor** Actors, int Num )
 	NumTouchActors = 0;
 
 	// Eliminate actors that haven't moved.
-	for( INT i=0; i<NumGroupActors; i++ )
+	INT i;
+	for( i=0; i<NumGroupActors; i++ )
 	{
 		AMover* Actor = GroupActors[i];
 		if( Actor->SavedPos==Actor->Location && Actor->SavedRot==Actor->Rotation )

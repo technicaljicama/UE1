@@ -214,7 +214,8 @@ void AActor::execGetMapName( FFrame& Stack, BYTE*& Result )
 	char Wildcard[256];
 	TArray<FString> MapNames;
 	appSprintf( Wildcard, "*.%s", FURL::DefaultMapExt );
-	for( INT i=0; i<ARRAY_COUNT(GSys->Paths); i++ )
+	INT i;
+	for( i=0; i<ARRAY_COUNT(GSys->Paths); i++ )
 	{
 		if( appStrstr( GSys->Paths[i], Wildcard ) )
 		{
@@ -227,7 +228,8 @@ void AActor::execGetMapName( FFrame& Stack, BYTE*& Result )
 			TArray<FString>	TheseNames = appFindFiles(Tmp);
 			for( INT i=0; i<TheseNames.Num(); i++ )
 			{
-				for( INT j=0; j<MapNames.Num(); j++ )
+				INT j;
+				for( j=0; j<MapNames.Num(); j++ )
 					if( appStricmp(*MapNames(j),*TheseNames(i))==0 )
 						break;
 				if( j==MapNames.Num() )
@@ -1381,7 +1383,8 @@ DWORD APawn::LineOfSightTo(AActor *Other, int bShowSelf)
 	int imax = 0;
 	FLOAT currentmin = Points[0].SizeSquared(); 
 	FLOAT currentmax = currentmin; 
-	for (INT i=1;i<4;i++)
+	INT i;
+	for (i=1;i<4;i++)
 	{
 		FLOAT nextsize = Points[i].SizeSquared(); 
 		if (nextsize > currentmax)

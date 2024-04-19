@@ -387,7 +387,8 @@ class CORE_API ULinker : public UObject
 
 		// Prevent garbage collecting of linker's names and package.
 		Ar << NameMap << LinkerRoot;
-		for( INT i=0; i<ExportMap.Num(); i++ )
+		INT i;
+		for( i=0; i<ExportMap.Num(); i++ )
 		{
 			FObjectExport& E = ExportMap(i);
 			Ar << E.ObjectName << E.OldGroup << E.ClassPackage << E.ClassName;
@@ -619,8 +620,9 @@ class ULinkerLoad : public ULinker, public FArchiveFileLoad
 					VerifyImport( -Import.PackageIndex-1 );
 					Import.SourceLinker = ImportMap(-Import.PackageIndex-1).SourceLinker;
 					check(Import.SourceLinker);
+					FObjectImport* Top;
 					for
-					(	FObjectImport* Top = &Import
+					(	Top = &Import
 					;	Top->PackageIndex<0
 					;	Top = &ImportMap(-Top->PackageIndex-1) );
 					Pkg = GObj.CreatePackage( NULL, *Top->ObjectName );

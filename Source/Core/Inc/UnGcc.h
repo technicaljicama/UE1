@@ -1,0 +1,179 @@
+/*=============================================================================
+	UnGcc.h: Unreal definitions for GCC/Clang running under Win32 or a POSIX OS.
+=============================================================================*/
+
+/*----------------------------------------------------------------------------
+	Platform compiler definitions.
+----------------------------------------------------------------------------*/
+
+#ifdef PLATFORM_WIN32
+#define __WIN32__	1
+#endif
+
+#ifndef PLATFORM_BIG_ENDIAN
+#define __INTEL__	1
+#endif
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+
+#ifdef PLATFORM_WIN32
+#include <minwindef.h>
+#endif
+
+/*----------------------------------------------------------------------------
+	Platform specifics types and defines.
+----------------------------------------------------------------------------*/
+
+// Undo any Windows defines.
+#undef BYTE
+#undef CHAR
+#undef WORD
+#undef DWORD
+#undef INT
+#undef FLOAT
+#undef MAXBYTE
+#undef MAXWORD
+#undef MAXDWORD
+#undef MAXINT
+#undef VOID
+#undef CDECL
+
+// Make sure HANDLE is defined.
+#ifndef _WINDOWS_
+	#define HANDLE uintptr_t
+	#define HINSTANCE uintptr_t
+#endif
+
+// Sizes.
+enum {DEFAULT_ALIGNMENT = 8 }; // Default boundary to align memory allocations on.
+enum {CACHE_LINE_SIZE   = 32}; // Cache line size.
+
+// Optimization macros.
+#define DISABLE_OPTIMIZATION _Pragma("GCC push_options") \
+	_Pragma("GCC optimize(\"O0\")")
+#define ENABLE_OPTIMIZATION  _Pragma("GCC pop_options")
+
+// Function type macros.
+#define VARARGS  /* Functions with variable arguments */
+#ifdef PLATFORM_WIN32
+#define DLL_IMPORT __declspec(dllimport)  /* Import function from DLL */
+#define DLL_EXPORT __declspec(dllexport)  /* Export function to DLL */
+#define CDECL __attribute__((cdecl))      /* Standard C function */
+#define STDCALL __attribute__((stdcall))  /* Standard calling convention */
+#else
+#define DLL_IMPORT
+#define DLL_EXPORT
+#define CDECL
+#define STDCALL
+#define __cdecl
+#define __stdcall
+#endif
+
+// Variable arguments.
+#define GET_VARARGS(msg,fmt) {va_list va_;va_start(va_,fmt); appGetVarArgs(msg,fmt,va_);va_end(va_);}
+#define GET_VARARGSR(msg,fmt,result) {va_list va_;va_start(va_,fmt);result = appGetVarArgs(msg,fmt,va_);va_end(va_);}
+
+// Compiler name.
+#ifdef _DEBUG
+	#define COMPILER "Compiled with GCC (Debug)"
+#else
+	#define COMPILER "Compiled with GCC"
+#endif
+
+// Unsigned base types.
+typedef uint16_t _WORD;  // 16-bit signed.
+typedef uint64_t QWORD;  // 64-bit unsigned.
+
+// Signed base types.
+typedef char     CHAR;   // 8-bit  signed.
+typedef int16_t  SWORD;  // 16-bit signed.
+typedef int64_t  SQWORD; // 64-bit signed.
+
+// Other base types.
+typedef int32_t  UBOOL;  // Boolean 0 (false) or 1 (true).
+typedef double   DOUBLE; // 64-bit IEEE double.
+
+#ifndef PLATFORM_WIN32 // On Windows these are defined in minwindef.h.
+// Unsigned base types.
+typedef uint8_t  BYTE;   // 8-bit  unsigned.
+typedef uint32_t DWORD;  // 32-bit unsigned.
+// Signed base types.
+typedef int32_t  INT;    // 32-bit signed.
+// Other base types.
+typedef float    FLOAT;  // 32-bit IEEE floating point.
+#endif
+
+// If C++ exception handling is disabled, force guarding to be off.
+#ifdef PLATFORM_NO_EXCEPTIONS
+	#undef  DO_GUARD
+	#undef  DO_SLOW_GUARD
+	#define DO_GUARD 0
+	#define DO_SLOW_GUARD 0
+#endif
+
+// Make sure characters are signed.
+static_assert((char)-1 < 0, "char must be signed.");
+
+// No VC++ asm.
+#undef ASM
+#define ASM 0
+#define __asm ERROR_ASM_NOT_ALLOWED
+
+// FILE forward declaration.
+#define USEEK_CUR SEEK_CUR
+#define USEEK_END SEEK_END
+#define USEEK_SET SEEK_SET
+
+// NULL.
+#ifndef NULL
+#define NULL 0
+#endif
+
+// Package implementation.
+#ifdef PLATFORM_WIN32
+	#define IMPLEMENT_PACKAGE_PLATFORM(pkgname) \
+		extern "C" {HINSTANCE hInstance;} \
+		INT DLL_EXPORT STDCALL DllMain( HINSTANCE hInInstance, DWORD Reason, void* Reserved ) \
+		{ hInstance = hInInstance; return 1; }
+#else
+	#define IMPLEMENT_PACKAGE_PLATFORM(pkgname) \
+		extern "C" {HINSTANCE hInstance;} \
+		BYTE GLoaded##pkgname;
+#endif
+
+/*----------------------------------------------------------------------------
+	Functions.
+----------------------------------------------------------------------------*/
+
+//
+// CPU cycles, related to GSecondsPerCycle.
+//
+CORE_API DWORD appCycles();
+
+//
+// Seconds, arbitrarily based.
+//
+extern CORE_API DOUBLE GSecondsPerCycle;
+CORE_API DOUBLE appSeconds();
+
+/*----------------------------------------------------------------------------
+	Globals.
+----------------------------------------------------------------------------*/
+
+// System identification.
+extern "C"
+{
+	extern HINSTANCE      hInstance;
+	extern CORE_API UBOOL GIsMMX;
+	extern CORE_API UBOOL GIsPentiumPro;
+	extern CORE_API UBOOL GIsKatmai;
+	extern CORE_API UBOOL GIsK6;
+	extern CORE_API UBOOL GIsK63D;
+}
+
+/*----------------------------------------------------------------------------
+	The End.
+----------------------------------------------------------------------------*/

@@ -85,7 +85,8 @@ void FGlobalRandoms::Tick( FLOAT TimeSeconds )
 	// *(int*)&result = (*(int*)&temp & 0xff800000) | (randombits & 0x007fffff);
 
 	// Regenerate all random bases for temporally discontinuous random numbers.
-	for( int i=0; i<N_RANDS; i++ )
+	int i;
+	for( i=0; i<N_RANDS; i++ )
 		RandomBases[i] = appFrand();
 	
 	// Update range of random numbers.

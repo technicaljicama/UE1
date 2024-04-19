@@ -493,6 +493,8 @@ enum EPhysics
     PHYS_MAX                =12,
 };
 
+enum ELevelTick : int;
+
 class ENGINE_API AActor : public UObject
 {
 public:

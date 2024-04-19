@@ -120,7 +120,8 @@ FCollisionHash::FCollisionHash()
 	// Initialize collision basis tables if necessary.
 	if( !InitializedBasis )
 	{
-		for( int i=0; i<NUM_BUCKETS; i++ )
+		int i;
+		for( i=0; i<NUM_BUCKETS; i++ )
 		{
 			HashX[i] = HashY[i] = HashZ[i] = i;
 		}

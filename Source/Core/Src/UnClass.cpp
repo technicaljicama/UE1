@@ -217,7 +217,8 @@ UField::UField( UField* InSuperField )
 UClass* UField::GetOwnerClass()
 {
 	guardSlow(UField::GetOwnerClass);
-	for( UObject* Obj=this; Obj->GetClass()!=UClass::StaticClass; Obj=Obj->GetParent() );
+	UObject* Obj;
+	for( Obj=this; Obj->GetClass()!=UClass::StaticClass; Obj=Obj->GetParent() );
 	return (UClass*)Obj;
 	unguardSlow;
 }
@@ -273,7 +274,7 @@ static void BuildVfHashes( UStruct* Struct )
 	{
 		// Allocate hash.
 		if( !State->VfHash )
-			State->VfHash = new("vfhash")UField*[UField::HASH_COUNT];
+			State->VfHash = new UField*[UField::HASH_COUNT];
 
 		// Initialize hash.
 		UField** PrevLink[UField::HASH_COUNT];
@@ -401,7 +402,8 @@ void UStruct::SerializeTaggedProperties( FArchive& Ar, BYTE* Data, UClass* Defau
 				Tag.ItemName = "Rotator";
 			if( Tag.Type==NAME_StructProperty && appStricmp(*Tag.ItemName,"Region")==0 )//oldver
 				Tag.ItemName = "PointRegion";
-			for( TFieldIterator<UProperty> It(this); It; ++It )
+			TFieldIterator<UProperty> It(this);
+			for( ; It; ++It )
 				if( It->GetFName()==Tag.Name )
 					break;
 			if( !It )
@@ -733,7 +735,8 @@ void UClass::Export( FOutputDevice& Out, const char* FileType, int Indent )
 			}
 
 			// C++ -> UnrealScript stubs.
-			for( TFieldIterator<UFunction> Function(this); Function && Function.GetStruct()==this; ++Function )
+			TFieldIterator<UFunction> Function(this);
+			for( ; Function && Function.GetStruct()==this; ++Function )
 			{
 				if( Function->FunctionFlags & FUNC_Intrinsic )
 				{
@@ -760,7 +763,8 @@ void UClass::Export( FOutputDevice& Out, const char* FileType, int Indent )
 					// Function name and parms.
 					INT ParmCount=0;
 					Out.Logf( " event%s(", Function->GetName() );
-					for( TFieldIterator<UProperty> It(*Function); It && (It->PropertyFlags&(CPF_Parm|CPF_ReturnParm))==CPF_Parm; ++It )
+					TFieldIterator<UProperty> It(*Function);
+					for( ; It && (It->PropertyFlags&(CPF_Parm|CPF_ReturnParm))==CPF_Parm; ++It )
 					{
 						if( ParmCount++ )
 							Out.Log(", ");

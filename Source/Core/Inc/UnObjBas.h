@@ -380,7 +380,7 @@ public: \
 // Register a class at startup time.
 #define IMPLEMENT_CLASS(ClassName) \
 	/* Register this class globally */ \
-	extern "C" DLL_EXPORT UClass autoclass##ClassName \
+	extern "C" { DLL_EXPORT UClass autoclass##ClassName \
 	( \
 		sizeof(ClassName), \
 		ClassName::StaticRecordSize, \
@@ -391,13 +391,13 @@ public: \
 		FName(GPackage), \
 		(void(*)(void*))ClassName::InternalConstructor, \
 		(void(*)(UClass*))ClassName::InternalClassInitializer \
-	); \
+	); } \
 	/* Static variable. */ \
 	UClass* ClassName::StaticClass = &autoclass##ClassName;
 
 // Define the package of the current DLL being compiled.
 #define IMPLEMENT_PACKAGE(pkg) \
-	extern "C" DLL_EXPORT char GPackage[] = #pkg; \
+	extern "C" { DLL_EXPORT char GPackage[] = #pkg; } \
 	IMPLEMENT_PACKAGE_PLATFORM(pkg)
 
 /*----------------------------------------------------------------------------

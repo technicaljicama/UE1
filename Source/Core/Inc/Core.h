@@ -28,7 +28,7 @@
 #if _MSC_VER
 #include "UnVcWin32.h"
 #else
-#error Unknown Compiler
+#include "UnGcc.h"
 #endif
 // API definition.
 

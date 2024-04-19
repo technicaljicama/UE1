@@ -21,7 +21,8 @@ FGlobalMath::FGlobalMath()
 	UnitScale			(FVector(1,1,1),0.0,SHEER_ZX)
 {
 	// Init base angle table.
-	for( int i=0; i<NUM_ANGLES; i++ )
+	int i;
+	for( i=0; i<NUM_ANGLES; i++ )
 		TrigFLOAT[i] = appSin((FLOAT)i * 2.0 * PI / (FLOAT)NUM_ANGLES);
 
 	// Init square root table.

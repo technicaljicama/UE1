@@ -24,7 +24,8 @@ public:
 		if( !Result )
 		{
 			INT Count=0, Temp=0;
-			for( TFieldIterator<UProperty> It(Class); It; ++It )
+			TFieldIterator<UProperty> It(Class);
+			for( ; It; ++It )
 				if( It->PropertyFlags & CPF_Input )
 					Count++;
 			Result = (FInputVarCache*)GCache.Create(CacheId,Item,sizeof(FInputVarCache)+Count*sizeof(UProperty*));
@@ -122,7 +123,8 @@ BYTE* UInput::FindButtonName( AActor* Actor, const char* ButtonName ) const
 	{
 		FCacheItem* Item;
 		FInputVarCache* Cache = FInputVarCache::Get( Actor->GetClass(), Item );
-		for( INT i=0; i<Cache->Count; i++ )
+		INT i;
+		for( i=0; i<Cache->Count; i++ )
 			if
 			(	Cache->Properties[i]->GetFName()==Button
 			&&	Cast<UByteProperty>(Cache->Properties[i]) )

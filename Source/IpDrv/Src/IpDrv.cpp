@@ -555,7 +555,8 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 
 		// Crack the URL.
 		const char* s = *URL.Host;
-		for( INT i=0; i<4 && s!=NULL && *s>='0' && *s<='9'; i++ )
+		INT i;
+		for( i=0; i<4 && s!=NULL && *s>='0' && *s<='9'; i++ )
 		{
 			s = strchr(s,'.');
 			if( s )

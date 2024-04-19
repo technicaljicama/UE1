@@ -19,6 +19,7 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <sys/utime.h>
+#include <memory>
 
 #include "Core.h"
 
@@ -37,7 +38,7 @@ char GLogFname[256]="", GReadIni[256]="", GWriteIni[256]="";
 -----------------------------------------------------------------------------*/
 
 CORE_API DWORD hWndMain=0, hWndProgressBar=0, hWndProgressText=0, hWndCallback=0;
-static int CDECL UnrealAllocationErrorHandler(size_t);
+static void UnrealAllocationErrorHandler( );
 
 static void Recurse()
 {
@@ -318,7 +319,8 @@ void appInit()
 	char Comp[MAX_COMPUTERNAME_LENGTH+1]="";
 	DWORD Size=MAX_COMPUTERNAME_LENGTH+1;
 	GetComputerName( Comp, &Size );
-	for( char *c=Comp, *d=GComputerName; *c!=0; c++ )
+	char *d=GComputerName;
+	for( char *c=Comp; *c!=0; c++ )
 		if( appIsAlnum(*c) && d<GComputerName+ARRAY_COUNT(GComputerName)-1 )
 			*d++ = *c;
 	*d++ = 0;
@@ -455,10 +457,7 @@ void appInit()
 	appEnableFastMath( 0 );
 
 	// Handle operator new allocation errors.
-	_set_new_handler(UnrealAllocationErrorHandler);
-
-	// Handle malloc allocation errors.
-	_set_new_mode( 1 );	
+	std::set_new_handler(UnrealAllocationErrorHandler);
 }
 
 //
@@ -849,10 +848,9 @@ UBOOL VARARGS FGlobalPlatform::YesNof( const char* Fmt, ... )
 //
 // Allocation error handler.
 //
-static int CDECL UnrealAllocationErrorHandler( size_t )
+static void UnrealAllocationErrorHandler( )
 {
 	appErrorf( LocalizeError("OutOfMemory") );
-	return 0;
 }
 
 //
@@ -1250,7 +1248,8 @@ CORE_API const char* appBaseDir()
 	{
 		// Get directory this executable was launched from.
 		GetModuleFileName( hInstance, BaseDir, ARRAY_COUNT(BaseDir) );
-		for (INT i = strlen(BaseDir) - 1; i > 0; i--)
+		INT i;
+		for (i = strlen(BaseDir) - 1; i > 0; i--)
 			if (BaseDir[i - 1] == '\\' || BaseDir[i - 1] == '/')
 				break;
 		BaseDir[i] = 0;

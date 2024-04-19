@@ -506,7 +506,8 @@ APlayerPawn* ULevel::SpawnPlayActor( UPlayer* Player, ENetRole RemoteRole, const
 
 	// Make the option string.
 	char Options[1024]="";
-	for( INT i=0; i<URL.Op.Num(); i++ )
+	INT i;
+	for( i=0; i<URL.Op.Num(); i++ )
 	{
 		appStrcat( Options, "?" );
 		appStrcat( Options, *URL.Op(i) );
@@ -687,8 +688,9 @@ UBOOL ULevel::FindSpot
 		return 1;
 	FVector Adjusted = Location;
 	FLOAT TraceLen = Extent.Size() + 2.0;
+	int i;
 
-	for (int i=-1;i<2;i+=2)
+	for (i=-1;i<2;i+=2)
 	{
 		AdjustSpot(Adjusted, Adjusted + FVector(i * Extent.X,0,0), Extent.X, Hit); 
 		AdjustSpot(Adjusted, Adjusted + FVector(0,i * Extent.Y,0), Extent.Y, Hit); 
@@ -1035,7 +1037,8 @@ UBOOL ULevel::CheckEncroachment
 	// Query the mover about what he wants to do with the actors he is encroaching.
 	FMemMark Mark(GMem);
 	FCheckResult* FirstHit = Hash ? Hash->ActorEncroachmentCheck( GMem, Actor, TestLocation, TestRotation, 0 ) : NULL;	
-	for( FCheckResult* Test = FirstHit; Test!=NULL; Test=Test->GetNext() )
+	FCheckResult* Test;
+	for( Test = FirstHit; Test!=NULL; Test=Test->GetNext() )
 	{
 		int noProcess = 0;
 		if
@@ -1202,7 +1205,8 @@ UBOOL ULevel::SingleLineCheck
 	);
 
 	// Skip owned actors and return the one nearest actor.
-	for( FCheckResult* Check = FirstHit; Check!=NULL; Check=Check->GetNext() )
+	FCheckResult* Check;
+	for( Check = FirstHit; Check!=NULL; Check=Check->GetNext() )
 	{
 		if( !SourceActor || !SourceActor->IsOwnedBy( Check->Actor ) )
 		{

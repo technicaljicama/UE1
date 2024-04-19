@@ -76,23 +76,8 @@ struct ENGINE_API FSceneNode
 	FLOAT		FX2, FY2;		// Floating point SXR / 2.0.
 	FLOAT		Zoom;			// Zoom value, based on OrthoZoom and size.
 	FLOAT		RZoom;			// 1.0/OrthoZoom.
-	union
-	{
-		struct
-		{
-			FVector	Proj;      	// Projection vector.
-			FVector RProj;		// Reverse projection vector.
-		};
-		struct
-		{
-			FLOAT Proj_X;
-			FLOAT Proj_Y;
-			FLOAT Proj_Z;
-			FLOAT RProj_X;
-			FLOAT RProj_Y;
-			FLOAT RProj_Z;
-		};
-	};
+	FVector	Proj;      	// Projection vector.
+	FVector RProj;		// Reverse projection vector.
 	FLOAT PrjXM, PrjYM, PrjXP, PrjYP; // Clipping numbers.
 
 	FVector		ViewSides[4];	// 4 unit vectors indicating view frustrum extent lines.

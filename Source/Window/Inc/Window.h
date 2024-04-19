@@ -84,7 +84,8 @@ public:
 	static LONG APIENTRY StaticProc( WNDPROC DefProc, HWND hWnd, UINT Message, UINT wParam, LONG lParam )
 	{
 		guard(WWindow::StaticProc);
-		for( INT i=0; i<Windows.Num(); i++ )
+		INT i;
+		for( i=0; i<Windows.Num(); i++ )
 			if( Windows(i)->hWnd==hWnd )
 				break;
 		if( i==Windows.Num() && (Message==WM_NCCREATE || Message==WM_INITDIALOG) )
@@ -1534,7 +1535,8 @@ public:
 		while( Index+1<Count )
 		{
 			FTreeItem* NextItem = OwnerProperties->GetListItem(Index+1);
-			for( FTreeItem* Check=NextItem->Parent; Check && Check!=this; Check=Check->Parent );
+			FTreeItem* Check;
+			for( Check=NextItem->Parent; Check && Check!=this; Check=Check->Parent );
 			if( !Check )
 				break;
 			NextItem->Expanded = 0;
@@ -2566,7 +2568,8 @@ class WINDOW_API WProperties : public WPropertiesBase
 			QWORD      Id   = Item->GetId();
 			if( Item->Expandable && !Item->Expanded )
 			{
-				for( INT j=0; j<Remembered.Num(); j++ )
+				INT j;
+				for( j=0; j<Remembered.Num(); j++ )
 					if( Remembered(j)==Id )
 						break;
 				if( j<Remembered.Num() )
@@ -3021,7 +3024,8 @@ public:
 		for( INT i=0; i<NewPrefs.Num(); i++ )
 		{
 			char Temp[256];
-			for( INT j=0; j<Children.Num(); j++ )
+			INT j;
+			for( j=0; j<Children.Num(); j++ )
 			{
 				if( appStricmp( Children(j)->GetCaption(Temp), NewPrefs(i).Caption )==0 )
 					break;

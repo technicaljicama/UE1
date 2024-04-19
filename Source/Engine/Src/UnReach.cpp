@@ -14,7 +14,7 @@
 supports() -
  returns true if it supports the requirements of aPawn.  Distance is not considered.
 */
-inline int FReachSpec::supports (int iRadius, int iHeight, int moveFlags)
+int FReachSpec::supports (int iRadius, int iHeight, int moveFlags)
 {
 	return ( (CollisionRadius >= iRadius) 
 		&& (CollisionHeight >= iHeight)

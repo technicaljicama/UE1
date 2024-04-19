@@ -125,7 +125,9 @@ void RenderSubsurface
 			Pts[3]=Tmp+0;
 			Pts[4]=Tmp+1;
 			Pts[5]=Tmp+2;
-			for( INT i=0,j=2; i<3; j=i++ ) if( CutSide[j] )
+			INT i;
+			INT j=2;
+			for( i=0; i<3; j=i++ ) if( CutSide[j] )
 			{
 				// Compute midpoint.
 				FTransTexture& MidPt = *Pts[j+3];
@@ -373,7 +375,8 @@ void URender::DrawMesh
 		check(Owner->Texture);
 		FTransform** SortedPts = New<FTransform*>(GMem,Mesh->FrameVerts);
 		INT Count=0;
-		for( INT i=0; i<Mesh->FrameVerts; i++ )
+		INT i;
+		for( i=0; i<Mesh->FrameVerts; i++ )
 		{
 			if( !Samples[i].Flags && Samples[i].Point.Z>1.0 )
 			{
