@@ -337,6 +337,8 @@ CORE_API UBOOL Parse( const char* Stream, const char* Match, _WORD& Value );
 CORE_API UBOOL Parse( const char* Stream, const char* Match, SWORD& Value );
 CORE_API UBOOL Parse( const char* Stream, const char* Match, FLOAT& Value );
 CORE_API UBOOL Parse( const char* Stream, const char* Match, INT& Value );
+CORE_API UBOOL Parse( const char* Stream, const char* Match, QWORD& Value );
+CORE_API UBOOL Parse( const char* Stream, const char* Match, SQWORD& Value );
 CORE_API UBOOL ParseUBOOL( const char* Stream, const char* Match, UBOOL& OnOff );
 CORE_API UBOOL ParseObject( const char* Stream, const char* Match, class UClass* Type, class UObject*& DestRes, class UObject* InParent );
 CORE_API UBOOL ParseLine( const char** Stream, char* Result, INT MaxLen, UBOOL Exact=0 );

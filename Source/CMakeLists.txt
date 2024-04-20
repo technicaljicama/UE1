@@ -12,9 +12,9 @@ endif()
 
 # Options
 
-option(USE_SDL "Use NSDLDrv instead of WinDrv" OFF)
+option(USE_SDL "Use NSDLDrv instead of WinDrv" ON)
 option(BUILD_EDITOR "Build Editor (Windows only)" OFF)
-option(BUILD_SOFTDRV "Build SoftDrv (x86 only)" OFF)
+option(BUILD_SOFTDRV "Build SoftDrv (x86 only)" ON)
 option(BUILD_NULLSOUNDDRV "Build SoundDrv (Null driver)" ON)
 
 # Determine target arch and get normalized arch string
@@ -120,6 +120,25 @@ else()
   endif()
 endif()
 
+# Dependencies
+
+if(USE_SDL)
+  if(MSVC)
+    if(NOT DEFINED SDL2_INCLUDE_DIR)
+      set(SDL2_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../Thirdparty/SDL2/include")
+    endif()
+    if(NOT DEFINED SDL2_LIBRARY)
+      if(TARGET_IS_64BIT)
+        set(SDL2_LIBRARY "${CMAKE_SOURCE_DIR}/../Thirdparty/SDL2/lib/x64/SDL2.lib")
+      else()
+        set(SDL2_LIBRARY "${CMAKE_SOURCE_DIR}/../Thirdparty/SDL2/lib/x86/SDL2.lib")
+      endif()
+    endif()
+  else()
+    find_package(SDL2 REQUIRED)
+  endif()
+endif()
+
 # Subprojects
 
 set(INSTALL_TARGETS Core Engine Render IpDrv Fire Unreal)
@@ -134,9 +153,8 @@ add_subdirectory(Fire)
 
 if(USE_SDL)
   # SDL2
-  # add_subdirectory(NSDLWindow)
-  # add_subdirectory(NSDLDrv)
-  # list(APPEND INSTALL_TARGETS NSDLWindow NSDLDrv)
+  add_subdirectory(NSDLDrv)
+  list(APPEND INSTALL_TARGETS NSDLDrv)
 else()
   # archaic WinAPI shit
   add_subdirectory(Window)

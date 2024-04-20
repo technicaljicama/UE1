@@ -216,7 +216,7 @@ class ENGINE_API UViewport : public UPlayer
 	virtual void Unlock( UBOOL Blit=0 );
 	virtual void SetModeCursor()=0;
 	virtual void UpdateWindow()=0;
-	virtual void OpenWindow( DWORD ParentWindow, UBOOL Temporary, INT NewX, INT NewY, INT OpenX, INT OpenY )=0;
+	virtual void OpenWindow( void* ParentWindow, UBOOL Temporary, INT NewX, INT NewY, INT OpenX, INT OpenY )=0;
 	virtual void CloseWindow()=0;
 	virtual void UpdateInput( UBOOL Reset )=0;
 	virtual void MakeCurrent()=0;

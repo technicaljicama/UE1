@@ -97,7 +97,7 @@ class DLL_EXPORT UWindowsViewport : public UViewport, public WWindow
 	void Repaint();
 	void SetModeCursor();
 	void UpdateWindow();
-	void OpenWindow( DWORD ParentWindow, UBOOL Temporary, INT NewX, INT NewY, INT OpenX, INT OpenY );
+	void OpenWindow( void* ParentWindow, UBOOL Temporary, INT NewX, INT NewY, INT OpenX, INT OpenY );
 	void CloseWindow();
 	void UpdateInput( UBOOL Reset );
 	void MakeCurrent();

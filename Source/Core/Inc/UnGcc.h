@@ -43,8 +43,8 @@
 
 // Make sure HANDLE is defined.
 #ifndef _WINDOWS_
-	#define HANDLE uintptr_t
-	#define HINSTANCE uintptr_t
+	#define HANDLE void*
+	#define HINSTANCE void*
 #endif
 
 // Sizes.

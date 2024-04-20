@@ -30,8 +30,8 @@
 
 // Make sure HANDLE is defined.
 #ifndef _WINDOWS_
-	#define HANDLE DWORD
-	#define HINSTANCE DWORD
+	#define HANDLE void*
+	#define HINSTANCE void*
 #endif
 
 // Sizes.

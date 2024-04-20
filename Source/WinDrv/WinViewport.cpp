@@ -293,7 +293,7 @@ void UWindowsViewport::UpdateWindow()
 //
 // Open a viewport window.
 //
-void UWindowsViewport::OpenWindow( DWORD InParentWindow, UBOOL Temporary, INT NewX, INT NewY, INT OpenX, INT OpenY )
+void UWindowsViewport::OpenWindow( void* InParentWindow, UBOOL Temporary, INT NewX, INT NewY, INT OpenX, INT OpenY )
 {
 	guard(UWindowsViewport::OpenWindow);
 	check(Actor);
@@ -303,7 +303,11 @@ void UWindowsViewport::OpenWindow( DWORD InParentWindow, UBOOL Temporary, INT Ne
 
 	// User window of launcher if no parent window was specified.
 	if( !InParentWindow )
-		Parse( appCmdLine(), "HWND=", InParentWindow );
+	{
+		QWORD ParentPtr;
+		Parse( appCmdLine(), "HWND=", ParentPtr );
+		InParentWindow = (void*)InParentWindow;
+	}
 
 	if( Temporary )
 	{
@@ -390,14 +394,15 @@ void UWindowsViewport::OpenWindow( DWORD InParentWindow, UBOOL Temporary, INT Ne
 		ShowWindow( hWnd, SW_SHOWNORMAL );
 		FindAvailableModes();
 	}
+
+	if( !RenDev && Temporary )
+		TryRenderDevice( this, "SoftDrv.SoftwareRenderDevice", 0 );
+	if( !RenDev && !GIsEditor && !ParseParam(appCmdLine(),"nohard") )
+		TryRenderDevice( this, "ini:Engine.Engine.GameRenderDevice", Client->StartupFullscreen );
 	if( !RenDev )
-	{
-		if( !GIsEditor && !ParseParam(appCmdLine(),"nohard") )
-			TryRenderDevice( this, "ini:Engine.Engine.GameRenderDevice", Client->StartupFullscreen );
-		if( !RenDev )
-			TryRenderDevice( this, "ini:Engine.Engine.WindowedRenderDevice", 0 );
-		check(RenDev);
-	}
+		TryRenderDevice( this, "ini:Engine.Engine.WindowedRenderDevice", 0 );
+	check(RenDev);
+
 	if( !Temporary )
 		UpdateWindow();
 	if( DoRepaint )
@@ -1678,7 +1683,7 @@ LONG UWindowsViewport::WndProc( UINT iMessage, WPARAM wParam, LPARAM lParam )
 				Client->EndFullscreen();
 
 			// Restore focus to caller if desired.
-			DWORD ParentWindow=0;
+			QWORD ParentWindow=0;
 			Parse( appCmdLine(), "HWND=", ParentWindow );
 			if( ParentWindow )
 			{

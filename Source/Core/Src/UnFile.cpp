@@ -955,6 +955,48 @@ CORE_API UBOOL Parse( const char* Stream, const char* Match, DWORD& Value )
 }
 
 //
+// Get a QWORD.
+//
+CORE_API UBOOL Parse( const char* Stream, const char* Match, QWORD& Value )
+{
+	guard(ParseQWORD);
+
+	const char *Temp=appStrfind(Stream,Match);
+	if( Temp==NULL )
+		return 0;
+
+#ifdef PLATFORM_MSVC
+	Value=(QWORD)_atoi64(Temp+strlen(Match));
+#else
+	Value=(QWORD)atoll(Temp+strlen(Match));
+#endif
+
+	return 1;
+	unguard;
+}
+
+//
+// Get a SQWORD.
+//
+CORE_API UBOOL Parse( const char* Stream, const char* Match, SQWORD& Value )
+{
+	guard(ParseSQWORD);
+
+	const char *Temp=appStrfind(Stream,Match);
+	if( Temp==NULL )
+		return 0;
+
+#ifdef PLATFORM_MSVC
+	Value=_atoi64(Temp+strlen(Match));
+#else
+	Value=atoll(Temp+strlen(Match));
+#endif
+
+	return 1;
+	unguard;
+}
+
+//
 // Get a byte (0-255).
 //
 UBOOL CORE_API Parse( const char* Stream, const char* Match, BYTE& Value )

@@ -6,7 +6,7 @@ Revision history:
 	* Created by Tim Sweeney.
 =============================================================================*/
 
-#include "LaunchPrivate.h"
+#include "WinLaunchPrivate.h"
 #include "Window.h"
 #include "Res\LaunchRes.h"
 #pragma warning( disable: 4355 )

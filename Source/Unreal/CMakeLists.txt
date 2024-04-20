@@ -1,14 +1,14 @@
 project(Unreal)
 
-set(SRC_FILES
-  "Src/Launch.cpp"
-)
+if(USE_SDL)
+  set(SRC_FILES "Src/SDLLaunch.cpp")
+else()
+  set(SRC_FILES "Src/WinLaunch.cpp")
+endif()
 
 if(TARGET_IS_WINDOWS)
+  list(APPEND SRC_FILES "Src/Res/LaunchRes.rc")
   add_executable(${PROJECT_NAME} WIN32 ${SRC_FILES})
-  if(NOT USE_SDL)
-    target_sources(${PROJECT_NAME} PRIVATE "Src/Res/LaunchRes.rc")
-  endif()
 else()
   add_executable(${PROJECT_NAME} ${SRC_FILES})
 endif()
@@ -21,7 +21,7 @@ target_include_directories(${PROJECT_NAME}
 )
 
 if(USE_SDL)
-  target_link_libraries(${PROJECT_NAME} NSDLWindow)
+  target_link_libraries(${PROJECT_NAME} NSDLDrv)
 elseif(TARGET_IS_WINDOWS)
   target_link_libraries(${PROJECT_NAME} Window)
 else()
