@@ -14,7 +14,8 @@ endif()
 
 option(USE_SDL "Use NSDLDrv instead of WinDrv" ON)
 option(BUILD_EDITOR "Build Editor (Windows only)" OFF)
-option(BUILD_SOFTDRV "Build SoftDrv (x86 only)" ON)
+option(BUILD_SOFTDRV "Build SoftDrv (x86/MSVC only)" ON)
+option(BUILD_NOPENGLDRV "Build NOpenGLDrv" ON)
 option(BUILD_NULLSOUNDDRV "Build SoundDrv (Null driver)" ON)
 
 # Determine target arch and get normalized arch string
@@ -168,6 +169,11 @@ endif()
 if(BUILD_SOFTDRV)
   add_subdirectory(SoftDrv)
   list(APPEND INSTALL_TARGETS SoftDrv)
+endif()
+
+if(BUILD_NOPENGLDRV)
+  add_subdirectory(NOpenGLDrv)
+  list(APPEND INSTALL_TARGETS NOpenGLDrv)
 endif()
 
 if(BUILD_NULLSOUNDDRV)

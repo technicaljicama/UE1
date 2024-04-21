@@ -500,7 +500,7 @@ public:
 	{
 		return Pairs(i).Value;
 	}
-	void Add( const TK& Key, const TI& Value )
+	TI* Add( const TK& Key, const TI& Value )
 	{
 		INT i;
 		for( i=0; i<Pairs.Num(); i++ )
@@ -510,6 +510,7 @@ public:
 			new(Pairs)FPair;
 		Pairs(i).Key   = Key;
 		Pairs(i).Value = Value;
+		return & Pairs(i).Value;
 	}
 	void Empty()
 	{
@@ -545,7 +546,6 @@ public:
 				break;
 		if (i < Pairs.Num())
 			return & Pairs(i).Value;
-		check(false);
 		return 0;
 	}
 private:
