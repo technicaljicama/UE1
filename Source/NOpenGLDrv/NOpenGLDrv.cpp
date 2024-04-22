@@ -46,6 +46,9 @@ UBOOL UNOpenGLRenderDevice::Init( UViewport* InViewport )
 		return false;
 	}
 
+	SupportsFogMaps = true;
+	SupportsDistanceFog = true;
+
 	debugf( NAME_Log, "Got OpenGL %d.%d", GLVersion.major, GLVersion.minor );
 
 	ComposeSize = 256 * 256 * 4;
@@ -105,6 +108,10 @@ void UNOpenGLRenderDevice::Flush()
 
 	if( TexAlloc.Num() )
 	{
+		debugf( NAME_Log, "Flushing %d textures", TexAlloc.Num() );
+		ResetTexture( 0 );
+		ResetTexture( 1 );
+		ResetTexture( 2 );
 		glFinish();
 		glDeleteTextures( TexAlloc.Num(), &TexAlloc(0) );
 		TexAlloc.Empty();
@@ -121,7 +128,7 @@ UBOOL UNOpenGLRenderDevice::Exec( const char* Cmd, FOutputDevice* Out )
 
 void UNOpenGLRenderDevice::Lock( FPlane FlashScale, FPlane FlashFog, FPlane ScreenClear, DWORD RenderLockFlags, BYTE* InHitData, INT* InHitSize )
 {
-	guard(UOpenGLRenderDevice::Lock);
+	guard(UNOpenGLRenderDevice::Lock);
 
 	glClearColor( 1.f, ScreenClear.Y, ScreenClear.Z, ScreenClear.W );
 	glClearDepth( 1.0 );
@@ -266,7 +273,7 @@ void UNOpenGLRenderDevice::DrawGouraudPolygon( FSceneNode* Frame, FTextureInfo& 
 
 void UNOpenGLRenderDevice::DrawTile( FSceneNode* Frame, FTextureInfo& Texture, FLOAT X, FLOAT Y, FLOAT XL, FLOAT YL, FLOAT U, FLOAT V, FLOAT UL, FLOAT VL, FSpanBuffer* Span, FLOAT Z, FPlane Light, FPlane Fog, DWORD PolyFlags )
 {
-	guard(UOpenGLRenderDevice::DrawTile);
+	guard(UNOpenGLRenderDevice::DrawTile);
 
 	SetSceneNode( Frame );
 	SetBlend( PolyFlags );

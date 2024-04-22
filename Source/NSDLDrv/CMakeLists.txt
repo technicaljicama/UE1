@@ -1,9 +1,9 @@
 project(NSDLDrv CXX)
 
 set(SRC_FILES
-  "NSDLViewport.cpp"
-  "NSDLClient.cpp"
-  "NSDLDrv.cpp"
+  "Src/NSDLViewport.cpp"
+  "Src/NSDLClient.cpp"
+  "Src/NSDLDrv.cpp"
 )
 
 add_library(${PROJECT_NAME} SHARED ${SRC_FILES})

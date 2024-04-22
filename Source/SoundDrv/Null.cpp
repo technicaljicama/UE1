@@ -20,12 +20,9 @@ public:
 	virtual UBOOL GetLowQualitySetting();
 };
 
-
-
-
 UBOOL UNullAudioSubsystem::Init()
 {
-	return UBOOL();
+	return true;
 }
 
 void UNullAudioSubsystem::SetViewport(UViewport * Viewport)
@@ -34,7 +31,7 @@ void UNullAudioSubsystem::SetViewport(UViewport * Viewport)
 
 UBOOL UNullAudioSubsystem::Exec(const char * Cmd, FOutputDevice * Out)
 {
-	return UBOOL();
+	return false;
 }
 
 void UNullAudioSubsystem::Update(FPointRegion Region, FCoords & Listener)
@@ -59,7 +56,7 @@ void UNullAudioSubsystem::UnregisterMusic(UMusic * Music)
 
 UBOOL UNullAudioSubsystem::PlaySound(AActor * Actor, INT Id, USound * Sound, FVector Location, FLOAT Volume, FLOAT Radius, FLOAT Pitch)
 {
-	return UBOOL();
+	return false;
 }
 
 void UNullAudioSubsystem::NoteDestroy(AActor * Actor)
@@ -68,7 +65,7 @@ void UNullAudioSubsystem::NoteDestroy(AActor * Actor)
 
 UBOOL UNullAudioSubsystem::GetLowQualitySetting()
 {
-	return UBOOL();
+	return false;
 }
 
 IMPLEMENT_CLASS(UNullAudioSubsystem);

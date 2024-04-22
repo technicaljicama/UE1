@@ -617,12 +617,12 @@ inline FPlane FLightManager::Fog(FTransSample& Vert, DWORD PolyFlags )
 				LocalFog.R = LightInfo->VolumetricColor.R * VolumeValue;
 				LocalFog.G = LightInfo->VolumetricColor.G * VolumeValue;
 				LocalFog.B = LightInfo->VolumetricColor.B * VolumeValue;
-				// LocalFog.A = LightInfo->VolumetricColor.A * VolumeValue;
+				LocalFog.A = LightInfo->VolumetricColor.A * VolumeValue;
 
 				Fog.R = MinPositiveFloat( LocalFog.R, 1.0f );
 				Fog.G = MinPositiveFloat( LocalFog.G, 1.0f );
 				Fog.B = MinPositiveFloat( LocalFog.B, 1.0f );				
-				Fog.A = 0.f; // Fog.A = MinPositiveFloat( LocalFog.A, 1.0f );
+				Fog.A = MinPositiveFloat( LocalFog.A, 1.0f );
 				break; 
 			}		
 		}
@@ -644,18 +644,18 @@ inline FPlane FLightManager::Fog(FTransSample& Vert, DWORD PolyFlags )
 					LocalFog.R = LightInfo->VolumetricColor.R * VolumeValue;
 					LocalFog.G = LightInfo->VolumetricColor.G * VolumeValue;
 					LocalFog.B = LightInfo->VolumetricColor.B * VolumeValue;
-					// LocalFog.A = LightInfo->VolumetricColor.A * VolumeValue;
+					LocalFog.A = LightInfo->VolumetricColor.A * VolumeValue;
 
 					LocalFog.R = MinPositiveFloat( LocalFog.R, 1.0f );
 					LocalFog.G = MinPositiveFloat( LocalFog.G, 1.0f );
 					LocalFog.B = MinPositiveFloat( LocalFog.B, 1.0f );
-					// LocalFog.A = MinPositiveFloat( LocalFog.A, 1.0f );
+					LocalFog.A = MinPositiveFloat( LocalFog.A, 1.0f );
 
 					// Fog = Fog + LocalFog - (LocalFog*Fog); 
 					Fog.R = Fog.R + LocalFog.R - ( LocalFog.R * Fog.R ); 
 					Fog.G = Fog.G + LocalFog.G - ( LocalFog.G * Fog.G );
 					Fog.B = Fog.B + LocalFog.B - ( LocalFog.B * Fog.B );
-					Fog.A = 0.f; // Fog.A + LocalFog.A - ( LocalFog.A * Fog.A );
+					Fog.A = Fog.A + LocalFog.A - ( LocalFog.A * Fog.A );
 				}
 			}
 		}
@@ -1442,7 +1442,7 @@ void FLightManager::FLightInfo::ComputeFromActor( FTextureInfo& Map, FSceneNode*
 	if( IsVolumetric )
 	{		
 		VolumetricColor   = FloatColor;   
-		//VolumetricColor.A = (FLOAT)Actor->VolumeFog * (1.f/255.f);
+		VolumetricColor.A = (FLOAT)Actor->VolumeFog * (1.f/255.f);
 
 		// Cache the volumetric color scaler palette
 		clock(GStat.ExtraTime);
@@ -1458,13 +1458,13 @@ void FLightManager::FLightInfo::ComputeFromActor( FTextureInfo& Map, FSceneNode*
 			INT FixR = 0; INT FixDR=appFloor(VolumetricColor.R*65536.0);
 			INT FixG = 0; INT FixDG=appFloor(VolumetricColor.G*65536.0);
 			INT FixB = 0; INT FixDB=appFloor(VolumetricColor.B*65536.0);
-			//INT FixA = 0; INT FixDA=appFloor(VolumetricColor.A*65536.0);
+			INT FixA = 0; INT FixDA=appFloor(VolumetricColor.A*65536.0);
 			for( INT i=0; i<256; i++ )
 			{
 				VolPalette[i].B = Min(Unfix(FixR),127); FixR+=FixDR;
 				VolPalette[i].G = Min(Unfix(FixG),127); FixG+=FixDG;
 				VolPalette[i].R = Min(Unfix(FixB),127); FixB+=FixDB;
-				//VolPalette[i].A = Min(Unfix(FixA),127); FixA+=FixDA;
+				VolPalette[i].A = Min(Unfix(FixA),127); FixA+=FixDA;
 			}
 		}
 		VolPalette = (FColor*)(Color+1);
@@ -1678,7 +1678,7 @@ void FLightManager::SetupForSurf
 #endif
 
 	// Volumetric lights.
-	if( Zone && Zone->bFogZone && Draw->Volumetrics )
+	if( Zone && Zone->bFogZone && Draw->Volumetrics && ( !Frame->Viewport->RenDev->NoVolumetricBlend || !( Draw->PolyFlags & PF_Translucent ) ) )
 	{
 		guard(SetupVolumetrics);
 		OutFogMap = &FogMap;
@@ -1774,7 +1774,7 @@ void FLightManager::SetupForSurf
 								Dest[j].R = ByteMuck[Dest[j].R+128*(INT)Info->VolPalette[Light].R]; 
 								Dest[j].G = ByteMuck[Dest[j].G+128*(INT)Info->VolPalette[Light].G]; 
 								Dest[j].B = ByteMuck[Dest[j].B+128*(INT)Info->VolPalette[Light].B]; 
-								Dest[j].A = 0; //ByteMuck[Dest[j].A+128*(INT)Info->VolPalette[Light].A];
+								Dest[j].A = ByteMuck[Dest[j].A+128*(INT)Info->VolPalette[Light].A];
 							}
 						}
 						Vertex1 += VertDV;

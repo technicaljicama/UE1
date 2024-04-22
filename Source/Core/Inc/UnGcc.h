@@ -61,8 +61,8 @@ enum {CACHE_LINE_SIZE   = 32}; // Cache line size.
 #ifdef PLATFORM_WIN32
 #define DLL_IMPORT __declspec(dllimport)  /* Import function from DLL */
 #define DLL_EXPORT __declspec(dllexport)  /* Export function to DLL */
-#define CDECL __attribute__((cdecl))      /* Standard C function */
-#define STDCALL __attribute__((stdcall))  /* Standard calling convention */
+#define CDECL
+#define STDCALL
 #else
 #define DLL_IMPORT
 #define DLL_EXPORT
@@ -73,8 +73,20 @@ enum {CACHE_LINE_SIZE   = 32}; // Cache line size.
 #endif
 
 // Variable arguments.
-#define GET_VARARGS(msg,fmt) {va_list va_;va_start(va_,fmt); appGetVarArgs(msg,fmt,va_);va_end(va_);}
-#define GET_VARARGSR(msg,fmt,result) {va_list va_;va_start(va_,fmt);result = appGetVarArgs(msg,fmt,va_);va_end(va_);}
+#define GET_VARARGS(msg,fmt)	\
+{	\
+	va_list ArgPtr;	\
+	va_start( ArgPtr, fmt );	\
+	vsprintf( msg, fmt, ArgPtr );	\
+	va_end( ArgPtr );	\
+}
+#define GET_VARARGSR(msg,fmt,result)	\
+{	\
+	va_list ArgPtr;	\
+	va_start( ArgPtr, fmt );	\
+	result = vsprintf( msg, fmt, ArgPtr );	\
+	va_end( ArgPtr );	\
+}
 
 // Compiler name.
 #ifdef _DEBUG
@@ -136,7 +148,7 @@ static_assert((char)-1 < 0, "char must be signed.");
 #ifdef PLATFORM_WIN32
 	#define IMPLEMENT_PACKAGE_PLATFORM(pkgname) \
 		extern "C" {HINSTANCE hInstance;} \
-		INT DLL_EXPORT STDCALL DllMain( HINSTANCE hInInstance, DWORD Reason, void* Reserved ) \
+		INT __declspec(dllexport) __attribute__((stdcall)) DllMain( HINSTANCE hInInstance, DWORD Reason, void* Reserved ) \
 		{ hInstance = hInInstance; return 1; }
 #else
 	#define IMPLEMENT_PACKAGE_PLATFORM(pkgname) \

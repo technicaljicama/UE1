@@ -36,6 +36,7 @@ class ENGINE_API URenderDevice : public USubsystem
 	UBOOL		ShinySurfaces;
 	UBOOL		Coronas;
 	UBOOL		HighDetailActors;
+	UBOOL		NoVolumetricBlend;
 
 	// Constructors.
 	static void InternalClassInitializer( UClass* Class );

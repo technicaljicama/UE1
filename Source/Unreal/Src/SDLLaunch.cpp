@@ -6,7 +6,6 @@
 #include "Engine.h"
 
 extern CORE_API FGlobalPlatform GTempPlatform;
-extern DLL_IMPORT void InitWindowing();
 extern DLL_IMPORT UBOOL GTickDue;
 extern "C" {HINSTANCE hInstance;}
 extern "C" {char GPackage[64]="Launch";}
@@ -186,7 +185,6 @@ int main( int argc, const char** argv )
 
 	// Init windowing.
 	appChdir( appBaseDir() );
-	InitWindowing();
 
 	// Init log.
 	// TODO: GLog
