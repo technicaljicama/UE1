@@ -108,7 +108,7 @@ void UNOpenGLRenderDevice::Flush()
 
 	if( TexAlloc.Num() )
 	{
-		debugf( NAME_Log, "Flushing %d textures", TexAlloc.Num() );
+		debugf( NAME_Log, "Flushing %d/%d textures", TexAlloc.Num(), BindMap.Size() );
 		ResetTexture( 0 );
 		ResetTexture( 1 );
 		ResetTexture( 2 );
@@ -496,7 +496,7 @@ void UNOpenGLRenderDevice::SetTexture( INT TMU, FTextureInfo& Info, DWORD PolyFl
 		// New texture.
 		Bind = BindMap.Add( NewCacheID, FCachedTexture() );
 		glGenTextures( 1, &Bind->Id );
-		TexAlloc.Add( Bind->Id );
+		TexAlloc.AddItem( Bind->Id );
 	}
 
 	glActiveTexture( GL_TEXTURE0 + TMU );
