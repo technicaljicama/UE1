@@ -36,6 +36,11 @@ void UNOpenGLRenderDevice::InternalClassInitializer( UClass* Class )
 	unguardSlow;
 }
 
+UNOpenGLRenderDevice::UNOpenGLRenderDevice()
+{
+	NoFiltering = false;
+}
+
 UBOOL UNOpenGLRenderDevice::Init( UViewport* InViewport )
 {
 	guard(UNOpenGLRenderDevice::Init)
@@ -139,6 +144,11 @@ void UNOpenGLRenderDevice::Lock( FPlane FlashScale, FPlane FlashFog, FPlane Scre
 	if( RenderLockFlags & LOCKR_ClearScreen )
 		ClearBits |= GL_COLOR_BUFFER_BIT;
 	glClear( ClearBits );
+
+	if( FlashScale != FPlane(0.5f, 0.5f, 0.5f, 0.0f) || FlashFog != FPlane(0.0f, 0.0f, 0.0f, 0.0f) )
+		ColorMod = FPlane( FlashFog.X, FlashFog.Y, FlashFog.Z, 1.f - Min( FlashScale.X * 2.f, 1.f ) );
+	else
+		ColorMod = FPlane( 0.f, 0.f, 0.f, 0.f );
 
 	unguard;
 }
@@ -306,6 +316,37 @@ void UNOpenGLRenderDevice::Draw2DLine( FSceneNode* Frame, FPlane Color, DWORD Li
 void UNOpenGLRenderDevice::Draw2DPoint( FSceneNode* Frame, FPlane Color, DWORD LineFlags, FLOAT X1, FLOAT Y1, FLOAT X2, FLOAT Y2 )
 {
 
+}
+
+void UNOpenGLRenderDevice::EndFlash( )
+{
+	guard(UNOpenGLESRenderDevice::EndFlash);
+
+	if( ColorMod == FPlane( 0.f, 0.f, 0.f, 0.f ) )
+		return;
+
+	ResetTexture( 0 );
+	ResetTexture( 1 );
+	ResetTexture( 2 );
+	SetBlend( PF_Highlighted );
+
+	const FLOAT Z = 1.f;
+	const FLOAT RFX2 = RProjZ;
+	const FLOAT RFY2 = RProjZ * Aspect;
+
+	glDisable( GL_DEPTH_TEST );
+
+	glColor4fv( &ColorMod.R );
+	glBegin( GL_TRIANGLE_FAN );
+		glVertex3f( RFX2 * -Z, RFY2 * -Z, Z );
+		glVertex3f( RFX2 * +Z, RFY2 * -Z, Z );
+		glVertex3f( RFX2 * +Z, RFY2 * +Z, Z );
+		glVertex3f( RFX2 * -Z, RFY2 * +Z, Z );
+	glEnd();
+
+	glEnable( GL_DEPTH_TEST );
+
+	unguard;
 }
 
 void UNOpenGLRenderDevice::PushHit( const BYTE* Data, INT Count )

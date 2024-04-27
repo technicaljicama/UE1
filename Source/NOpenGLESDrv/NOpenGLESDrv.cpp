@@ -37,8 +37,8 @@ static constexpr glm::mat4 MtxModelView {
 };
 
 // in floats
-static constexpr DWORD AttribSizes[] = {
-	3, 2, 2, 2, 4, 4
+static constexpr DWORD AttribSizes[AT_Count] = {
+	3, 2, 2, 2, 2, 4, 4
 };
 
 // from XOpenGLDrv:
@@ -62,9 +62,17 @@ static constexpr DWORD AttribSizes[] = {
 void UNOpenGLESRenderDevice::InternalClassInitializer( UClass* Class )
 {
 	guardSlow(UNOpenGLESRenderDevice::InternalClassInitializer);
-	new(Class, "NoFiltering", RF_Public)UBoolProperty( CPP_PROPERTY(NoFiltering), "Options", CPF_Config );
-	new(Class, "Overbright", RF_Public)UBoolProperty( CPP_PROPERTY(Overbright), "Options", CPF_Config );
+	new(Class, "NoFiltering",    RF_Public)UBoolProperty( CPP_PROPERTY(NoFiltering),    "Options", CPF_Config );
+	new(Class, "Overbright",     RF_Public)UBoolProperty( CPP_PROPERTY(Overbright),     "Options", CPF_Config );
+	new(Class, "DetailTextures", RF_Public)UBoolProperty( CPP_PROPERTY(DetailTextures), "Options", CPF_Config );
 	unguardSlow;
+}
+
+UNOpenGLESRenderDevice::UNOpenGLESRenderDevice()
+{
+	DetailTextures = true;
+	Overbright = true;
+	NoFiltering = false;
 }
 
 UBOOL UNOpenGLESRenderDevice::Init( UViewport* InViewport )
@@ -113,6 +121,7 @@ UBOOL UNOpenGLESRenderDevice::Init( UViewport* InViewport )
 
 	// Precache some common shaders
 	static const DWORD PrecacheShaders[] = {
+		SF_VtxColor,
 		SF_Texture0,
 		SF_Texture0 | SF_VtxColor,
 		SF_Texture0 | SF_AlphaTest,
@@ -163,6 +172,7 @@ void UNOpenGLESRenderDevice::Flush()
 		ResetTexture( 0 );
 		ResetTexture( 1 );
 		ResetTexture( 2 );
+		ResetTexture( 3 );
 		glFinish();
 		glDeleteTextures( TexAlloc.Num(), &TexAlloc(0) );
 		TexAlloc.Empty();
@@ -193,6 +203,11 @@ void UNOpenGLESRenderDevice::Lock( FPlane FlashScale, FPlane FlashFog, FPlane Sc
 		ClearBits |= GL_COLOR_BUFFER_BIT;
 	glClear( ClearBits );
 
+	if( FlashScale != FPlane(0.5f, 0.5f, 0.5f, 0.0f) || FlashFog != FPlane(0.0f, 0.0f, 0.0f, 0.0f) )
+		ColorMod = FPlane( FlashFog.X, FlashFog.Y, FlashFog.Z, 1.f - Min( FlashScale.X * 2.f, 1.f ) );
+	else
+		ColorMod = FPlane( 0.f, 0.f, 0.f, 0.f );
+
 	unguard;
 }
 
@@ -218,13 +233,18 @@ void UNOpenGLESRenderDevice::DrawComplexSurface( FSceneNode* Frame, FSurfaceInfo
 	SetTexture( 0, *Surface.Texture, ( Surface.PolyFlags & PF_Masked ), 0.f );
 	if( Surface.LightMap )
 	{
-		SetTexture( 1, *Surface.LightMap, 0, -0.5 );
+		SetTexture( 1, *Surface.LightMap, 0, -0.5f );
 		CurrentShaderFlags |= SF_Lightmap;
 	}
 	if( Surface.FogMap )
 	{
-		SetTexture( 2, *Surface.FogMap, 0, -0.5 );
+		SetTexture( 2, *Surface.FogMap, 0, -0.5f );
 		CurrentShaderFlags |= SF_Fogmap;
+	}
+	if( Surface.DetailTexture && DetailTextures )
+	{
+		SetTexture( 3, *Surface.DetailTexture, 0, 0.f );
+		CurrentShaderFlags |= SF_Detail;
 	}
 	SetShader( CurrentShaderFlags );
 
@@ -243,15 +263,18 @@ void UNOpenGLESRenderDevice::DrawComplexSurface( FSceneNode* Frame, FSurfaceInfo
 				AttribFloat2( (U-UDot-TexInfo[1].UPan)*TexInfo[1].UMult, (V-VDot-TexInfo[1].VPan)*TexInfo[1].VMult );
 			if( Surface.FogMap )
 				AttribFloat2( (U-UDot-TexInfo[2].UPan)*TexInfo[2].UMult, (V-VDot-TexInfo[2].VPan)*TexInfo[2].VMult );
+			if( Surface.DetailTexture && DetailTextures )
+				AttribFloat2( (U-UDot-TexInfo[3].UPan)*TexInfo[3].UMult, (V-VDot-TexInfo[3].VPan)*TexInfo[3].VMult );
 			PolyVertex();
 		}
 		EndPoly();
 	}
 
-	CurrentShaderFlags &= ~( SF_Lightmap|SF_Fogmap );
+	CurrentShaderFlags &= ~( SF_Lightmap|SF_Fogmap|SF_Detail );
 
 	ResetTexture( 1 );
 	ResetTexture( 2 );
+	ResetTexture( 3 );
 
 	unguard;
 }
@@ -352,6 +375,49 @@ void UNOpenGLESRenderDevice::Draw2DPoint( FSceneNode* Frame, FPlane Color, DWORD
 
 }
 
+void UNOpenGLESRenderDevice::EndFlash( )
+{
+	guard(UNOpenGLESRenderDevice::EndFlash);
+
+	if( ColorMod == FPlane( 0.f, 0.f, 0.f, 0.f ) )
+		return;
+
+	CurrentShaderFlags = SF_VtxColor;
+	ResetTexture( 0 );
+	ResetTexture( 1 );
+	ResetTexture( 2 );
+	ResetTexture( 3 );
+	SetBlend( PF_Highlighted );
+	SetShader( CurrentShaderFlags );
+
+	const FLOAT Z = 1.f;
+	const FLOAT RFX2 = RProjZ;
+	const FLOAT RFY2 = RProjZ * Aspect;
+
+	glDisable( GL_DEPTH_TEST );
+
+	BeginPoly();
+		AttribFloat3( RFX2 * -Z, RFY2 * -Z, Z );
+		AttribFloat4( &ColorMod.R );
+		PolyVertex();
+		AttribFloat3( RFX2 * +Z, RFY2 * -Z, Z );
+		AttribFloat4( &ColorMod.R );
+		PolyVertex();
+		AttribFloat3( RFX2 * +Z, RFY2 * +Z, Z );
+		AttribFloat4( &ColorMod.R );
+		PolyVertex();
+		AttribFloat3( RFX2 * -Z, RFY2 * +Z, Z );
+		AttribFloat4( &ColorMod.R );
+		PolyVertex();
+	EndPoly();
+
+	glEnable( GL_DEPTH_TEST );
+
+	CurrentShaderFlags &= ~SF_VtxColor;
+
+	unguard;
+}
+
 void UNOpenGLESRenderDevice::PushHit( const BYTE* Data, INT Count )
 {
 
@@ -405,7 +471,7 @@ void UNOpenGLESRenderDevice::UpdateUniforms()
 		UniformsChanged[UF_Mtx] = false;
 	}
 
-	for( INT i = UF_Texture0; i <= UF_Texture2; ++i )
+	for( INT i = UF_Texture0; i <= UF_Texture3; ++i )
 	{
 		if( UniformsChanged[i] && ShaderInfo->Uniforms[i] >= 0 )
 		{
@@ -446,22 +512,23 @@ UNOpenGLESRenderDevice::FCachedShader* UNOpenGLESRenderDevice::CreateShader( DWO
 {
 	guard(UNOpenGLESRenderDevice::CreateShader);
 
-	static const char* FlagNames[] = {
-		"SF_Texture0", "SF_Texture1", "SF_Texture2", "SF_VtxColor",
-		"SF_AlphaTest", "SF_Lightmap", "SF_Fogmap", "SF_VtxFog"
+	static const char* FlagNames[SF_Count] = {
+		"SF_Texture0", "SF_Texture1", "SF_Texture2", "SF_Texture3",
+		"SF_VtxColor", "SF_AlphaTest", "SF_Lightmap", "SF_Fogmap",
+		"SF_Detail", "SF_VtxFog"
 	};
 
-	static const char* UniformNames[] = {
-		"uMtx", "uTexture0", "uTexture1", "uTexture2"
+	static const char* UniformNames[UF_Count] = {
+		"uMtx", "uTexture0", "uTexture1", "uTexture2", "uTexture3"
 	};
 
-	static const char* AttribNames[] = {
+	static const char* AttribNames[AT_Count] = {
 		"aPosition", "aTexCoord0", "aTexCoord1", "aTexCoord2",
-		"aVtxColor", "aVtxFog"
+		"aTexCoord3", "aVtxColor", "aVtxFog"
 	};
 
-	static const DWORD AttribFlags[] = {
-		0, SF_Texture0, SF_Texture1, SF_Texture2, SF_VtxColor, SF_VtxFog
+	static const DWORD AttribFlags[AT_Count] = {
+		0, SF_Texture0, SF_Texture1, SF_Texture2, SF_Texture3, SF_VtxColor, SF_VtxFog
 	};
 
 	static const char* ShaderVersion = "#version 100\n";
@@ -803,7 +870,7 @@ void UNOpenGLESRenderDevice::UploadTexture( FTextureInfo& Info, UBOOL Masked, UB
 		// Convert texture if needed.
 		if( Info.Palette )
 		{
-			// 8-bit indexed. We have to fix the alpha component since it's mostly garbage.
+			// 8-bit indexed. We have to fix the alpha component since it's mostly garbage in non-detailmaps.
 			UploadBuf = Compose;
 			UploadFormat = GL_RGBA;
 			DWORD* Dst = (DWORD*)Compose;

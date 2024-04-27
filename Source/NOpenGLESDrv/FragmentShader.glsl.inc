@@ -1,5 +1,6 @@
 R""(
 
+varying mediump vec3 vPosition;
 #ifdef SF_Texture0
 varying mediump vec2 vTexCoord0;
 #endif
@@ -8,6 +9,9 @@ varying mediump vec2 vTexCoord1;
 #endif
 #ifdef SF_Texture2
 varying mediump vec2 vTexCoord2;
+#endif
+#ifdef SF_Texture3
+varying mediump vec2 vTexCoord3;
 #endif
 #ifdef SF_VtxColor
 varying lowp vec4 vVtxColor;
@@ -24,6 +28,9 @@ uniform sampler2D uTexture1;
 #endif
 #ifdef SF_Texture2
 uniform sampler2D uTexture2;
+#endif
+#ifdef SF_Texture3
+uniform sampler2D uTexture3;
 #endif
 
 #ifndef LIGHTMAP_OVERBRIGHT
@@ -61,6 +68,18 @@ void main()
 	Out.a = Texel2.a;
 #else
 	Out *= Texel2;
+#endif
+#endif
+
+#ifdef SF_Texture3
+	lowp vec4 Texel3 = texture2D(uTexture3, vTexCoord3) * 2.0;
+#ifdef SF_Detail
+	// TODO: XOpenGLDrv does some RGB->HSV->RGB magic on detail maps, we just * 2 instead
+	lowp float DetailScale = clamp(0.65 - vPosition.z / 380.0, 0.0, 1.0);
+	Texel3 = mix(vec4(1.0), Texel3, DetailScale);
+	Out.rgb *= Texel3.rgb;
+#else
+	Out.rgb *= Texel3.rgb;
 #endif
 #endif
 

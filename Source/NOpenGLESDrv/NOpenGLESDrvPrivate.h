@@ -16,6 +16,7 @@ enum EUniformIndex
 	UF_Texture0,
 	UF_Texture1,
 	UF_Texture2,
+	UF_Texture3,
 	UF_Count
 };
 
@@ -24,12 +25,15 @@ enum EShaderFlags : DWORD
 	SF_Texture0  = 1 << 0,
 	SF_Texture1  = 1 << 1,
 	SF_Texture2  = 1 << 2,
-	SF_VtxColor  = 1 << 3,
-	SF_AlphaTest = 1 << 4,
-	SF_Lightmap  = 1 << 5,
-	SF_Fogmap    = 1 << 6,
-	SF_VtxFog    = 1 << 7,
-	SF_Max       = SF_VtxFog
+	SF_Texture3  = 1 << 3,
+	SF_VtxColor  = 1 << 4,
+	SF_AlphaTest = 1 << 5,
+	SF_Lightmap  = 1 << 6,
+	SF_Fogmap    = 1 << 7,
+	SF_Detail    = 1 << 8,
+	SF_VtxFog    = 1 << 9,
+	SF_Max       = SF_VtxFog,
+	SF_Count     = 10,
 };
 
 enum EShaderAttribs
@@ -38,6 +42,7 @@ enum EShaderAttribs
 	AT_TexCoord0,
 	AT_TexCoord1,
 	AT_TexCoord2,
+	AT_TexCoord3,
 	AT_VtxColor,
 	AT_VtxFog,
 	AT_Count
@@ -48,14 +53,15 @@ enum EShaderAttribs
 //
 class DLL_EXPORT UNOpenGLESRenderDevice : public URenderDevice
 {
-	DECLARE_CLASS(UNOpenGLESRenderDevice, URenderDevice, CLASS_Config)
+	DECLARE_CLASS_WITHOUT_CONSTRUCT(UNOpenGLESRenderDevice, URenderDevice, CLASS_Config)
 
-	static constexpr INT MaxTexUnits = 3;
+	static constexpr INT MaxTexUnits = 4;
 
 	// Options.
 	UBOOL NoFiltering;
 	UBOOL UseBGRA;
 	UBOOL Overbright;
+	UBOOL DetailTextures;
 
 	// All currently cached textures.
 	struct FCachedTexture
@@ -133,6 +139,7 @@ class DLL_EXPORT UNOpenGLESRenderDevice : public URenderDevice
 	} CurrentSceneNode;
 
 	// Constructors.
+	UNOpenGLESRenderDevice();
 	static void InternalClassInitializer( UClass* Class );
 
 	// URenderDevice interface.
@@ -145,6 +152,7 @@ class DLL_EXPORT UNOpenGLESRenderDevice : public URenderDevice
 	virtual void DrawComplexSurface( FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet ) override;
 	virtual void DrawGouraudPolygon( FSceneNode* Frame, FTextureInfo& Texture, FTransTexture** Pts, INT NumPts, DWORD PolyFlags, FSpanBuffer* SpanBuffer ) override;
 	virtual void DrawTile( FSceneNode* Frame, FTextureInfo& Texture, FLOAT X, FLOAT Y, FLOAT XL, FLOAT YL, FLOAT U, FLOAT V, FLOAT UL, FLOAT VL, FSpanBuffer* Span, FLOAT Z, FPlane Light, FPlane Fog, DWORD PolyFlags ) override;
+	virtual void EndFlash() override;
 	virtual void GetStats( char* Result ) override;
 	virtual void Draw2DLine( FSceneNode* Frame, FPlane Color, DWORD LineFlags, FVector P1, FVector P2 ) override;
 	virtual void Draw2DPoint( FSceneNode* Frame, FPlane Color, DWORD LineFlags, FLOAT X1, FLOAT Y1, FLOAT X2, FLOAT Y2 ) override;

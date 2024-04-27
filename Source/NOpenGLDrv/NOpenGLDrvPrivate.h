@@ -14,7 +14,7 @@
 //
 class DLL_EXPORT UNOpenGLRenderDevice : public URenderDevice
 {
-	DECLARE_CLASS(UNOpenGLRenderDevice, URenderDevice, CLASS_Config)
+	DECLARE_CLASS_WITHOUT_CONSTRUCT(UNOpenGLRenderDevice, URenderDevice, CLASS_Config)
 
 	static constexpr INT MaxTexUnits = 4;
 
@@ -47,6 +47,7 @@ class DLL_EXPORT UNOpenGLRenderDevice : public URenderDevice
 	DWORD CurrentPolyFlags;
 	FLOAT RProjZ, Aspect;
 	FLOAT RFX2, RFY2;
+	FPlane ColorMod;
 
 	struct FCachedSceneNode
 	{
@@ -58,6 +59,7 @@ class DLL_EXPORT UNOpenGLRenderDevice : public URenderDevice
 	} CurrentSceneNode;
 
 	// Constructors.
+	UNOpenGLRenderDevice();
 	static void InternalClassInitializer( UClass* Class );
 
 	// URenderDevice interface.
@@ -70,6 +72,7 @@ class DLL_EXPORT UNOpenGLRenderDevice : public URenderDevice
 	virtual void DrawComplexSurface( FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet ) override;
 	virtual void DrawGouraudPolygon( FSceneNode* Frame, FTextureInfo& Texture, FTransTexture** Pts, INT NumPts, DWORD PolyFlags, FSpanBuffer* SpanBuffer ) override;
 	virtual void DrawTile( FSceneNode* Frame, FTextureInfo& Texture, FLOAT X, FLOAT Y, FLOAT XL, FLOAT YL, FLOAT U, FLOAT V, FLOAT UL, FLOAT VL, FSpanBuffer* Span, FLOAT Z, FPlane Light, FPlane Fog, DWORD PolyFlags ) override;
+	virtual void EndFlash() override;
 	virtual void GetStats( char* Result ) override;
 	virtual void Draw2DLine( FSceneNode* Frame, FPlane Color, DWORD LineFlags, FVector P1, FVector P2 ) override;
 	virtual void Draw2DPoint( FSceneNode* Frame, FPlane Color, DWORD LineFlags, FLOAT X1, FLOAT Y1, FLOAT X2, FLOAT Y2 ) override;
