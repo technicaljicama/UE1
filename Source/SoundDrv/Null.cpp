@@ -22,7 +22,7 @@ public:
 
 UBOOL UNullAudioSubsystem::Init()
 {
-	return true;
+	return false;
 }
 
 void UNullAudioSubsystem::SetViewport(UViewport * Viewport)

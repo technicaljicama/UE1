@@ -55,6 +55,7 @@ class ENGINE_API USound : public UObject
 	INT					OriginalSize;
 	void*				Handle;
 	static UAudioSubsystem* Audio;
+	UBOOL				Looping;
 
 	// Constructor.
 
@@ -160,7 +161,7 @@ struct FSampleLoop				// Immediately following cbSamplerData in the SMPL chunk.
 //
 // Structure for in-memory interpretation and modification of WAVE sound structures.
 //
-class FWaveModInfo
+class ENGINE_API FWaveModInfo
 {
 public:
 
