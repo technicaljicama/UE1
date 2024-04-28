@@ -95,6 +95,10 @@ enum {CACHE_LINE_SIZE   = 32}; // Cache line size.
 	#define COMPILER "Compiled with GCC"
 #endif
 
+// Bitfield alignment.
+#define GCC_PACK(n) __attribute__((packed, aligned(n)))
+#define GCC_ALIGN(n) __attribute__((aligned(n)))
+
 // Unsigned base types.
 typedef uint16_t _WORD;  // 16-bit signed.
 typedef uint64_t QWORD;  // 64-bit unsigned.

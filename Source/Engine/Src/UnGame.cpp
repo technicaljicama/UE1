@@ -324,7 +324,7 @@ UBOOL UGameEngine::Browse( FURL URL, char* Error256 )
 		guard(UnknownURL);
 		appSprintf( Error256, LocalizeError("InvalidUrl"), StringURL );
 		unguard;
-		return NULL;
+		return 0;
 	}
 	else if( URL.HasOption("failed") )
 	{

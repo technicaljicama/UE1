@@ -571,10 +571,10 @@ public:
 	void ConditionalDestroy();
 	void ConditionalPostLoad();
 	void ConditionalShutdownAfterError();
-	UBOOL IsA( UClass* Parent ) const;
-	UBOOL IsIn( UObject* SomeParent ) const;
+	inline UBOOL IsA( UClass* Parent ) const;
+	inline UBOOL IsIn( UObject* SomeParent ) const;
 	void SetLinker( ULinkerLoad* L, INT I );
-	UBOOL IsProbing( FName ProbeName );
+	inline UBOOL IsProbing( FName ProbeName );
 	void Rename();
 	UField* FindField( FName InName, UBOOL Global=0 );
 	UFunction* FindFunction( FName InName, UBOOL Global=0 );
@@ -900,13 +900,6 @@ template< class T, class U > T* CastChecked( U* Src )
 template< class T > T* ImportObjectFromFile( UObject* Parent, FName Name, const char* Filename, FFeedbackContext* Warn=GSystem )
 {
 	return (T*)GObj.ImportObjectFromFile( T::StaticClass, Parent, Name, Filename, Warn );
-}
-
-// Construct an object of a particular class.
-template< class T > T* ConstructClassObject( UClass* Class, UObject* Parent=(UObject*)GObj.GetTransientPackage(), FName Name=NAME_None, DWORD SetFlags=0 )
-{
-	check(Class->IsChildOf(T::StaticClass));
-	return (T*)GObj.ConstructObject( Class );
 }
 
 // Load an object.

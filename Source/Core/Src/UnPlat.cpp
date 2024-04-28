@@ -916,8 +916,8 @@ CORE_API void VARARGS appUnwindf( const char* Fmt, ... )
 
 	static INT Count=0;
 	if( Count++ )
-		strncat( GErrorHist, " <- ", ARRAY_COUNT(GErrorHist) );
-	strncat( GErrorHist, TempStr, ARRAY_COUNT(GErrorHist) );
+		strncat( GErrorHist, " <- ", ARRAY_COUNT(GErrorHist) - 1 );
+	strncat( GErrorHist, TempStr, ARRAY_COUNT(GErrorHist) - 1 );
 
 	debugf( NAME_Critical, TempStr );
 }
@@ -1118,7 +1118,7 @@ UBOOL GetConfigSection
     if( !Filename )
         Filename = GReadIni;
 	GetPrivateProfileSection( Section, Result, Size, Filename );
-	return *Result != NULL;
+	return *Result != '\0';
 	unguard;
 }
 

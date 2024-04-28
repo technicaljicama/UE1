@@ -24,7 +24,7 @@ FChannel::FChannel( INT InChType, UNetConnection* InConnection, INT InChIndex, I
 ,	ChType			( (EChannelType)InChType )
 {
 	guard(FChannel::FChannel);
-	check(CHF_Mask>=UNetConnection::MAX_CHANNELS);
+	check((DWORD)CHF_Mask>=(DWORD)UNetConnection::MAX_CHANNELS);
 
 	// Init incoming and outgoing buffers.
 	for( INT i=0; i<RELIABLE_BUFFER; i++ )
@@ -1297,7 +1297,7 @@ FFileChannel::~FFileChannel()
 	}
 
 	// Notify that the receive is complete.
-	if( OpenedLocally && *Error && State!=USOCK_Closed )
+	if( OpenedLocally && *Error && State!=UCHAN_Closing )
 		Connection->Driver->Notify->NotifyReceivedFile( Connection, PackageIndex, Error );
 
 	unguard;

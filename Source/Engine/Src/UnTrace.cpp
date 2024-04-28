@@ -537,7 +537,17 @@ UBOOL UModel::LineCheck
 		{
 			// Perform simple line trace.
 			GOutOfCorner = 0;
-			UBOOL Outside = ::LineCheck( Hit, *this, Owner ? &Owner->ToWorld() : NULL, 0, 0, End, Start, RootOutside, ExtraNodeFlags );
+			UBOOL Outside;
+			if( Owner )
+			{
+				// shut up compiler
+				const FCoords CheckCoords = Owner->ToWorld();
+				Outside = ::LineCheck( Hit, *this, &CheckCoords, 0, 0, End, Start, RootOutside, ExtraNodeFlags );
+			}
+			else
+			{
+				Outside = ::LineCheck( Hit, *this, NULL, 0, 0, End, Start, RootOutside, ExtraNodeFlags );
+			}
 			if( !Outside )
 			{
 				FVector V       = End-Start;

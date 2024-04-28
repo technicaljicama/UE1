@@ -1427,11 +1427,11 @@ UState::UState( UState* InSuperState )
 {}
 UState::UState( EIntrinsicConstructor, INT InSize, FName InName, FName InPackageName )
 :	UStruct( EC_IntrinsicConstructor, InSize, InName, InPackageName )
-,	ProbeMask( NULL )
-,	IgnoreMask( NULL )
+,	ProbeMask( 0 )
+,	IgnoreMask( 0 )
 ,	VfHash( NULL )
-,	StateFlags( NULL )
-,	LabelTableOffset( NULL )
+,	StateFlags( 0 )
+,	LabelTableOffset( 0 )
 {}
 void UState::Destroy()
 {

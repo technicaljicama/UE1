@@ -15,7 +15,7 @@
 	#define REGISTER_NAME(num,name) NAME_##name = num,
 	#define REG_NAME_HIGH(num,name) NAME_##name = num,
 	#define REGISTERING_ENUM
-	enum EName : unsigned short {
+	enum EName : _WORD {
 #endif
 
 /*-----------------------------------------------------------------------------

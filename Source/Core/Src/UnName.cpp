@@ -12,10 +12,11 @@
 	FName statics.
 -----------------------------------------------------------------------------*/
 
+UBOOL				FName::Initialized = false;
 INT					FName::Duplicate =0;
 FNameEntry*			FName::NameHash[8192];
-TArray<FNameEntry*>	FName::Names;
-TArray<INT>         FName::Available;
+TArray<FNameEntry*>	FName::Names(E_NoInit);
+TArray<INT>         FName::Available(E_NoInit);
 
 /*-----------------------------------------------------------------------------
 	FName implementation.
@@ -52,8 +53,9 @@ FName::FName( const char* Name, EFindName FindType )
 	check(Name);
 
 	// Initialize the name hash if needed.
-	if( !Names.Num() )
+	if( !Initialized )
 		InitTables();
+	check( Initialized && Names.Num() );
 
 	// If empty or invalid name was specified, return NAME_None.
 	if( !Name[0] )
@@ -211,6 +213,7 @@ void FName::DeleteEntry( int i )
 void FName::InitTables()
 {
 	guard(FName::InitTables);
+	check(!Initialized);
 
 	// Init the name hash.
 	for( int i=0; i<ARRAY_COUNT(FName::NameHash); i++ )
@@ -220,6 +223,8 @@ void FName::InitTables()
 	#define REGISTER_NAME(num,namestr) static FNameEntry namestr##NAME={num,RF_Intrinsic,NULL,#namestr}; Hardcode(namestr##NAME);
 	#define REG_NAME_HIGH(num,namestr) static FNameEntry namestr##NAME={num,RF_Intrinsic|RF_HighlightedName,NULL,#namestr}; Hardcode(namestr##NAME);
 	#include "UnNames.h"
+
+	Initialized = true;
 
 	unguard;
 }

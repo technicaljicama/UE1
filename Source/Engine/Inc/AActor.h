@@ -14,16 +14,16 @@
 	void PostEditChange();
 
 	// AActor interface.
-	class APlayerPawn* GetPlayerPawn() const;
-	class ULevel* GetLevel() const;
-	UBOOL IsPlayer() const;
-	UBOOL IsOwnedBy( const AActor *TestOwner ) const;
+	inline class APlayerPawn* GetPlayerPawn() const;
+	inline class ULevel* GetLevel() const;
+	inline UBOOL IsPlayer() const;
+	inline UBOOL IsOwnedBy( const AActor *TestOwner ) const;
 	FLOAT WorldLightRadius() const {return 25.0 * ((int)LightRadius+1);}
 	FLOAT WorldSoundRadius() const {return 25.0 * ((int)SoundRadius+1);}
 	FLOAT WorldVolumetricRadius() const {return 25.0 * ((int)VolumeRadius+1);}
-	UBOOL IsBlockedBy( const AActor* Other ) const;
-	UBOOL IsInZone( const AZoneInfo* Other ) const;
-	UBOOL IsBasedOn( const AActor *Other ) const;
+	inline UBOOL IsBlockedBy( const AActor* Other ) const;
+	inline UBOOL IsInZone( const AZoneInfo* Other ) const;
+	inline UBOOL IsBasedOn( const AActor *Other ) const;
 	virtual UBOOL Tick( FLOAT DeltaTime, enum ELevelTick TickType );
 	virtual void PostEditMove() {}
 	virtual void PreRaytrace() {}
@@ -42,27 +42,27 @@
 		return Clamp( 1.0 - LifeSpan / GetClass()->GetDefaultActor()->LifeSpan, 0.0, 1.0 );
 	}
 	FVector GetCylinderExtent() const {return FVector(CollisionRadius,CollisionRadius,CollisionHeight);}
-	AActor* GetTopOwner();
+	inline AActor* GetTopOwner();
 	UBOOL IsPendingKill() {return bDeleteMe;}
 
 	// AActor collision functions.
-	UPrimitive* GetPrimitive() const;
+	inline UPrimitive* GetPrimitive() const;
 	UBOOL IsOverlapping( const AActor *Other ) const;
 
 	// AActor general functions.
 	void BeginTouch(AActor *Other);
 	void EndTouch(AActor *Other, UBOOL NoNotifySelf);
 	void SetOwner( AActor *Owner );
-	UBOOL IsBrush()       const;
-	UBOOL IsStaticBrush() const;
-	UBOOL IsMovingBrush() const;
+	inline UBOOL IsBrush()       const;
+	inline UBOOL IsStaticBrush() const;
+	inline UBOOL IsMovingBrush() const;
 	inline UBOOL IsAnimating()   const {
 		return ( (AnimSequence != NAME_None) &&
 			((AnimFrame>=0) ? (AnimRate!=0.0) : (TweenRate!=0.0)) );}
 	void SetCollision( UBOOL NewCollideActors, UBOOL NewBlockActors, UBOOL NewBlockPlayers );
 	void SetCollisionSize( FLOAT NewRadius, FLOAT NewHeight );
 	void SetBase(AActor *NewBase, int bNotifyActor=1);
-	FRotator GetViewRotation();
+	inline FRotator GetViewRotation();
 
 	// AActor audio.
 	void MakeSound( USound *Sound, FLOAT Radius=0.f, FLOAT Volume=1.f, FLOAT Pitch=1.f );

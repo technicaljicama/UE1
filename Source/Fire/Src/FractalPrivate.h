@@ -191,12 +191,12 @@ class DLL_EXPORT UFireTexture : public UFractalTexture
 	DECLARE_CLASS_WITHOUT_CONSTRUCT(UFireTexture,UFractalTexture,0)
 
 	// Persistent variables.
-    BYTE		SparkType;    
+    BYTE		SparkType GCC_ALIGN(4);    
     BYTE        RenderHeat;
-	DWORD		bRising:1;
+	DWORD		bRising:1 GCC_PACK(4);
 
 	// FX specifics
-	BYTE		FX_Heat;
+	BYTE		FX_Heat GCC_ALIGN(4);
 	BYTE		FX_Size;
 	BYTE		FX_AuxSize;
 	BYTE		FX_Area;
@@ -315,7 +315,7 @@ class DLL_EXPORT UWaterTexture : public UFractalTexture
 	DECLARE_ABSTRACT_CLASS(UWaterTexture,UFractalTexture,0)
 
 	// Persistent variables:
-	BYTE		DropType;       // Warning: force all 'enum' types to be BYTEs.	
+	BYTE		DropType GCC_ALIGN(4); // Warning: force all 'enum' types to be BYTEs.	
     BYTE		WaveAmp; 
 	// FX specifics
 	BYTE		FX_Frequency;

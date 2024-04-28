@@ -295,7 +295,7 @@ void FURL::String( FString& Result, UBOOL FullyQualified ) const
 	// Emit protocol.
 	if( Protocol!=DefaultProtocol || FullyQualified )
 	{
-		Result.Appendf( "%s", Protocol );
+		Result.Appendf( "%s", *Protocol );
 		Result.Appendf( ":" );
 		if( Host!=DefaultHost )
 			Result.Appendf( "//" );
@@ -304,7 +304,7 @@ void FURL::String( FString& Result, UBOOL FullyQualified ) const
 	// Emit host.
 	if( Host!=DefaultHost || Port!=DefaultPort )
 	{
-		Result.Appendf( "%s", Host );
+		Result.Appendf( "%s", *Host );
 		if( Port!=DefaultPort )
 		{
 			Result.Appendf( ":" );
@@ -315,13 +315,13 @@ void FURL::String( FString& Result, UBOOL FullyQualified ) const
 
 	// Emit map.
 	if( Map.Length() )
-		Result.Appendf( "%s", Map );
+		Result.Appendf( "%s", *Map );
 
 	// Emit options.
 	for( INT i=0; i<Op.Num(); i++ )
 	{
 		Result.Appendf( "?"         );
-		Result.Appendf( "%s", Op(i) );
+		Result.Appendf( "%s", *Op(i) );
 	}
 	unguard;
 }

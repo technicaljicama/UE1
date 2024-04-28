@@ -62,7 +62,7 @@ URender::URender()
 	// Validate stuff.
 	if(sizeof(*this)!=GetClass()->GetPropertiesSize())
 		appErrorf( "Render size mismatch: C=%i U=%i", sizeof(*this), GetClass()->GetPropertiesSize() );
-	check(FBspNode::MAX_NODE_VERTICES<=FPoly::MAX_VERTICES);
+	check((INT)FBspNode::MAX_NODE_VERTICES<=(INT)FPoly::MAX_VERTICES);
 	check(sizeof(FVector)==12);
 	check(sizeof(FRotator)==12);
 	check(sizeof(FCoords)==48);

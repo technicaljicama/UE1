@@ -30,6 +30,10 @@
 #else
 #include "UnGcc.h"
 #endif
+
+// Global constants.
+enum ENoInit {E_NoInit = 0};
+
 // API definition.
 
 /*----------------------------------------------------------------------------

@@ -74,22 +74,27 @@ void FArray::Realloc( INT ElementSize )
 
 void FArray::Remove( INT Index, INT Count, INT ElementSize )
 {
+	guardSlow(FArray::Remove);
 	if( Count )
 	{
-		memmove
+		appMemmove
 		(
-			(BYTE*)Data + Index         * ElementSize,
+			(BYTE*)Data + (Index      ) * ElementSize,
 			(BYTE*)Data + (Index+Count) * ElementSize,
-			(ArrayNum-Index-Count)      * ElementSize
+			(ArrayNum - Index - Count ) * ElementSize
 		);
 		ArrayNum -= Count;
-		//!!need to investigate optimal array shrinking
-		//strategy.
-		//if( 2*ArrayNum<ArrayMax && ArrayMax-ArrayNum>256 )
-		//	Realloc( ElementSize );
+		if
+		(	(3*ArrayNum<2*ArrayMax || (ArrayMax-ArrayNum)*ElementSize>=16384)
+		&&	(ArrayMax-ArrayNum>64 || ArrayNum==0) )
+		{
+			ArrayMax = ArrayNum;
+			Realloc( ElementSize );
+		}
 	}
-	checkarray(ArrayNum>=0);
-	checkarray(ArrayMax>=ArrayNum);
+	check(ArrayNum>=0);
+	check(ArrayMax>=ArrayNum);
+	unguardSlow;
 }
 
 /*-----------------------------------------------------------------------------
@@ -269,6 +274,14 @@ CORE_API void* appRealloc( void* Ptr, INT NewSize, const char* Tag )
 		}
 	}
 #else
+#ifndef PLATFORM_MSVC
+	// MSVC realloc() frees memory when NewSize is 0
+	if( Ptr && NewSize == 0 )
+	{
+		free( Ptr );
+		return NULL;
+	}
+#endif
 	return realloc( Ptr, NewSize );
 #endif
 
@@ -816,7 +829,7 @@ const char* appStrfind( const char* str, const char* find )
 //
 CORE_API void VARARGS appThrowf( const char* Fmt, ... )
 {
-	char TempStr[4096];
+	static char TempStr[4096];
 	GET_VARARGS(TempStr,Fmt);
 	throw( TempStr );
 }

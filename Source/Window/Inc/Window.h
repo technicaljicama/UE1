@@ -2976,7 +2976,7 @@ public:
 			if( !Class )
 			{
 				Failed = 1;
-				Caption.Setf( LocalizeError("FailedConfigLoad","Window"), ClassName );
+				Caption.Setf( LocalizeError("FailedConfigLoad","Window"), *ClassName );
 			}
 		}
 		unguard;

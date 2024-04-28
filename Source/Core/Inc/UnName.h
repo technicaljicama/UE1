@@ -73,7 +73,7 @@ struct FNameEntry
 // into the name table and every name in Unreal is stored once
 // and only once in that table.  Names are case-insensitive.
 //
-enum EName : unsigned short;
+enum EName : _WORD;
 class CORE_API FName 
 {
 public:
@@ -156,6 +156,7 @@ private:
 	static TArray<INT>          Available;       // Indices of available names.
 	static FNameEntry*			NameHash[8192];  // Hashed names.
 	static INT					Duplicate;       // Duplicate name, if any.
+	static UBOOL				Initialized;     // Set by InitTables.
 };
 
 /*----------------------------------------------------------------------------

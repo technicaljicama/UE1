@@ -102,7 +102,7 @@ private:
 	FLOAT		ConsoleDest;
 	UTexture*	ConBackground;
 	UTexture*	Border;
-    DWORD bNoStuff:1;
+    DWORD bNoStuff:1 GCC_PACK(4);
 };
 
 /*------------------------------------------------------------------------------

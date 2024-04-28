@@ -59,6 +59,10 @@ enum {CACHE_LINE_SIZE   = 32}; // Cache line size.
 	#define COMPILER "Compiled with Visual C++"
 #endif
 
+// Bitfield alignment.
+#define GCC_PACK(n)
+#define GCC_ALIGN(n)
+
 // Unsigned base types.
 typedef unsigned char		BYTE;		// 8-bit  unsigned.
 typedef unsigned short		_WORD;		// 16-bit unsigned.

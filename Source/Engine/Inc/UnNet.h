@@ -26,9 +26,9 @@ enum {NET_REVISION=1};
 -----------------------------------------------------------------------------*/
 
 #include "UnNetDrv.h"   // Network driver class.
+#include "UnChan.h"     // Channel class.
 #include "UnConn.h"     // Connection class.
 #include "UnBunch.h"    // Bunch class.
-#include "UnChan.h"     // Channel class.
 
 /*-----------------------------------------------------------------------------
 	UPendingLevel.

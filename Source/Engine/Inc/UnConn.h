@@ -171,7 +171,7 @@ public:
 		debug(Index<UNetConnection::MAX_CHANNELS);
 		while
 		(	++Index<UNetConnection::MAX_CHANNELS
-		&&	(!Conn->Channels[Index] || Conn->Channels[Index]->ChType!=T::ChannelType) );
+		&&	(!Conn->Channels[Index] || (INT)Conn->Channels[Index]->ChType!=(INT)T::ChannelType) );
 	}
 	operator UBOOL()
 	{

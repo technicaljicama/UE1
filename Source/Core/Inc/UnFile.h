@@ -314,11 +314,14 @@ CORE_API void appMemswap( void* Ptr1, void* Ptr2, DWORD Size );
 //
 // Case insensitive string hash function.
 //
-inline unsigned long appStrihash( const char *Data )
+inline DWORD appStrihash( const char *Data )
 {
-	unsigned long Hash = 0;
+	DWORD Hash = 0;
 	while( *Data )
-		Hash = ((Hash >> 8) & 0x00FFFFFF) ^ GCRCTable[(Hash ^ appToUpper(*Data++)) & 0x000000FF];
+	{
+		const BYTE B = appToUpper(*Data++);
+		Hash = ((Hash >> 8) & 0x00FFFFFF) ^ GCRCTable[(Hash ^ B) & 0x000000FF];
+	}
 	return Hash;
 }
 

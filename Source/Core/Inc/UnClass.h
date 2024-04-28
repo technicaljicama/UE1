@@ -56,7 +56,7 @@ public:
 	,	Next		(InNext)
 	,	Condition	(NULL)
 	,	LastObject	(NULL)
-	,	LastStamp	(NULL)
+	,	LastStamp	(0)
 	,	LastResult	(0)
 	{}
 };
@@ -110,66 +110,6 @@ class CORE_API UField : public UObject
 	// UField interface.
 	virtual void Bind();
 	virtual UClass* GetOwnerClass();
-};
-
-/*-----------------------------------------------------------------------------
-	TFieldIterator.
------------------------------------------------------------------------------*/
-
-//
-// For iterating through a linked list of fields.
-//
-template <class T> class TFieldIterator
-{
-public:
-	TFieldIterator( UStruct* InStruct )
-	: Struct( InStruct )
-	, Field( InStruct ? InStruct->Children : NULL )
-	{
-		IterateToNext();
-	}
-	operator UBOOL()
-	{
-		return Field != NULL;
-	}
-	void operator++()
-	{
-		debug(Field);
-		Field = Field->Next;
-		IterateToNext();
-	}
-	T* operator*()
-	{
-		debug(Field);
-		return (T*)Field;
-	}
-	T* operator->()
-	{
-		debug(Field);
-		return (T*)Field;
-	}
-	UStruct* GetStruct()
-	{
-		return Struct;
-	}
-protected:
-	void IterateToNext()
-	{
-		while( Struct )
-		{
-			while( Field )
-			{
-				if( Field->IsA(T::StaticClass) )
-					return;
-				Field = Field->Next;
-			}
-			Struct = Struct->GetInheritanceSuper();
-			if( Struct )
-				Field = Struct->Children;
-		}
-	}
-	UStruct* Struct;
-	UField* Field;
 };
 
 /*-----------------------------------------------------------------------------
@@ -246,6 +186,66 @@ class CORE_API UStruct : public UField
 		unguardSlow;
 	}
 	UBOOL StructCompare( const void* A, const void* B );
+};
+
+/*-----------------------------------------------------------------------------
+	TFieldIterator.
+-----------------------------------------------------------------------------*/
+
+//
+// For iterating through a linked list of fields.
+//
+template <class T> class TFieldIterator
+{
+public:
+	TFieldIterator( UStruct* InStruct )
+	: Struct( InStruct )
+	, Field( InStruct ? InStruct->Children : NULL )
+	{
+		IterateToNext();
+	}
+	operator UBOOL()
+	{
+		return Field != NULL;
+	}
+	void operator++()
+	{
+		debug(Field);
+		Field = Field->Next;
+		IterateToNext();
+	}
+	T* operator*()
+	{
+		debug(Field);
+		return (T*)Field;
+	}
+	T* operator->()
+	{
+		debug(Field);
+		return (T*)Field;
+	}
+	UStruct* GetStruct()
+	{
+		return Struct;
+	}
+protected:
+	void IterateToNext()
+	{
+		while( Struct )
+		{
+			while( Field )
+			{
+				if( Field->IsA(T::StaticClass) )
+					return;
+				Field = Field->Next;
+			}
+			Struct = Struct->GetInheritanceSuper();
+			if( Struct )
+				Field = Struct->Children;
+		}
+	}
+	UStruct* Struct;
+	UField* Field;
 };
 
 /*-----------------------------------------------------------------------------
@@ -461,6 +461,13 @@ private:
 	// an error where the caller should use IsChildOf.
 	UBOOL IsA( UClass* Parent ) const {return UObject::IsA(Parent);}
 };
+
+// Construct an object of a particular class.
+template< class T > T* ConstructClassObject( UClass* Class, UObject* Parent=(UObject*)GObj.GetTransientPackage(), FName Name=NAME_None, DWORD SetFlags=0 )
+{
+	check(Class->IsChildOf(T::StaticClass));
+	return (T*)GObj.ConstructObject( Class );
+}
 
 /*-----------------------------------------------------------------------------
 	UConst.

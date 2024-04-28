@@ -6,7 +6,7 @@
 #include "AL/alext.h"
 #include "AL/efx.h"
 #include "AL/efx-presets.h"
-#include "libxmp-lite/xmp.h"
+#include "xmp.h"
 
 #include "NOpenALDrvPrivate.h"
 #include "UnRender.h"

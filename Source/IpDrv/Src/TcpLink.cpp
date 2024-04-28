@@ -491,7 +491,7 @@ void ATcpLink::execClose( FFrame& Stack, BYTE*& Result )
 			bSocketInitialized = 0;
 			MainSocket = ConnectSocket = INVALID_SOCKET;
 			LinkState = TCP_Closed;
-			URL[0]=NULL;
+			URL[0]='\0';
 			Port=0;
 		}
 	}
@@ -566,13 +566,13 @@ void ATcpLink::execReadText( FFrame& Stack, BYTE*& Result )
 		if( numRcvd == SOCKET_ERROR ) 
 			numRcvd = 0;
 		// Add a terminating NULL to the end of the string
-		Str[numRcvd] = NULL;
+		Str[numRcvd] = '\0';
 		*(DWORD*)Result = numRcvd;
 		return;
 	}
 
 	// Make sure it's a valid string before returning it
-	Str[0] = NULL;
+	Str[0] = '\0';
 	*(DWORD*)Result = 0;
 	unguardexec;
 }

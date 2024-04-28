@@ -86,6 +86,8 @@ protected:
 	{
 		Realloc( ElementSize );
 	}
+	FArray( ENoInit )
+	{}
 	~FArray()
 	{
 		if( Data )
@@ -100,7 +102,6 @@ public:
 //
 // Templated dynamic array.
 //
-#define checkarray debug /* For debugging array code. */
 template< class T > class TArray : public FArray
 {
 public:
@@ -116,6 +117,9 @@ public:
 			new(*this)T(Other(i));
 		unguardSlow;
 	}
+	TArray( ENoInit )
+	: FArray( E_NoInit )
+	{}
 	TArray& operator=( const TArray& Other )
 	{
 		guardSlow(TArray::operator=);
@@ -132,30 +136,20 @@ public:
 	}
 	~TArray()
 	{
-		checkarray(ArrayNum>=0);
-		checkarray(ArrayMax>=ArrayNum);
 		Remove( 0, ArrayNum );
 	}
     T& operator()( int i )
 	{
 		guardSlow(TArray::());
-		checkarray(i>=0);
-		checkarray(i<=ArrayNum);
-		checkarray(ArrayMax>=ArrayNum);
 		return ((T*)Data)[i];
 		unguardSlow;
 	}
 	const T& operator()( int i ) const
 	{
-		checkarray(i>=0);
-		checkarray(i<=ArrayNum);
-		checkarray(ArrayMax>=ArrayNum);
 		return ((T*)Data)[i];
 	}
 	INT Num() const
 	{
-		checkarray(ArrayNum>=0);
-		checkarray(ArrayMax>=ArrayNum);
 		return ArrayNum;
 	}
 	UBOOL IsValidIndex( int i ) const
@@ -171,8 +165,6 @@ public:
 	void Shrink()
 	{
 		guardSlow(TArray::Shrink);
-		checkarray(ArrayNum>=0);
-		checkarray(ArrayMax>=ArrayNum);
 		if( ArrayMax != ArrayNum )
 		{
 			ArrayMax = ArrayNum;
@@ -191,9 +183,6 @@ public:
 	INT Add( INT n=1 )
 	{
 		guardSlow(TArray::Add);
-		checkarray(n>=0);
-		checkarray(ArrayNum>=0);
-		checkarray(ArrayMax>=ArrayNum);
 		INT Index=ArrayNum;
 		if( (ArrayNum+=n)>ArrayMax )
 		{
@@ -269,7 +258,6 @@ template <class T> void* operator new( size_t Size, TArray<T>& Array )
 //
 // A dynamically sizeable string.
 //
-#define checkstr debug
 class CORE_API FString : protected TArray<char>
 {
 public:
@@ -278,34 +266,27 @@ public:
 	:	TArray<char>( 1 )
 	{
 		(*this)(0)=0;
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 	}
+	FString( ENoInit )
+	: TArray<char>( E_NoInit )
+	{}
 	FString( const char* In )
 	{
-		checkstr(In);
 		Add( appStrlen(In)+1 );
 		appMemcpy( &(*this)(0), In, Num() );
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 	}
 	FString( const FString& Other )
 	:	TArray<char>( Other.Num() )
 	{
-		checkstr(Other.Num());
 		appMemcpy( &(*this)(0), &Other(0), Num() );
-		checkstr((*this)(Num()-1)==0);
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 	}
 	FString& operator=( const FString& Other )
 	{
 		if( this != &Other )
 		{
-			checkstr(Other.Num());
-			checkstr(Other(Other.Num()-1)==0);
 			SetNum( Other.Num() );
 			appMemcpy( &(*this)(0), &Other(0), Num() );
-			checkstr((*this)(Num()-1)==0);
 		}
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 		return *this;
 	}
 
@@ -314,22 +295,15 @@ public:
 	{
 		TArray<char>::Empty();
 		AddItem(0);
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 	}
 	void Shrink()
 	{
-		checkstr(Num());
-		checkstr((*this)(Num()-1)==0);
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 		TArray<char>::Shrink();
 	}
 
 	// Conversions.
 	const char* operator*() const
 	{
-		checkstr(Num());
-		checkstr((*this)(Num()-1)==0);
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 		return &(*this)(0);
 	}
 	operator UBOOL() const
@@ -340,13 +314,9 @@ public:
 	// Operators.
 	FString& operator +=( const char* Str )
 	{
-		checkstr(Str);
-		checkstr(Num());
 		INT Index = Num()-1;
-		checkstr((*this)(Index)==0);
 		Add(appStrlen(Str));
 		appStrcpy( &(*this)(Index), Str );
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 		return *this;
 	}
 	FString operator +( const char* Str )
@@ -355,13 +325,9 @@ public:
 	}
 	FString& operator +=( const FString& Str )
 	{
-		checkstr(Str.Num());
-		checkstr(Num());
 		INT Index = Num()-1;
-		checkstr((*this)(Index)==0);
 		Add(Str.Length());
 		appMemcpy( &(*this)(Index), &Str(0), Str.Num() );
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 		return *this;
 	}
 	FString operator +( const FString& Str )
@@ -370,45 +336,24 @@ public:
 	}
 	UBOOL operator==( const char* Other ) const
 	{
-		checkstr(Num());
-		checkstr(Other);
-		checkstr((*this)(Num()-1)==0);
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 		return appStricmp( &(*this)(0), Other )==0;
 	}
 	UBOOL operator==( const FString& Other ) const
 	{
-		checkstr(Num());
-		checkstr(Other.Num());
-		checkstr((*this)(Num()-1)==0);
-		checkstr(Other(Num()-1)==0);
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 		return appStricmp( &(*this)(0), &Other(0) )==0;
 	}
 	UBOOL operator!=( const char* Other ) const
 	{
-		checkstr(Num());
-		checkstr(Other);
-		checkstr((*this)(Num()-1)==0);
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 		return appStricmp( &(*this)(0), Other )!=0;
 	}
 	UBOOL operator!=( const FString& Other ) const
 	{
-		checkstr(Num());
-		checkstr(Other.Num());
-		checkstr((*this)(Num()-1)==0);
-		checkstr(Other(Num()-1)==0);
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 		return appStricmp( &(*this)(0), &Other(0) )!=0;
 	}
 
 	// Functions.
 	INT Length() const
 	{
-		checkstr(Num());
-		checkstr((*this)(Num()-1)==0);
-		checkstr(Num()==(int)appStrlen(&(*this)(0))+1);
 		return Num()-1;
 	}
 	UBOOL Parse( const char* Stream, const char* Match );

@@ -498,7 +498,7 @@ enum ELevelTick : int;
 class ENGINE_API AActor : public UObject
 {
 public:
-    DWORD bStatic:1;
+    DWORD bStatic:1 GCC_PACK(4);
     DWORD bHidden:1;
     DWORD bHiddenEd:1;
     DWORD bDirectional:1;
@@ -530,7 +530,7 @@ public:
     DWORD bStasis:1;
     DWORD bForceStasis:1;
     DWORD bIsPawn:1;
-    BYTE Physics;
+    BYTE Physics GCC_ALIGN(4);
     BYTE Role;
     BYTE RemoteRole;
     class AActor* Owner;
@@ -572,14 +572,14 @@ public:
     FVector ColLocation;
     FVector Velocity;
     FVector Acceleration;
-    DWORD bDifficulty0:1;
+    DWORD bDifficulty0:1 GCC_PACK(4);
     DWORD bDifficulty1:1;
     DWORD bDifficulty2:1;
     DWORD bDifficulty3:1;
     DWORD bSinglePlayer:1;
     DWORD bNet:1;
     DWORD bNetSpecial:1;
-    FLOAT OddsOfAppearing;
+    FLOAT OddsOfAppearing GCC_PACK(4);
     BYTE DrawType;
     BYTE Style;
     class UTexture* Sprite;
@@ -592,7 +592,7 @@ public:
     FLOAT ScaleGlow;
     BYTE AmbientGlow;
     BYTE Fatness;
-    DWORD bUnlit:1;
+    DWORD bUnlit:1 GCC_PACK(4);
     DWORD bNoSmooth:1;
     DWORD bParticles:1;
     DWORD bMeshEnviroMap:1;
@@ -603,19 +603,19 @@ public:
     DWORD bAlwaysRelevant:1;
     DWORD bAlwaysTick:1;
     DWORD bHurtEntry:1;
-    BYTE SoundRadius;
+    BYTE SoundRadius GCC_ALIGN(4);
     BYTE SoundVolume;
     BYTE SoundPitch;
     class USound* AmbientSound;
     FLOAT TransientSoundVolume;
     FLOAT CollisionRadius;
     FLOAT CollisionHeight;
-    DWORD bCollideActors:1;
+    DWORD bCollideActors:1 GCC_PACK(4);
     DWORD bCollideWorld:1;
     DWORD bBlockActors:1;
     DWORD bBlockPlayers:1;
     DWORD bProjTarget:1;
-    BYTE LightType;
+    BYTE LightType GCC_ALIGN(4);
     BYTE LightEffect;
     BYTE LightBrightness;
     BYTE LightHue;
@@ -627,7 +627,7 @@ public:
     BYTE VolumeBrightness;
     BYTE VolumeRadius;
     BYTE VolumeFog;
-    DWORD bSpecialLit:1;
+    DWORD bSpecialLit:1 GCC_PACK(4);
     DWORD bActorShadows:1;
     DWORD bCorona:1;
     DWORD bLensFlare:1;
@@ -636,7 +636,7 @@ public:
     DWORD bRotateToDesired:1;
     DWORD bInterpolating:1;
     DWORD bJustTeleported:1;
-    BYTE DodgeDir;
+    BYTE DodgeDir GCC_ALIGN(4);
     FLOAT Mass;
     FLOAT Buoyancy;
     FRotator RotationRate;
@@ -648,7 +648,7 @@ public:
     FLOAT OldAnimRate;
     FPlane SimAnim;
     FLOAT NetPriority;
-    DWORD bNetInitial:1;
+    DWORD bNetInitial:1 GCC_PACK(4);
     DWORD bNetOwner:1;
     DWORD bNetSee:1;
     DWORD bNetHear:1;
@@ -965,7 +965,7 @@ enum EAttitude
 class ENGINE_API APawn : public AActor
 {
 public:
-    DWORD bBehindView:1;
+    DWORD bBehindView:1 GCC_PACK(4);
     DWORD bIsPlayer:1;
     DWORD bJustLanded:1;
     DWORD bUpAndOut:1;
@@ -989,7 +989,7 @@ public:
     DWORD bJumpOffPawn:1;
     DWORD bShootSpecial:1;
     DWORD bAutoActivate:1;
-    FLOAT SightCounter;
+    FLOAT SightCounter GCC_PACK(4);
     FLOAT PainTime;
     FLOAT SpeechTime;
     FLOAT AvgPhysicsTime;
@@ -1222,7 +1222,7 @@ public:
     FLOAT MyAutoAim;
     FLOAT Handedness;
     class USound* JumpSound;
-    DWORD bAdmin:1;
+    DWORD bAdmin:1 GCC_PACK(4);
     DWORD bLookUpStairs:1;
     DWORD bSnapToLevel:1;
     DWORD bAlwaysMouseLook:1;
@@ -1251,7 +1251,7 @@ public:
     DWORD bDelayedCommand:1;
     DWORD bRising:1;
     DWORD bReducedVis:1;
-    class UClass* SpecialMenu;
+    class UClass* SpecialMenu GCC_PACK(4);
     CHAR DelayedCommand[255];
     FLOAT MouseSensitivity;
     FName WeaponPriority[20];
@@ -1383,7 +1383,7 @@ public:
     FScale TempScale;
     FColor BrushColor;
     INT PolyFlags;
-    DWORD bColored:1;
+    DWORD bColored:1 GCC_PACK(4);
     DECLARE_CLASS(ABrush,AActor,0)
     #include "ABrush.h"
 };
@@ -1427,12 +1427,12 @@ public:
     FLOAT StayOpenTime;
     FLOAT OtherTime;
     INT EncroachDamage;
-    DWORD bTriggerOnceOnly:1;
+    DWORD bTriggerOnceOnly:1 GCC_PACK(4);
     DWORD bSlave:1;
     DWORD bUseTriggered:1;
     DWORD bDamageTriggered:1;
     DWORD bDynamicLightMover:1;
-    FName PlayerBumpEvent;
+    FName PlayerBumpEvent GCC_PACK(4);
     FName BumpEvent;
     class AActor* SavedTrigger;
     FLOAT DamageThreshold;
@@ -1458,7 +1458,7 @@ public:
     class AActor* TriggerActor;
     class AActor* TriggerActor2;
     class APawn* WaitingPawn;
-    DWORD bOpening:1;
+    DWORD bOpening:1 GCC_PACK(4);
     DWORD bPlayerOnly:1;
 	DECLARE_CLASS_WITHOUT_CONSTRUCT(AMover,ABrush,0)
     #include "AMover.h"
@@ -1479,7 +1479,7 @@ public:
     FLOAT Delta;
     BYTE MoveFlags;
     BYTE DodgeMove;
-    DWORD bSent:1;
+    DWORD bSent:1 GCC_PACK(4);
 	DECLARE_CLASS_WITHOUT_CONSTRUCT(ASavedMove,AInfo,0)
     NO_DEFAULT_CONSTRUCTOR(ASavedMove)
 };
@@ -1505,14 +1505,14 @@ public:
     class UClass* EntryActor;
     class UClass* ExitActor;
     class ASkyZoneInfo* SkyZone;
-    DWORD bWaterZone:1;
+    DWORD bWaterZone:1 GCC_PACK(4);
     DWORD bFogZone:1;
     DWORD bKillZone:1;
     DWORD bNeutralZone:1;
     DWORD bGravityZone:1;
     DWORD bPainZone:1;
     DWORD bDestructive:1;
-    BYTE AmbientBrightness;
+    BYTE AmbientBrightness GCC_ALIGN(4);
     BYTE AmbientHue;
     BYTE AmbientSaturation;
     FColor FogColor;
@@ -1522,9 +1522,9 @@ public:
     FLOAT TexVPanSpeed;
     FVector ViewFlash;
     FVector ViewFog;
-    DWORD bReverbZone:1;
+    DWORD bReverbZone:1 GCC_PACK(4);
     DWORD bRaytraceReverb:1;
-    FLOAT SpeedOfSound;
+    FLOAT SpeedOfSound GCC_PACK(4);
     BYTE MasterGain;
     INT CutoffHz;
     BYTE Delay[6];
@@ -1614,12 +1614,12 @@ public:
     CHAR LevelEnterText[64];
     CHAR LocalizedPkg[64];
     CHAR Pauser[32];
-    DWORD bLonePlayer:1;
+    DWORD bLonePlayer:1 GCC_PACK(4);
     DWORD bBegunPlay:1;
     DWORD bPlayersOnly:1;
     DWORD bHighDetailMode:1;
     DWORD bStartup:1;
-    class UMusic* Song;
+    class UMusic* Song GCC_PACK(4);
     BYTE SongSection;
     BYTE CdTrack;
     FLOAT PlayerDoppler;
@@ -1628,16 +1628,16 @@ public:
     INT HubStackLevel;
     BYTE LevelAction;
     BYTE NetMode;
-    DWORD bInternet:1;
-    CHAR ComputerName[32];
+    DWORD bInternet:1 GCC_PACK(4);
+    CHAR ComputerName[32] GCC_ALIGN(4);
     CHAR EngineVersion[32];
     class UClass* DefaultGameType;
     class AGameInfo* Game;
     class ANavigationPoint* NavigationPointList;
     class APawn* PawnList;
     CHAR NextURL[240];
-    DWORD bNextItems:1;
-    FLOAT NextSwitchCountdown;
+    DWORD bNextItems:1 GCC_PACK(4);
+    FLOAT NextSwitchCountdown GCC_PACK(4);
     void execGetAddressURL( FFrame& Stack, BYTE*& Result );
     void execGetLocalURL( FFrame& Stack, BYTE*& Result );
 	DECLARE_CLASS_WITHOUT_CONSTRUCT(ALevelInfo,AZoneInfo,0)
@@ -1651,7 +1651,7 @@ public:
     INT KillGoals;
     INT SecretGoals;
     BYTE Difficulty;
-    DWORD bNoMonsters:1;
+    DWORD bNoMonsters:1 GCC_PACK(4);
     DWORD bMuteSpectators:1;
     DWORD bHumansOnly:1;
     DWORD bRestartLevel:1;
@@ -1661,7 +1661,7 @@ public:
     DWORD bLowGore:1;
     DWORD bShareware:1;
     DWORD bCanChangeSkin:1;
-    FLOAT AutoAim;
+    FLOAT AutoAim GCC_PACK(4);
     FLOAT GameSpeed;
     FLOAT StartTime;
     class UClass* DefaultPlayerClass;
@@ -1745,9 +1745,9 @@ public:
     class AMenu* ParentMenu;
     INT Selection;
     INT MenuLength;
-    DWORD bConfigChanged:1;
+    DWORD bConfigChanged:1 GCC_PACK(4);
     DWORD bExitAllMenus:1;
-    class APlayerPawn* PlayerOwner;
+    class APlayerPawn* PlayerOwner GCC_PACK(4);
     CHAR HelpMessage[255][24];
     CHAR MenuList[128][24];
     CHAR LeftString[32];

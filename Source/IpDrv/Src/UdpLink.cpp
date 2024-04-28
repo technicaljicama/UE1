@@ -63,7 +63,7 @@ void AUdpLink::execBindPort( FFrame& Stack, BYTE*& Result )
 	P_FINISH;
 	if( GInitialized )
 	{
-		if( GetSocket()==NULL )
+		if( GetSocket() == 0 )
 		{
 			GetSocket() = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
 			if( GetSocket() != INVALID_SOCKET )
@@ -89,7 +89,7 @@ void AUdpLink::execBindPort( FFrame& Stack, BYTE*& Result )
 				} else Stack.ScriptWarn( 0, "BindPort: setsockopt failed" );
 			} else Stack.ScriptWarn( 0, "BindPort: socket failed" );
 			closesocket(GetSocket());
-			GetSocket()=NULL;
+			GetSocket() = 0;
 		} else Stack.ScriptWarn( 0, "BindPort: already bound" );
 	} else Stack.ScriptWarn( 0, "BindPort: winsock failed" );
 	*(DWORD*)Result = 0;

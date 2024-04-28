@@ -389,10 +389,10 @@ public:
 	}
 
 	// Transformation.
-	FVector TransformVectorBy					(const FCoords &Coords) const;
-	FVector TransformPointBy					(const FCoords &Coords) const;
-	FVector MirrorByVector						(const FVector &MirrorNormal) const;
-	FVector MirrorByPlane						(const FPlane &MirrorPlane) const;
+	inline FVector TransformVectorBy					(const FCoords &Coords) const;
+	inline FVector TransformPointBy					(const FCoords &Coords) const;
+	inline FVector MirrorByVector						(const FVector &MirrorNormal) const;
+	inline FVector MirrorByPlane						(const FPlane &MirrorPlane) const;
 
 	// Complicated functions.
 	FRotator		Rotation					();
@@ -462,7 +462,7 @@ public:
 	{
 		return FPlane(-X,-Y,-Z,-W);
 	}
-	FPlane TransformPlaneByOrtho( const FCoords &Coords ) const;
+	inline FPlane TransformPlaneByOrtho( const FCoords &Coords ) const;
 	UBOOL operator==( const FPlane& V ) const
 	{
 		return X==V.X && Y==V.Y && Z==V.Z && W==V.W;
@@ -584,9 +584,9 @@ public:
 	:	Origin(InOrigin), XAxis(InX), YAxis(InY), ZAxis(InZ) {}
 
 	// Functions.
-	FCoords MirrorByVector( const FVector& MirrorNormal ) const;
-	FCoords MirrorByPlane( const FPlane& MirrorPlane ) const;
-	FCoords	Transpose() const;
+	inline FCoords MirrorByVector( const FVector& MirrorNormal ) const;
+	inline FCoords MirrorByPlane( const FPlane& MirrorPlane ) const;
+	inline FCoords	Transpose() const;
 	FCoords Inverse() const;
 	FRotator OrthoRotation() const;
 

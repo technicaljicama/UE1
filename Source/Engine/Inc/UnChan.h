@@ -59,7 +59,7 @@ UBOOL GIsKnownChannelType( INT Type );
 // Goes inside class definition,
 #define DECLARE_CHTYPE(chtype,chclass) \
 public: \
-	enum {ChannelType=chtype}; \
+	enum : int {ChannelType=chtype}; \
 	static FChannel* Construct( UNetConnection* InConnection, INT InChIndex, UBOOL InOpenedLocally ) \
 		{return new chclass( InConnection, InChIndex, InOpenedLocally );}
 

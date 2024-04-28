@@ -486,7 +486,7 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 	Socket = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
 	if( Socket == INVALID_SOCKET )
 	{
-		Socket = NULL;
+		Socket = 0;
 		appSprintf( Error256, "WinSock: socket failed (%s)", wsaError() );
 		return 0;
 	}

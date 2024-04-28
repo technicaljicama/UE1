@@ -4,7 +4,7 @@
 
 #include "AL/al.h"
 #include "AL/alc.h"
-#include "libxmp-lite/xmp.h"
+#include "xmp.h"
 #include "Engine.h"
 
 /*------------------------------------------------------------------------------------

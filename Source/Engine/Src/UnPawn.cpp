@@ -213,7 +213,7 @@ void AActor::execGetMapName( FFrame& Stack, BYTE*& Result )
 	*(char*)Result = 0;
 	char Wildcard[256];
 	TArray<FString> MapNames;
-	appSprintf( Wildcard, "*.%s", FURL::DefaultMapExt );
+	appSprintf( Wildcard, "*.%s", *FURL::DefaultMapExt );
 	INT i;
 	for( i=0; i<ARRAY_COUNT(GSys->Paths); i++ )
 	{

@@ -312,7 +312,7 @@ void UBoolProperty::ExportCPPItem( FOutputDevice& Out ) const
 void UBoolProperty::ExportTextItem( char* ValueStr, BYTE* PropertyValue, BYTE* DefaultValue, UBOOL HumanReadable )
 {
 	guard(UBoolProperty::ExportTextItem);
-	char *Temp = ((*(DWORD *)PropertyValue) & BitMask) ? "True" : "False";
+	const char *Temp = ((*(DWORD *)PropertyValue) & BitMask) ? "True" : "False";
 	appSprintf( ValueStr, "%s", Temp );
 	unguard;
 }

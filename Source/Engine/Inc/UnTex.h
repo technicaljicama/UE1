@@ -220,7 +220,7 @@ class ENGINE_API UBitmap : public UObject
 	INT			UClamp, VClamp;		// Clamped width, must be <= size.
 	FColor		MipZero;			// Overall average color of texture.
 	FColor		MaxColor;			// Maximum color for normalization.
-	DOUBLE		LastUpdateTime;		// Last time texture was locked for rendering.
+	DOUBLE		LastUpdateTime GCC_PACK(4);	// Last time texture was locked for rendering.
 
 	// Static.
 	static class UClient* Client;
@@ -242,7 +242,7 @@ class ENGINE_API UTexture : public UBitmap
 	DECLARE_CLASS_WITHOUT_CONSTRUCT(UTexture,UBitmap,CLASS_SafeReplace)
 
 	// Subtextures.
-	UTexture*	BumpMap;			// Bump map to illuminate this texture with.
+	UTexture*	BumpMap GCC_PACK(4);	// Bump map to illuminate this texture with.
 	UTexture*	DetailTexture;		// Detail texture to apply.
 	UTexture*	MacroTexture;		// Macrotexture to apply, not currently used.
 
@@ -327,7 +327,7 @@ enum ETextureFormat
 // Return the number of bytes per texel of a 
 // specified texture format.
 //
-ENGINE_API inline int GColorBytes( ETextureFormat F )
+inline int GColorBytes( ETextureFormat F )
 {
 	static int ColorBytes[TEXF_MAX] = {1,4};
 	return ColorBytes[F];
