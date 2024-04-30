@@ -9,14 +9,20 @@ Requires assets from the original Unreal v200 retail release. Other versions hav
 * Added GLES2 and fixed pipeline GL graphics drivers (NOpenGLESDrv and NOpenGLDrv).
 * Added OpenAL + libxmp audio driver (NOpenALDrv).
 * Added GCC support and fixed a bunch of related bugs.
-* Still only supports 32-bit Windows builds.
+* 32-bit Windows and Linux builds are supported.
 * Editor UI is not supported.
 
 ## Building and running
 
-**With GCC:**
+**With GCC on a 32-bit platform:**
 ```
 cmake -Bbuild -G"Unix Makefiles" Source
+cmake --build build && cmake --install build --config Debug
+```
+
+**With GCC on a 64-bit platform:**
+```
+cmake -Bbuild -G"Unix Makefiles" Source -DCMAKE_C_COMPILER=i686-linux-gnu-gcc -DCMAKE_CXX_COMPILER=i686-linux-gnu-g++
 cmake --build build && cmake --install build --config Debug
 ```
 
@@ -26,12 +32,14 @@ cmake -Bbuild -G"Visual Studio 16 2019" -A Win32 Source
 cmake --build build && cmake --install build --config Debug
 ```
 
-This will copy all resulting DLLs/EXEs to `build/Debug`.
+This will copy all resulting libraries and executables to `build/Debug`.
 
 **To run:**
 * copy the above DLLs/EXEs to the `System` directory of your Unreal install;  
 * copy the configs from `Engine/Config` to the `System` directory;
-* run `Unreal.exe`.
+* run `Unreal.exe` or `Unreal.bin`.
+
+On Linux you might have to run all the `ini` and `int` files through `dos2unix`.
 
 ## Note
 
