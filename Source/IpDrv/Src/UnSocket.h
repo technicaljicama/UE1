@@ -9,11 +9,17 @@
 	Definitions.
 -----------------------------------------------------------------------------*/
 
-#ifndef PLATFORM_WIN32
+#ifdef PLATFORM_WIN32
+typedef int socklen_t;
+#else
 typedef int SOCKET;
+typedef struct sockaddr SOCKADDR;
+typedef struct sockaddr_in SOCKADDR_IN;
 typedef struct hostent HOSTENT;
-typedef struct sockaddr* LPSOCKADDR;
 typedef struct linger LINGER;
+typedef struct sockaddr* LPSOCKADDR;
+typedef struct hostent* LPHOSTENT;
+typedef char* LPSTR;
 #endif
 
 #ifdef PLATFORM_WIN32
@@ -23,6 +29,7 @@ typedef struct linger LINGER;
 #define SOCKET_ERROR 1
 #define WSAEWOULDBLOCK EINPROGRESS // EWOULDBLOCK?
 #define WSAENOTSOCK ENOTSOCK
+#define WSAEISCONN EISCONN
 #define WSATRY_AGAIN TRY_AGAIN
 #define WSAHOST_NOT_FOUND HOST_NOT_FOUND
 #define WSANO_DATA NO_ADDRESS

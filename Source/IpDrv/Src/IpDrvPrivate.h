@@ -17,10 +17,12 @@ Revision history:
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <net/if.h>
-#include <sys/socket.h>
 #include <netdb.h>
 #include <errno.h>
 #include <pthread.h>
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
 #endif
 
 #include <stdlib.h>

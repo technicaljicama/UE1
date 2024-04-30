@@ -68,7 +68,7 @@ void AUdpLink::execBindPort( FFrame& Stack, BYTE*& Result )
 			GetSocket() = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
 			if( GetSocket() != INVALID_SOCKET )
 			{
-				BOOL TrueBuffer=1;
+				INT TrueBuffer=1;
 				if( setsockopt( GetSocket(), SOL_SOCKET, SO_BROADCAST, (char*)&TrueBuffer, sizeof(TrueBuffer) )==0 )
 				{
 					sockaddr_in Addr;
@@ -167,7 +167,7 @@ UBOOL AUdpLink::Tick( FLOAT DeltaTime, enum ELevelTick TickType )
 	{
 		char Buffer[512];
 		sockaddr_in FromAddr;
-		INT FromSize = sizeof(FromAddr);
+		socklen_t FromSize = sizeof(FromAddr);
 		INT Count = recvfrom( GetSocket(), Buffer, ARRAY_COUNT(Buffer)-1, 0, (sockaddr*)&FromAddr, &FromSize );
 		if( Count!=SOCKET_ERROR )
 		{

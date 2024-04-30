@@ -284,6 +284,7 @@ CORE_API char* appStrcpy( char* Dest, const char* Src );
 CORE_API INT appStrcpy( const char* String );
 CORE_API INT appStrlen( const char* String );
 CORE_API char* appStrstr( const char* String, const char* Find );
+CORE_API char* appStrstrFs( const char* String, const char* Find );
 CORE_API char* appStrchr( const char* String, int c );
 CORE_API char* appStrcat( char* Dest, const char* Src );
 CORE_API INT appStrcmp( const char* String1, const char* String2 );

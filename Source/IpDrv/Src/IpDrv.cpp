@@ -54,7 +54,7 @@ struct FResolveInfo
 #ifdef PLATFORM_WIN32
 DWORD __stdcall ResolveThreadEntry( void* Arg )
 #else
-void* ResolveThreadEntry( void* Arg );
+void* ResolveThreadEntry( void* Arg )
 #endif
 {
 	FResolveInfo* Info = (FResolveInfo*)Arg;
@@ -78,9 +78,6 @@ void* ResolveThreadEntry( void* Arg );
 class DLL_EXPORT UTcpNetDriver : public UNetDriver
 {
 	DECLARE_CLASS(UTcpNetDriver,UNetDriver,CLASS_Transient|CLASS_Config)
-
-	// Constants.
-	enum {WM_WSA_GetHostByName=WM_USER+0x200};
 
 	// Variables.
 	sockaddr_in	LocalAddr;
@@ -377,7 +374,7 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 		appSprintf( Error256, "WinSock: socket failed (%s)", SocketError() );
 		return 0;
 	}
-	BOOL TrueBuffer=1;
+	INT TrueBuffer=1;
 	if( setsockopt( Socket, SOL_SOCKET, SO_BROADCAST, (char*)&TrueBuffer, sizeof(TrueBuffer) ) )
 	{
 		appSprintf( Error256, "WinSock: setsockopt SO_BROADCAST failed (%s)", SocketError() );
@@ -386,8 +383,9 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 
 	// Increase socket queue size, because we are polling rather than threading
 	// and thus we rely on Windows Sockets to buffer a lot of data on the server.
-	INT RecvSize = Connect ? 0x8000 : 0x20000, SizeSize=sizeof(RecvSize);
+	INT RecvSize = Connect ? 0x8000 : 0x20000;
 	INT SendSize = Connect ? 0x8000 : 0x20000;
+	socklen_t SizeSize=sizeof(RecvSize);
 	setsockopt( Socket, SOL_SOCKET, SO_RCVBUF, (char*)&RecvSize, SizeSize );
 	getsockopt( Socket, SOL_SOCKET, SO_RCVBUF, (char*)&RecvSize, &SizeSize );
 	setsockopt( Socket, SOL_SOCKET, SO_SNDBUF, (char*)&SendSize, SizeSize );
@@ -554,8 +552,8 @@ void UTcpNetDriver::Tick()
 	while( 1 )
 	{
 		// Get data, if any.
-		INT FromSize = sizeof(FromAddr);
-		INT Size     = recvfrom( Socket, (char*)Data, sizeof(Data), 0, (sockaddr*)&FromAddr, &FromSize );
+		socklen_t FromSize = sizeof(FromAddr);
+		INT Size = recvfrom( Socket, (char*)Data, sizeof(Data), 0, (sockaddr*)&FromAddr, &FromSize );
 
 		// Handle result.
 		if( Size==SOCKET_ERROR && WSAGetLastError()==WSAEWOULDBLOCK )
