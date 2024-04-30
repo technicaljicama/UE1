@@ -4,6 +4,7 @@ set(SRC_FILES
   "Src/TcpLink.cpp"
   "Src/UdpLink.cpp"
   "Src/IpDrv.cpp"
+  "Src/UnSocket.cpp"
 )
 
 add_library(${PROJECT_NAME} SHARED ${SRC_FILES})

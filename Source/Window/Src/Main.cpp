@@ -315,8 +315,8 @@ UEngine* InitEngine()
 		for( INT i=0; i<RenderDevices.Num(); i++ )
 		{
 			char File1[256], File2[256];
-			appSprintf( File1, "%s\\%s", SysDir, RenderDevices(i).Autodetect );
-			appSprintf( File2, "%s\\%s", WinDir, RenderDevices(i).Autodetect );
+			appSprintf( File1, "%s/%s", SysDir, RenderDevices(i).Autodetect );
+			appSprintf( File2, "%s/%s", WinDir, RenderDevices(i).Autodetect );
 			if( *RenderDevices(i).Autodetect && (appFSize(File1)>=0 || appFSize(File2)>=0) )
 			{
 				char Path[256], *Str;
@@ -344,7 +344,7 @@ UEngine* InitEngine()
 	}
 	/*char CdPath[256]="", Check[256];
 	GetConfigString( "Engine.Engine", "CdPath", CdPath, ARRAY_COUNT(CdPath) );
-	appSprintf( Check, "%sTextures\\Palettes.utx", CdPath );
+	appSprintf( Check, "%sTextures/Palettes.utx", CdPath );
 	while( !GIsEditor && appFSize(Check)<=0 )
 	{
 		if( MessageBox

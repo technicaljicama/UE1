@@ -6,11 +6,29 @@ Revision history:
 	* Created by Tim Sweeney.
 =============================================================================*/
 
+#ifdef PLATFORM_MSVC
 #pragma warning( disable : 4201 )
+#endif
+
+#ifdef PLATFORM_WIN32
 #include <windows.h>
 #include <winsock.h>
+#else
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <net/if.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <errno.h>
+#include <pthread.h>
+#endif
+
+#include <stdlib.h>
+#include <string.h>
+
 #include "Engine.h"
 #include "UnNet.h"
+#include "UnSocket.h"
 
 /*-----------------------------------------------------------------------------
 	Definitions.
@@ -22,8 +40,6 @@ struct FIpAddr
 	DWORD Port;
 };
 
-char* wsaError( INT Code=-1 );
-UBOOL wsaInit( char* Error256 );
 extern UBOOL GInitialized;
 
 /*-----------------------------------------------------------------------------

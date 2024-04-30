@@ -238,7 +238,7 @@ UBOOL UEditorEngine::HookExec( const char* Cmd, FOutputDevice* Out )
 	if( ParseCommand(&Cmd,"PLAYMAP") )
 	{
 		char Parms[256];
-		Exec( "MAP SAVE FILE=..\\Maps\\Autoplay.unr", Out );
+		Exec( "MAP SAVE FILE=../Maps/Autoplay.unr", Out );
 		appSprintf( Parms, "Autoplay.unr HWND=%i %s", (INT)hWndMain, GameCommandLine );
 		appLaunchURL( "Unreal", Parms );
 		return 1;

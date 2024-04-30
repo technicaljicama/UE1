@@ -21,7 +21,8 @@ target_include_directories(${PROJECT_NAME}
 )
 
 if(USE_SDL)
-  target_link_libraries(${PROJECT_NAME} NSDLDrv)
+  target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} NSDLDrv)
+  target_include_directories(${PROJECT_NAME} PRIVATE ${SDL2_INCLUDE_DIR})
 elseif(TARGET_IS_WINDOWS)
   target_link_libraries(${PROJECT_NAME} Window)
 else()

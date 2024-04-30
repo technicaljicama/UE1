@@ -397,7 +397,7 @@ public: \
 
 // Define the package of the current DLL being compiled.
 #define IMPLEMENT_PACKAGE(pkg) \
-	extern "C" { DLL_EXPORT char GPackage[] = #pkg; } \
+	extern "C" { DLL_EXPORT GCC_HIDDEN char GPackage[] = #pkg; } \
 	IMPLEMENT_PACKAGE_PLATFORM(pkg)
 
 /*----------------------------------------------------------------------------

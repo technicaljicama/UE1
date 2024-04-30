@@ -2984,7 +2984,7 @@ void CacheDrivers( UBOOL ForceRefresh )
 		for( i=0; i<CoreLangs.Num(); i++ )
 		{
 			if
-			(	!appStrstr(*CoreLangs(i),".dll")
+			(	!appStrstr(*CoreLangs(i),DLLEXT)
 			&&	!appStrstr(*CoreLangs(i),".u")
 			&&	!appStrstr(*CoreLangs(i),".ilk") )
 			{

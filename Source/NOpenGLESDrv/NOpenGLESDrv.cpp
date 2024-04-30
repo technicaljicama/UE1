@@ -1,4 +1,4 @@
-#include "SDL.h"
+#include "SDL2/SDL.h"
 #include "glad.h"
 #include "glm/matrix.hpp"
 #include "glm/ext/matrix_clip_space.hpp"

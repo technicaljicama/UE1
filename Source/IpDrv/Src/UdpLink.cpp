@@ -21,7 +21,7 @@ AUdpLink::AUdpLink()
 {
 	guard(AUdpLink::AUdpLink);
 	char Error[256];
-	wsaInit( Error );
+	InitSockets( Error );
 	unguard;
 }
 

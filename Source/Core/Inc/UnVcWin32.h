@@ -63,6 +63,9 @@ enum {CACHE_LINE_SIZE   = 32}; // Cache line size.
 #define GCC_PACK(n)
 #define GCC_ALIGN(n)
 
+// Hidden attribute, used for GPackage.
+#define GCC_HIDDEN
+
 // Unsigned base types.
 typedef unsigned char		BYTE;		// 8-bit  unsigned.
 typedef unsigned short		_WORD;		// 16-bit unsigned.
@@ -137,6 +140,10 @@ typedef struct _iobuf FILE;
 // NULL.
 #define NULL 0
 
+// Platform-specific strings.
+#define LINE_TERMINATOR "\r\n"
+#define DLLEXT ".dll"
+
 // Package implementation.
 #define IMPLEMENT_PACKAGE_PLATFORM(pkgname) \
 	extern "C" {HINSTANCE hInstance;} \
@@ -157,6 +164,11 @@ CORE_API DWORD appCycles();
 //
 extern CORE_API DOUBLE GSecondsPerCycle;
 CORE_API DOUBLE appSeconds();
+
+//
+// Sleep for seconds.
+//
+CORE_API void appSleep( FLOAT Sec );
 
 /*----------------------------------------------------------------------------
 	Globals.

@@ -21,12 +21,13 @@ IMPLEMENT_CLASS(ATcpLink);
 int InitWSAMain( ATcpLink *ATInst ) 
 {
 	// Attempts to initialize winsock and the main socket, returns 0 on success.
-	WSADATA wsaData;
-	WORD wVersionRequested = MAKEWORD(1,1);
 	LINGER ling;
 	u_long ulCmdArg=1;
 
+#ifdef PLATFORM_WIN32
 	// Initialize Winsock
+	WSADATA wsaData;
+	WORD wVersionRequested = MAKEWORD(1,1);
 	if( ATInst->bWSAInitialized == 0 )
 	{
 		if( WSAStartup( wVersionRequested, &wsaData ) != 0 )
@@ -39,6 +40,9 @@ int InitWSAMain( ATcpLink *ATInst )
 			ATInst->bWSAInitialized = 1;
 		}
 	}
+#else
+	ATInst->bWSAInitialized = 1;
+#endif
 	
 	// Initialize Main Socket
 	// Use stream sockets, TCP/IP
@@ -147,14 +151,9 @@ void ATcpLink::execGetIPByName( FFrame& Stack, BYTE*& Result )
 			if( lpstHost )
 			{
 				// success
-				inAddrStr.S_un.S_addr = *((u_long FAR *)lpstHost->h_addr);
-				//debugf( NAME_Log, "gethostbyname value=%u.%u.%u.%u", 
-				//	     (u_long)inAddrStr.S_un.S_un_b.s_b1, (u_long)inAddrStr.S_un.S_un_b.s_b2,
-				//		 (u_long)inAddrStr.S_un.S_un_b.s_b3, (u_long)inAddrStr.S_un.S_un_b.s_b4 );
-				appSprintf( IpAddr, "%u.%u.%u.%u", 
-					   		(u_long)inAddrStr.S_un.S_un_b.s_b1, (u_long)inAddrStr.S_un.S_un_b.s_b2,
-							(u_long)inAddrStr.S_un.S_un_b.s_b3, (u_long)inAddrStr.S_un.S_un_b.s_b4 );
-
+				IpSetInt( inAddrStr, *((u_long *)lpstHost->h_addr) );
+				appSprintf( IpAddr, "%u.%u.%u.%u",
+					IPBYTE(inAddrStr, 1), IPBYTE(inAddrStr, 2), IPBYTE(inAddrStr, 3), IPBYTE(inAddrStr, 4));
 				//IpAddr = inet_ntoa( inAddrStr );
 				*(DWORD*)Result = 1;
 			}
@@ -522,16 +521,6 @@ void ATcpLink::execSendText( FFrame& Stack, BYTE*& Result )
 			{
 				NumSent = 0;
 				// Could not send.
-				if( WSAGetLastError() == WSAEWOULDBLOCK )
-				{
-					// Other end not synchronized.
-				}
-				else
-				{
-					// Something more serious
-					//debugf( NAME_Log, "TcpLink: Error while attempting to send data (%i)", WSAGetLastError() );
-				}
-
 			}
 			//debugf( NAME_Log, "TcpLink: Sent %i characters. Stringlen=%i", NumSent, StringLen );
 			*(DWORD*)Result = NumSent;

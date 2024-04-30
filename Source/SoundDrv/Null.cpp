@@ -1,8 +1,6 @@
-#pragma warning (disable:4201)
-#include <windows.h>
-#include <mmsystem.h>
 #include "Engine.h"
 #include "UnRender.h"
+
 class DLL_EXPORT UNullAudioSubsystem : public UAudioSubsystem
 {
 	DECLARE_CLASS(UNullAudioSubsystem, UAudioSubsystem, CLASS_Config)

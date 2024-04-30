@@ -99,6 +99,13 @@ enum {CACHE_LINE_SIZE   = 32}; // Cache line size.
 #define GCC_PACK(n) __attribute__((packed, aligned(n)))
 #define GCC_ALIGN(n) __attribute__((aligned(n)))
 
+// Hidden attribute, used for GPackage.
+#ifdef PLATFORM_WIN32
+#define GCC_HIDDEN
+#else
+#define GCC_HIDDEN __attribute__((visibility("hidden")))
+#endif
+
 // Unsigned base types.
 typedef uint16_t _WORD;  // 16-bit signed.
 typedef uint64_t QWORD;  // 64-bit unsigned.
@@ -118,6 +125,7 @@ typedef uint8_t  BYTE;   // 8-bit  unsigned.
 typedef uint32_t DWORD;  // 32-bit unsigned.
 // Signed base types.
 typedef int32_t  INT;    // 32-bit signed.
+typedef int64_t __int64; // 64-bit signed.
 // Other base types.
 typedef float    FLOAT;  // 32-bit IEEE floating point.
 #endif
@@ -136,7 +144,6 @@ static_assert((char)-1 < 0, "char must be signed.");
 // No VC++ asm.
 #undef ASM
 #define ASM 0
-#define __asm ERROR_ASM_NOT_ALLOWED
 
 // FILE forward declaration.
 #define USEEK_CUR SEEK_CUR
@@ -146,6 +153,15 @@ static_assert((char)-1 < 0, "char must be signed.");
 // NULL.
 #ifndef NULL
 #define NULL 0
+#endif
+
+// Platform-specific strings.
+#ifdef PLATFORM_WIN32
+#define LINE_TERMINATOR "\r\n"
+#define DLLEXT ".dll"
+#else
+#define LINE_TERMINATOR "\n"
+#define DLLEXT ".so"
 #endif
 
 // Package implementation.
@@ -158,6 +174,16 @@ static_assert((char)-1 < 0, "char must be signed.");
 	#define IMPLEMENT_PACKAGE_PLATFORM(pkgname) \
 		extern "C" {HINSTANCE hInstance;} \
 		BYTE GLoaded##pkgname;
+#endif
+
+// Windows aliases for POSIX functions or types.
+#ifndef PLATFORM_WIN32
+#define _utime utime
+#define _stat stat
+#define _isnan(x) isnan(x)
+#define stricmp(x, y) strcasecmp((x), (y))
+#define strnicmp(x, y, n) strncasecmp((x), (y), (n))
+#define _strnicmp(x, y, n) strncasecmp((x), (y), (n))
 #endif
 
 /*----------------------------------------------------------------------------
@@ -174,6 +200,16 @@ CORE_API DWORD appCycles();
 //
 extern CORE_API DOUBLE GSecondsPerCycle;
 CORE_API DOUBLE appSeconds();
+
+//
+// Sleep for seconds.
+//
+CORE_API void appSleep( FLOAT Sec );
+
+//
+// appGetGUID
+//
+void appGetGUID( void* GUID );
 
 /*----------------------------------------------------------------------------
 	Globals.

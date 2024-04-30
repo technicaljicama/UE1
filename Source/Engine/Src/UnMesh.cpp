@@ -8,7 +8,7 @@
 
 #include "EnginePrivate.h"
 #include "UnRender.h"
-#include "amd3d.h"
+#include "Amd3d.h"
 
 /*-----------------------------------------------------------------------------
 	UMesh object implementation.

@@ -6,32 +6,190 @@
 		* Created by Tim Sweeney
 =============================================================================*/
 
+#if defined(PLATFORM_SDL)
+#include "SDL2/SDL.h"
+#elif defined(PLATFORM_MSVC)
 #pragma warning( disable : 4201 )
+#include <direct.h>
+#include <io.h>
+#else
+#error "Unsupported platform."
+#endif
+
+#ifdef PLATFORM_WIN32
 #include <windows.h>
 #include <commctrl.h>
-#include <new.h>
-#include <direct.h>
+#include <intrin.h>
+#include <sys/utime.h>
+#else
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+#include <dlfcn.h>
+#include <fcntl.h>
+#include <utime.h>
+#include <sys/time.h>
+#ifdef PLATFORM_X86
+#include <cpuid.h>
+#endif
+#endif
+
+#ifndef PLATFORM_MSVC
+#include <unistd.h>
+#endif
+
+#include <stdlib.h>
+#include <string.h>
 #include <malloc.h>
-#include <io.h>
 #include <stdio.h>
 #include <float.h>
-#include <intrin.h>
 #include <time.h>
 #include <sys/stat.h>
-#include <sys/utime.h>
+
+#include <new>
 #include <memory>
+
+#include "MIni.h"
 
 #include "Core.h"
 
-#define ENGINE_DIR "Engine"
-#define CONFIG_DIR "Config"
-#define SCRIPTS_DIR "Scripts"
-#define LOCALIZATION_DIR "Localization"
+#ifndef MAX_COMPUTERNAME_LENGTH
+#define MAX_COMPUTERNAME_LENGTH 256
+#endif
 
 CORE_API FGlobalPlatform GTempPlatform;
 INT GSlowTaskCount=0;
 FILE* GLogFile=NULL;
-char GLogFname[256]="", GReadIni[256]="", GWriteIni[256]="";
+char GLogFname[256]="";
+
+/*-----------------------------------------------------------------------------
+	FConfigFile.
+-----------------------------------------------------------------------------*/
+
+struct FConfigFile
+{
+	char ReadFname[256] = "";
+	char WriteFname[256] = "";
+	mINI::INIStructure Ini;
+	UBOOL AutoSave;
+
+	~FConfigFile()
+	{
+		if( AutoSave && Ini.size() && WriteFname[0] )
+			Save();
+	}
+
+	void Init( const char* ReadName, const char* WriteName = NULL, UBOOL AutoSave = false )
+	{
+		guard(FConfigFile::Init);
+
+		const UBOOL NewFile = appStrcmp( ReadName, ReadFname ) != 0;
+		if( NewFile )
+			appStrcpy( ReadFname, ReadName );
+
+		if( WriteName )
+			appStrcpy( WriteFname, WriteName );
+		else
+			WriteFname[0] = '\0';
+
+		if( NewFile )
+		{
+			Ini.clear();
+			Load();
+		}
+
+		unguard;
+	}
+
+	UBOOL Load()
+	{
+		guard(FConfigFile::Load);
+
+		mINI::INIFile File( ReadFname );
+
+		UBOOL Ret = File.read( Ini );
+		if( !Ret && *WriteFname )
+		{
+			File = mINI::INIFile( WriteFname );
+			Ret = File.read( Ini );
+		}
+
+		return Ret;
+
+		unguard;
+	}
+
+	UBOOL Save()
+	{
+		guard(FConfigFile::Save);
+		if( *WriteFname )
+		{
+			mINI::INIFile File( WriteFname );
+			return File.write( Ini );
+		}
+		return false;
+		unguard;
+	}
+
+	void SetString( const char* Sec, const char* Key, const char* Val )
+	{
+		guard(FConfigFile::SetString);
+		Ini[Sec][Key] = Val;
+		unguard;
+	}
+
+	UBOOL GetString( const char* Sec, const char* Key, char* Out, INT OutLen )
+	{
+		guard(FConfigFile::GetString);
+
+		*Out = '\0';
+
+		if( Ini.size() )
+		{
+			const auto& Val = Ini[Sec][Key];
+			if( !Val.empty() )
+			{
+				snprintf( Out, OutLen, "%s", Val.c_str() );
+				return true;
+			}
+		}
+
+		return false;
+
+		unguard;
+	}
+
+	UBOOL GetSection( const char* Sec, char* Out, INT OutLen )
+	{
+		guard(FConfigFile::GetSection);
+
+		appMemset( Out, 0, OutLen );
+		--OutLen;
+
+		if( Ini.has( Sec ) )
+		{
+			const auto& Map = Ini[Sec];
+			char* Dst = Out;
+			INT OutLeft = OutLen;
+			for( const auto& P : Map )
+			{
+				const INT Count = snprintf( Dst, OutLeft, "%s=%s", P.first.c_str(), P.second.c_str() ) + 1;
+				if( Count >= OutLeft || OutLeft <= 1 )
+					break;
+				OutLeft -= Count;
+				Dst += Count;
+			}
+			return true;
+		}
+
+		return false;
+
+		unguard;
+	}
+};
+
+static FConfigFile GConfig;
+static TArray<FConfigFile*> GTransientConfigs(E_NoInit);
 
 /*-----------------------------------------------------------------------------
 	Globals.
@@ -82,10 +240,14 @@ UBOOL FGlobalPlatform::Exec( const char* Cmd, FOutputDevice* Out )
 
 	if( ParseCommand(&Str,"MEMSTAT") )
 	{
+#ifdef PLATFORM_WIN32
 		MEMORYSTATUS B; B.dwLength = sizeof(B);
 		GlobalMemoryStatus(&B);
 		Out->Logf( "Memory available: Phys=%iK Pagef=%iK Virt=%iK", B.dwAvailPhys/1024, B.dwAvailPageFile/1024, B.dwAvailVirtual/1024 );
 		Out->Logf( "Memory load = %i%%", B.dwMemoryLoad );
+#else
+		Out->Logf( "Not available on this platform." );
+#endif
 		return 1;
 	}
 	else if( ParseCommand(&Str,"EXIT") )
@@ -107,9 +269,11 @@ UBOOL FGlobalPlatform::Exec( const char* Cmd, FOutputDevice* Out )
 	else if( ParseCommand( &Cmd, "RELAUNCH" ) )
 	{
 		Out->Logf( "Relaunch: %s", Cmd );
+#ifdef PLATFORM_WIN32
 		char ThisFile[256];
 		GetModuleFileName( NULL, ThisFile, ARRAY_COUNT(ThisFile) );
 		ShellExecute( NULL, "open", ThisFile, Cmd, appBaseDir(), SW_SHOWNORMAL );
+#endif
 		appRequestExit();
 		return 1;
 	}
@@ -156,7 +320,14 @@ CORE_API void appRequestExit()
 {
 	guard(appRequestExit);
 	debugf("appRequestExit");
+#if defined(PLATFORM_MSVC)
 	PostQuitMessage( 0 );
+#elif defined(PLATFORM_SDL)
+	SDL_Event Ev;
+	Ev.type = SDL_QUIT;
+	Ev.quit.timestamp = SDL_GetTicks();
+	SDL_PushEvent( &Ev );
+#endif
 	GIsRequestingExit=1;
 	unguard;
 }
@@ -168,6 +339,7 @@ CORE_API void appRequestExit()
 CORE_API void ClipboardCopy( const char* Str )
 {
 	guard(ClipboardCopy);
+#if defined(PLATFORM_MSVC)
 	if( OpenClipboard(GetActiveWindow()) )
 	{
 		void* Data = GlobalAlloc( GMEM_DDESHARE, strlen(Str)+1 );
@@ -176,12 +348,16 @@ CORE_API void ClipboardCopy( const char* Str )
 		verify(SetClipboardData( CF_TEXT, Data ));
 		verify(CloseClipboard());
 	}
+#elif defined(PLATFORM_SDL)
+	SDL_SetClipboardText( Str );
+#endif
 	unguard;
 }
 
 CORE_API void ClipboardPaste( FString& Result )
 {
 	guard(ClipboardPasteString);
+#if defined(PLATFORM_MSVC)
 	if( OpenClipboard(GetActiveWindow()) )
 	{
 		void* V=GetClipboardData( CF_TEXT );
@@ -191,7 +367,19 @@ CORE_API void ClipboardPaste( FString& Result )
 			Result = "";
 		verify(CloseClipboard());
 	}
-	else Result="";
+	else
+#elif defined(PLATFORM_SDL)
+	if( SDL_HasClipboardText() )
+	{
+		char* Text = SDL_GetClipboardText();
+		Result = Text;
+		SDL_free( Text );
+	}
+	else
+#endif
+	{
+		Result="";
+	}
 	unguard;
 }
 
@@ -204,17 +392,38 @@ CORE_API void ClipboardPaste( FString& Result )
 //
 static void FGlobalPlatform_CPUID( int i, DWORD *A, DWORD *B, DWORD *C, DWORD *D )
 {
+#if !defined(PLATFORM_X86)
+	*A = *B = *C = *D = 0;
+#elif defined(PLATFORM_WIN32)
 	int info[4] = { 0, 0, 0, 0 };
 	__cpuid( info, i );
 	*A = info[0];
 	*B = info[1];
 	*C = info[2];
 	*D = info[3];
+#else
+	__get_cpuid( i, (unsigned int*)A, (unsigned int*)B, (unsigned int*)C, (unsigned int*)D );
+#endif
 }
 
 /*-----------------------------------------------------------------------------
 	Log.
 -----------------------------------------------------------------------------*/
+
+#ifndef PLATFORM_WIN32
+static const char* _strdate( char* Buf )
+{
+	const time_t Now = time( NULL );
+	strftime( Buf, 31, "%D", localtime( &Now ) );
+	return Buf;
+}
+static const char* _strtime( char* Buf )
+{
+	const time_t Now = time( NULL );
+	strftime( Buf, 31, "%T", localtime( &Now ) );
+	return Buf;
+}
+#endif
 
 //
 // Close the log file.
@@ -285,31 +494,35 @@ void appInit()
 	GIsStrict = ParseParam( appCmdLine(), "STRICT" );
 
 	// Write-ini.
-	char Temp[256];
-	appStrcpy( GWriteIni, appBaseDir() );
+	char Temp[256] = "", WriteIni[256] = "", ReadIni[256] = "";
+	appStrcpy( WriteIni, appBaseDir() );
 	if( Parse( appCmdLine(), "INI=", Temp, ARRAY_COUNT(Temp) ) )
 	{
-		appStrcat( GWriteIni, Temp );
+		appStrcat( WriteIni, Temp );
 	}
 	else
 	{
-		appStrcat( GWriteIni, appPackage() );
-		appStrcat( GWriteIni, ".ini" );
+		appStrcat( WriteIni, appPackage() );
+		appStrcat( WriteIni, ".ini" );
 	}
 	FILE* F;
-	F = fopen( GWriteIni, "at" );
+	F = fopen( WriteIni, "at" );
 	if( F )
 		fclose( F );
 	else
-		GSystem->Warnf( LocalizeError("IniReadOnly"), GWriteIni );
+		GSystem->Warnf( LocalizeError("IniReadOnly"), WriteIni );
 
 	// Read-ini.
-	appStrcpy( GReadIni, GWriteIni );
+	appStrcpy( ReadIni, WriteIni );
 	if( Parse( appCmdLine(), "READINI=", Temp, ARRAY_COUNT(Temp) ) )
 	{
-		appStrcpy( GReadIni, appBaseDir() );
-		appStrcat( GReadIni, Temp );
+		appStrcpy( ReadIni, appBaseDir() );
+		appStrcat( ReadIni, Temp );
 	}
+
+	// Parse the read ini.
+	GConfig.Init( ReadIni, WriteIni, true );
+	GConfig.Load();
 
 	// Language.
 	if( GetConfigString( "Engine.Engine", "Language", Temp, ARRAY_COUNT(Temp) ) )
@@ -318,7 +531,12 @@ void appInit()
 	// Computer name.
 	char Comp[MAX_COMPUTERNAME_LENGTH+1]="";
 	DWORD Size=MAX_COMPUTERNAME_LENGTH+1;
+#if defined(PLATFORM_WIN32)
 	GetComputerName( Comp, &Size );
+#else
+	appStrcpy( Comp, "Default" );
+	Size = appStrlen( Comp );
+#endif
 	char *d=GComputerName;
 	for( char *c=Comp; *c!=0; c++ )
 		if( appIsAlnum(*c) && d<GComputerName+ARRAY_COUNT(GComputerName)-1 )
@@ -338,11 +556,7 @@ void appInit()
 	// Randomize.
 	srand( (unsigned)time( NULL ) );
 
-/*	// Set heap granularity.
-	INT OldHeapGranularity=*p__amblksiz(), NewHeapGranularity=0x10000;
-	*__p__amblksiz() = NewHeapGranularity;
-	debugf( NAME_Init, "Heap granularity changed from %i to %i", OldHeapGranularity, NewHeapGranularity );*/
-
+#if defined(PLATFORM_WIN32)
 	// Get memory.
 	MEMORYSTATUS M;
 	GlobalMemoryStatus(&M);
@@ -381,7 +595,7 @@ void appInit()
 	DOUBLE Frequency = (DOUBLE)(SQWORD)(((QWORD)lFreq.LowPart) + ((QWORD)lFreq.HighPart<<32));
 	check(Frequency!=0);
 	GSecondsPerCycle = 1.0 / Frequency;
-	debugf( NAME_Init, "CPU Timer Freq=%f Hz", Frequency );
+	debugf( NAME_Init, "CPU Timer Freq=%f Hz", (FLOAT)Frequency );
 
 	// Get CPU info.
 	SYSTEM_INFO SI;
@@ -389,6 +603,19 @@ void appInit()
 	GPageSize=SI.dwPageSize;
 	GProcessorCount=SI.dwNumberOfProcessors;
 	debugf( NAME_Init, "CPU Page size=%i, Processors=%i", SI.dwPageSize, SI.dwNumberOfProcessors );
+#elif defined(PLATFORM_SDL)
+	debugf( NAME_Init, "Detected: %s", SDL_GetPlatform() );
+
+	// CPU speed.
+	DOUBLE Frequency = SDL_GetPerformanceFrequency();
+	check(Frequency!=0.0);
+	GSecondsPerCycle = 1.0 / Frequency;
+	debugf( NAME_Init, "CPU Timer Freq=%f Hz", (FLOAT)Frequency );
+
+	// Get CPU info.
+	GPageSize = 4096; // TODO: sysconf?
+	GProcessorCount = SDL_GetCPUCount();
+#endif // PLATFORM_
 
 	// Check processor version with CPUID.
 	DWORD A=0, B=0, C=0, D=0;
@@ -448,11 +675,6 @@ void appInit()
 	debugf( NAME_Init, "CPU Detected: %s (%s)", Model, Brand );
 	debugf( NAME_Init, "CPU Features: %s", FeatStr );
 
-	// Keyboard layout.
-	char KL[KL_NAMELENGTH];
-	check(GetKeyboardLayoutName(KL)!=0);
-	debugf( NAME_Init, "Keyboard layout: %s", KL );
-
 	// FPU.
 	appEnableFastMath( 0 );
 
@@ -465,9 +687,11 @@ void appInit()
 //
 void appEnableFastMath( UBOOL Enable )
 {
+#ifdef PLATFORM_WIN32
 	guard(appEnableFastMath);
 	_controlfp( Enable ? (_PC_24) : (_PC_64), _MCW_PC );
 	unguard;
+#endif
 }
 
 //
@@ -493,14 +717,57 @@ CORE_API void* appGetDllHandle( const char* Filename )
 	guard(appGetDllHandle);
 	check(Filename);
 
+#ifdef PLATFORM_WIN32
 	void* Result = (void*)LoadLibrary( Filename );
 	if( Result )
 	{
 		char Temp[256];
 		strcpy( Temp, Filename );
-		strcat( Temp, ".dll" );
+		strcat( Temp, DLLEXT );
 		Result = (void*)LoadLibrary( Filename );
 	}
+#else
+	char Test[1024];
+	const char* PackageName = Filename;
+	char* Cur;
+	char* Error;
+	void* Result;
+
+	// Get GLoadedPackage symbol name from full path.
+	while( ( Cur = appStrchr( PackageName, '/' ) ) != NULL )
+		PackageName = Cur + 1;
+	while( ( Cur = appStrchr( PackageName, '\\' ) ) != NULL )
+		PackageName = Cur + 1;
+	appSprintf( Test, "GLoaded%s", PackageName );
+	if( (Cur = appStrchr( Test, '.' )) != NULL )
+		*Cur = '\0';
+
+	dlerror();	// Clear any error condition.
+
+	// Check if the library was linked to the executable.
+	Result = (void*)dlopen( NULL, RTLD_NOW );
+	Error = dlerror();
+	if( Error != NULL )
+	{
+		debugf( "dlerror(): %s", Error );
+	}
+	else
+	{
+		(void*)dlsym( Result, Test );
+		Error = dlerror();
+		if( Error == NULL )
+			return Result;
+	}
+
+	// Load the new library.
+	Result = (void*)dlopen( Filename, RTLD_NOW );
+	if( Result == NULL )
+	{
+		char Temp[1024];
+		snprintf( Temp, sizeof(Temp), "%s%s%s", appBaseDir(), Filename, DLLEXT );
+		Result = (void*)dlopen( Temp, RTLD_NOW );
+	}
+#endif
 
 	return Result;
 	unguard;
@@ -514,7 +781,11 @@ CORE_API void appFreeDllHandle( void* DllHandle )
 	guard(appFreeDllHandle);
 	check(DllHandle);
 
+#ifdef PLATFORM_WIN32
 	FreeLibrary( (HMODULE)DllHandle );
+#else
+	dlclose( DllHandle );
+#endif
 
 	unguard;
 }
@@ -528,7 +799,11 @@ CORE_API void* appGetDllExport( void* DllHandle, const char* ProcName )
 	check(DllHandle);
 	check(ProcName);
 
+#ifdef PLATFORM_WIN32
 	return (void*)GetProcAddress( (HMODULE)DllHandle, ProcName );
+#else
+	return (void*)dlsym( DllHandle, ProcName );
+#endif
 
 	unguard;
 }
@@ -539,7 +814,13 @@ CORE_API void* appGetDllExport( void* DllHandle, const char* ProcName )
 void appDebugBreak()
 {
 	guard(appDebugBreak);
+
+#ifdef PLATFORM_WIN32
 	::DebugBreak();
+#else
+	__builtin_trap();
+#endif
+
 	unguard;
 }
 
@@ -552,16 +833,37 @@ void appDebugBreak()
 //
 CORE_API DOUBLE appSeconds()
 {
+#ifdef PLATFORM_MSVC
 	static LARGE_INTEGER ret;
 	QueryPerformanceCounter(&ret);
 	return (DOUBLE)ret.QuadPart * GSecondsPerCycle;
+#elif defined(PLATFORM_SDL)
+	return (DOUBLE)SDL_GetPerformanceCounter() * GSecondsPerCycle;
+#else
+	return 0;
+#endif
 }
 
 CORE_API DWORD appCycles()
 {
+#ifdef PLATFORM_MSVC
 	static LARGE_INTEGER ret;
 	QueryPerformanceCounter(&ret);
 	return ret.LowPart;
+#elif defined(PLATFORM_SDL)
+	return SDL_GetPerformanceCounter();
+#else
+	return 0;
+#endif
+}
+
+CORE_API void appSleep( FLOAT Sec )
+{
+#ifdef PLATFORM_MSVC
+	Sleep( Sec * 1000.f );
+#else
+	usleep( Sec * 1000000.f );
+#endif
 }
 
 //
@@ -571,9 +873,9 @@ CORE_API void appSystemTime( INT& Year, INT& Month, INT& DayOfWeek, INT& Day, IN
 {
 	guard(appSystemTime);
 
+#ifdef PLATFORM_WIN32
 	SYSTEMTIME st;
 	GetLocalTime (&st);
-
 	Year		= st.wYear;
 	Month		= st.wMonth;
 	DayOfWeek	= st.wDayOfWeek;
@@ -582,6 +884,19 @@ CORE_API void appSystemTime( INT& Year, INT& Month, INT& DayOfWeek, INT& Day, IN
 	Min			= st.wMinute;
 	Sec			= st.wSecond;
 	MSec		= st.wMilliseconds;
+#else
+	const time_t T = time( NULL );
+	const struct tm *LT = localtime( &T );
+	struct timeval TV; gettimeofday( &TV, NULL );
+	Year = LT->tm_year + 1900;
+	Month = LT->tm_mon + 1;
+	DayOfWeek = LT->tm_wday;
+	Day = LT->tm_mday;
+	Hour = LT->tm_hour;
+	Min = LT->tm_min;
+	Sec = LT->tm_sec;
+	MSec = (INT)( TV.tv_usec / 1000 );
+#endif
 
 	unguard;
 }
@@ -598,11 +913,13 @@ CORE_API void appSystemTime( INT& Year, INT& Month, INT& DayOfWeek, INT& Day, IN
 void appLaunchURL( const char* URL, const char* Parms, char* Error256 )
 {
 	guard(appLaunchURL);
-	Error256=0;
+	Error256[0]=0;
 	debugf( NAME_Log, "LaunchURL %s", URL );
+#ifdef PLATFORM_WIN32
 	INT Code = (INT)ShellExecute(NULL,"open",URL,Parms,"",SW_SHOWNORMAL);
 	if( Code<=32 )
 		appSprintf( Error256, LocalizeError("UrlFailed") );
+#endif
 	unguard;
 }
 
@@ -618,7 +935,7 @@ UBOOL appFindPackageFile( const char* In, const FGuid* Guid, char* Out )
 	guard(appFindPackageFile);
 
 	// Don't return it if it's a library.
-	if( strlen(In)>4 && stricmp( In + strlen(In)-4, ".DLL" )==0 )
+	if( strlen(In)>4 && stricmp( In + strlen(In) - (sizeof(DLLEXT)-1), DLLEXT )==0 )
 		return 0;
 
 	// Try file as specified.
@@ -629,6 +946,14 @@ UBOOL appFindPackageFile( const char* In, const FGuid* Guid, char* Out )
 	// Try all of the predefined paths.
 	for( DWORD i=0; i<ARRAY_COUNT(GSys->Paths)+(Guid!=NULL); i++ )
 	{
+#ifndef PLATFORM_WIN32
+		// Fixup path separators.
+		for( char* Ch = GSys->Paths[i]; Ch && *Ch; ++Ch )
+		{
+			if( *Ch == '\\' )
+				*Ch = '/';
+		}
+#endif
 		// Get directory only.
 		char Temp[256];
 		char* Ext;
@@ -646,7 +971,7 @@ UBOOL appFindPackageFile( const char* In, const FGuid* Guid, char* Out )
 		else
 		{
 			strcpy( Temp, GSys->CachePath );
-			strcat( Temp, "\\" );
+			strcat( Temp, "/" );
 			Ext = GSys->CacheExt;
 			strcpy( Out, Temp );
 			strcat( Out, Guid->String(Temp) );
@@ -685,24 +1010,24 @@ CORE_API void appCleanFileCache()
 	char Temp[256];
 
 	// Delete all temporary files.
-	appSprintf( Temp, "%s\\*.tmp", GSys->CachePath );
+	appSprintf( Temp, "%s/*.tmp", GSys->CachePath );
 	TArray<FString> Found = appFindFiles( Temp );
 	for( INT i=0; i<Found.Num(); i++ )
 	{
-		appSprintf( Temp, "%s\\%s", GSys->CachePath, *Found(i) );
+		appSprintf( Temp, "%s/%s", GSys->CachePath, *Found(i) );
 		debugf( "Deleting temporary file: %s", Temp );
 		unlink( Temp );
 	}
 
 	// Delete cache files that are no longer wanted.
-	appSprintf( Temp, "%s\\*%s", GSys->CachePath, GSys->CacheExt );
+	appSprintf( Temp, "%s/*%s", GSys->CachePath, GSys->CacheExt );
 	Found = appFindFiles( Temp );
 	if( GSys->PurgeCacheDays )
 	{
 		for( INT i=0; i<Found.Num(); i++ )
 		{
 			struct _stat Buf;
-			appSprintf( Temp, "%s\\%s", GSys->CachePath, *Found(i) );
+			appSprintf( Temp, "%s/%s", GSys->CachePath, *Found(i) );
 			if( _stat(Temp,&Buf)==0 )
 			{
 				time_t CurrentTime, FileTime;
@@ -741,9 +1066,13 @@ CORE_API UBOOL appMoveFile( const char* Src, const char* Dest )
 {
 	guard(appMoveFile);
 
+#ifdef PLATFORM_WIN32
 	//warning: MoveFileEx is broken on Windows 95 (Microsoft bug).
 	unlink( Dest );
 	UBOOL Success = MoveFile( Src, Dest )!=0;
+#else
+	UBOOL Success = rename( Src, Dest )==0;
+#endif
 	if( !Success )
 		debugf( NAME_Warning, "Error moving file '%s' to '%s'", Src, Dest );
 
@@ -758,8 +1087,32 @@ CORE_API UBOOL appCopyFile( const char* Src, const char* Dest )
 {
 	guard(appCopyFile);
 
+	UBOOL Success = false;
+
+#ifdef PLATFORM_WIN32
 	//warning: MoveFileEx is broken on Windows 95 (Microsoft bug).
-	UBOOL Success = CopyFile( Src, Dest, 0 )!=0;
+	Success = CopyFile( Src, Dest, 0 )!=0;
+#else
+	FILE* FSrc = appFopen( Src, "rb" );
+	FILE* FDest = appFopen( Dest, "wb" );
+	if( FSrc && FDest )
+	{
+		BYTE Buf[8192];
+		INT N;
+		Success = true;
+		while( ( N = appFread( (void*)Buf, 1, sizeof(Buf), FSrc ) ) > 0 )
+		{
+			if( appFwrite( Buf, 1, N, FDest ) <= 0 )
+			{
+				Success = false;
+				break;
+			}
+		}
+	}
+	if( FSrc ) appFclose( FSrc );
+	if( FDest ) appFclose( FDest );
+#endif
+
 	if( !Success )
 		debugf( NAME_Warning, "Error copying file '%s' to '%s'", Src, Dest );
 
@@ -785,7 +1138,7 @@ void FGlobalPlatform::WriteBinary( const void* Data, INT Length, EName Event )
 		if( !(EventName.GetFlags() & RF_Suppress) )
 		{
 			INT FoundIndex=0;
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(PLATFORM_WIN32)
 			OutputDebugString( *EventName );
 			OutputDebugString( ": " );
 			OutputDebugString( (char*)Data );
@@ -824,7 +1177,11 @@ void VARARGS FGlobalPlatform::Warnf( const char* Fmt, ... )
 
 	guard(Warnf);
 	debugf( NAME_Warning, "%s", TempStr );
+#if defined(PLATFORM_SDL)
+	SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_WARNING, LocalizeError("Warning"), TempStr, SDL_GetKeyboardFocus() );
+#elif defined(PLATFORM_WIN32)
 	::MessageBox( NULL, TempStr, LocalizeError("Warning"), MB_OK|MB_TASKMODAL );
+#endif
 	unguard;
 }
 
@@ -837,7 +1194,26 @@ UBOOL VARARGS FGlobalPlatform::YesNof( const char* Fmt, ... )
 	GET_VARARGS(TempStr,Fmt);
 
 	guard(YesNof);
+#if defined(PLATFORM_SDL)
+	SDL_MessageBoxButtonData MsgBoxBtns[] =
+	{
+		{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Yes" },
+		{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "No"  },
+	};
+	SDL_MessageBoxData MsgBox;
+	MsgBox.window = SDL_GetKeyboardFocus();
+	MsgBox.flags = SDL_MESSAGEBOX_INFORMATION | SDL_MESSAGEBOX_BUTTONS_LEFT_TO_RIGHT;
+	MsgBox.title = LocalizeError("Question");
+	MsgBox.message = TempStr;
+	MsgBox.buttons = MsgBoxBtns;
+	MsgBox.numbuttons = 2;
+	MsgBox.colorScheme = NULL;
+	INT Result = 0;
+	SDL_ShowMessageBox( &MsgBox, &Result );
+	return Result;
+#elif defined(PLATFORM_WIN32)
 	return( ::MessageBox( NULL, TempStr, LocalizeError("Question"), MB_YESNO|MB_TASKMODAL ) == IDYES);
+#endif
 	unguard;
 }
 
@@ -858,7 +1234,7 @@ static void UnrealAllocationErrorHandler( )
 //
 CORE_API void appForceExit()
 {
-	ExitProcess( 1 );
+	exit( 1 );
 }
 
 //
@@ -870,12 +1246,16 @@ void appError( const char* Msg )
 #ifdef _DEBUG
 	if( GIsStarted )
 	{
-  		debugf( NAME_Critical, "appError called while debugging:" );
+		debugf( NAME_Critical, "appError called while debugging:" );
 		debugf( NAME_Critical, Msg );
 		GObj.ShutdownAfterError();
-  		debugf( NAME_Critical, "Breaking debugger" );
+		debugf( NAME_Critical, "Breaking debugger" );
 	}
+#ifdef PLATFORM_WIN32
 	DebugBreak(); 
+#else
+	__builtin_trap();
+#endif
 #else
 	if( GIsCriticalError )
 	{
@@ -933,12 +1313,14 @@ CORE_API void VARARGS appUnwindf( const char* Fmt, ... )
 void FGlobalPlatform::BeginSlowTask( const char* Task, UBOOL StatusWindow, UBOOL Cancelable )
 {
 	guard(FGlobalPlatform::BeginSlowTask);
+#ifdef PLATFORM_WIN32
 	if( hWndProgressBar && hWndProgressText )
 	{
 		SendMessage( (HWND)hWndProgressBar, PBM_SETRANGE, (WPARAM)0, MAKELPARAM(0, 100) );
 		SendMessage( (HWND)hWndProgressText, WM_SETTEXT, (WPARAM)0, (LPARAM)Task );
 		UpdateWindow( (HWND)hWndProgressText );
 	}
+#endif
 	GIsSlowTask = ++GSlowTaskCount>0;
 	unguard;
 }
@@ -964,11 +1346,13 @@ UBOOL VARARGS FGlobalPlatform::StatusUpdatef( INT Numerator, INT Denominator, co
 	char TempStr[4096];
 	GET_VARARGS(TempStr,Fmt);
 
+#ifdef PLATFORM_WIN32
 	if( GIsSlowTask && hWndProgressBar && hWndProgressText )
 	{
 		SendMessage( (HWND)hWndProgressText, WM_SETTEXT, (WPARAM)0, (LPARAM)TempStr );
 		SendMessage( (HWND)hWndProgressBar, PBM_SETPOS, (WPARAM)(Denominator ? 100*Numerator/Denominator : 0), (LPARAM)0 );
 	}
+#endif
 
 	return 1;
 	unguard;
@@ -977,6 +1361,32 @@ UBOOL VARARGS FGlobalPlatform::StatusUpdatef( INT Numerator, INT Denominator, co
 /*-----------------------------------------------------------------------------
 	Profile functions.
 -----------------------------------------------------------------------------*/
+
+static FConfigFile* FindOrAddConfig( const char* Filename )
+{
+	guard(FindOrAddConfig);
+
+	if( !Filename || appStrcmp( GConfig.ReadFname, Filename ) == 0 )
+		return &GConfig;
+
+	for( INT i = 0; i < GTransientConfigs.Num(); ++i )
+	{
+		FConfigFile* Ptr = GTransientConfigs(i);
+		if( !appStrcmp( Ptr->ReadFname, Filename ) )
+			return Ptr;
+	}
+
+	FConfigFile* NewCfg = new FConfigFile;
+	NewCfg->Init( Filename );
+	if( !NewCfg->Load() )
+		return NULL;
+	
+	INT i = GTransientConfigs.AddItem( NewCfg );
+
+	return GTransientConfigs(i);
+
+	unguard;
+}
 
 //
 // Read a string from the profile.
@@ -991,10 +1401,15 @@ UBOOL GetConfigString
 )
 {
 	guard(GetConfigString);
-    *Value = 0;
-    if( !Filename )
-        Filename = GReadIni;
-    return GetPrivateProfileString( Section, Key, "", Value, Size, Filename)>0 && Value[0];
+
+	*Value = 0;
+
+	FConfigFile* Cfg = FindOrAddConfig( Filename );
+	if( !Cfg )
+		return false;
+
+	return Cfg->GetString( Section, Key, Value, Size ) && Value[0];
+
 	unguard;
 }
 
@@ -1115,10 +1530,15 @@ UBOOL GetConfigSection
 )
 {
 	guard(GetConfigSection);
-    if( !Filename )
-        Filename = GReadIni;
-	GetPrivateProfileSection( Section, Result, Size, Filename );
-	return *Result != '\0';
+
+	*Result = '\0';
+
+	FConfigFile* Cfg = FindOrAddConfig( Filename );
+	if( !Cfg )
+		return false;
+
+	return Cfg->GetSection( Section, Result, Size ) && *Result != '\0';
+
 	unguard;
 }
 
@@ -1134,9 +1554,14 @@ void SetConfigString
 )
 {
 	guard(SetConfigString);
-    if( Filename == 0 )
-        Filename = GWriteIni;
-    WritePrivateProfileString( Section, Key, Value, Filename );
+
+	FConfigFile* Cfg = FindOrAddConfig( Filename );
+	if( !Cfg )
+		return;
+
+	Cfg->SetString( Section, Key, Value );
+	Cfg->Save();
+
 	unguard;
 }	
 
@@ -1204,7 +1629,11 @@ CORE_API FGuid appCreateGuid()
 	guard(appCreateGuid);
 
 	FGuid Result;
+#ifdef PLATFORM_WIN32
 	check( CoCreateGuid( (GUID*)&Result )==S_OK );
+#else
+	appGetGUID( (void*)&Result.A );
+#endif
 	return Result;
 
 	unguard;
@@ -1214,11 +1643,30 @@ CORE_API FGuid appCreateGuid()
 	Command line.
 -----------------------------------------------------------------------------*/
 
+static char* CmdLine=NULL;
+static char CmdLineBuf[4096] = "";
+
+// Set command line from argc/argv.
+CORE_API void appSetCmdLine( INT Argc, const char** Argv )
+{
+	guard(appSetCmdLine);
+
+	CmdLine = CmdLineBuf;
+	for( INT i = 1; i < Argc; ++i )
+	{
+		appStrncat( CmdLineBuf, Argv[i], sizeof(CmdLineBuf) - 1 );
+		if( i != Argc - 1 )
+			appStrncat( CmdLineBuf, " ", sizeof(CmdLineBuf) - 1 );
+	}
+
+	unguard;
+}
+
 // Get command line.
 CORE_API const char* appCmdLine()
 {
 	guard(appCmdLine);
-	static char* CmdLine=NULL;
+#ifdef PLATFORM_WIN32
 	if( !CmdLine )
 	{
 		CmdLine = GetCommandLine();
@@ -1236,6 +1684,7 @@ CORE_API const char* appCmdLine()
 		while( *CmdLine==' ' )
 			CmdLine++;
 	}
+#endif
 	return CmdLine;
 	unguard;
 }
@@ -1243,11 +1692,19 @@ CORE_API const char* appCmdLine()
 // Get startup directory.
 CORE_API const char* appBaseDir()
 {
-	static char BaseDir[256]="";
+	static char BaseDir[1024]="";
 	if( !BaseDir[0] )
 	{
 		// Get directory this executable was launched from.
+#if defined(PLATFORM_WIN32)
 		GetModuleFileName( hInstance, BaseDir, ARRAY_COUNT(BaseDir) );
+#elif defined(PLATFORM_SDL)
+		char* BasePath = SDL_GetBasePath();
+		snprintf( BaseDir, sizeof(BaseDir), "%sUnreal", BasePath );
+		SDL_free( BasePath );
+#else
+		strcpy( BaseDir, "./Unreal" );
+#endif
 		INT i;
 		for (i = strlen(BaseDir) - 1; i > 0; i--)
 			if (BaseDir[i - 1] == '\\' || BaseDir[i - 1] == '/')
@@ -1263,7 +1720,8 @@ CORE_API const char* appPackage()
 	static char AppPackage[256]="";
 	if( !AppPackage[0] )
 	{
-		char Tmp[256], *End=Tmp;
+		char Tmp[1024], *End=Tmp;
+#ifdef PLATFORM_WIN32
 		GetModuleFileName( NULL, Tmp, ARRAY_COUNT(Tmp) );
 		while( appStrchr(End,'\\') )
 			End = appStrchr(End,'\\')+1;
@@ -1274,6 +1732,9 @@ CORE_API const char* appPackage()
 		if( appStricmp(End,"UnrealEd")==0 )
 			End="Unreal";
 		appStrcpy( AppPackage, End );
+#else
+		appStrcpy( AppPackage, "Unreal" );
+#endif
 	}
 	return AppPackage;
 }

@@ -1745,16 +1745,16 @@ UBOOL UEditorEngine::Exec( const char* Stream, FOutputDevice* Out )
 				if( It->ScriptText && (All || (It->GetFlags() & RF_SourceModified)) )
 				{
 					// Make package directory.
-					appStrcpy( TempFname, "..\\" );
+					appStrcpy( TempFname, "../" );
 					appStrcat( TempFname, It->GetParent()->GetName() );
 					appMkdir( TempFname );
 
 					// Make package\Classes directory.
-					appStrcat( TempFname, "\\Classes" );
+					appStrcat( TempFname, "/Classes" );
 					appMkdir( TempFname );
 
 					// Save file.
-					appStrcat( TempFname, "\\" );
+					appStrcat( TempFname, "/" );
 					appStrcat( TempFname, It->GetName() );
 					appStrcat( TempFname, ".uc" );
 					debugf( NAME_Log, "Spewing: %s", TempFname );
@@ -2065,7 +2065,7 @@ UBOOL UEditorEngine::Exec( const char* Stream, FOutputDevice* Out )
 			AutoSaveIndex = (AutoSaveIndex+1)%10;
 			SaveConfig();
 			char Cmd[256];
-			appSprintf( Cmd, "MAP SAVE FILE=%s..\\Maps\\Auto%i.unr", appBaseDir(), AutoSaveIndex );
+			appSprintf( Cmd, "MAP SAVE FILE=%s../Maps/Auto%i.unr", appBaseDir(), AutoSaveIndex );
 			debugf( NAME_Log, "Autosaving '%s'", Cmd );
 			Exec( Cmd, Out );
 			AutoSaveCount=0;

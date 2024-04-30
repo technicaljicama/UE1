@@ -224,6 +224,7 @@ CORE_API INT appFerror( FILE* F );
 	OS functions.
 -----------------------------------------------------------------------------*/
 
+CORE_API void appSetCmdLine( INT Argc, const char** Argv );
 CORE_API const char* appCmdLine();
 CORE_API const char* appBaseDir();
 CORE_API const char* appPackage();
@@ -287,6 +288,7 @@ CORE_API char* appStrchr( const char* String, int c );
 CORE_API char* appStrcat( char* Dest, const char* Src );
 CORE_API INT appStrcmp( const char* String1, const char* String2 );
 CORE_API INT appStricmp( const char* String1, const char* String2 );
+CORE_API INT appStrncmp( const char* String1, const char* String2, INT Num );
 
 CORE_API void* appLargeMemset( void* Dest, int C, INT Count );
 CORE_API void* appLargeMemcpy( void* Dest, const void* Src, INT Count );

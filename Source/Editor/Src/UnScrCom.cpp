@@ -5095,7 +5095,7 @@ UBOOL FScriptCompiler::CompileScript
 
 	// Save directory and switch into package directory.
 	char SavedDir[256], NewDir[256];
-	appSprintf( NewDir, "%s\\Source\\%s",appBaseDir(), InClass->GetParent()->GetName() );
+	appSprintf( NewDir, "%s/Source/%s",appBaseDir(), InClass->GetParent()->GetName() );
 	appGetcwd( SavedDir, ARRAY_COUNT(SavedDir) );
 	appChdir( NewDir );
 

@@ -1,5 +1,5 @@
+#include "SDL2/SDL.h"
 #ifdef PLATFORM_WIN32
-#define STRICT
 #include <windows.h>
 #endif
 
@@ -8,7 +8,7 @@
 extern CORE_API FGlobalPlatform GTempPlatform;
 extern DLL_IMPORT UBOOL GTickDue;
 extern "C" {HINSTANCE hInstance;}
-extern "C" {char GPackage[64]="Launch";}
+extern "C" {char GCC_HIDDEN GPackage[64]="Launch";}
 
 // FExecHook.
 class FExecHook : public FExec
@@ -33,7 +33,7 @@ void HandleError()
 	GObj.ShutdownAfterError();
 	debugf( NAME_Exit, "Exiting due to exception" );
 	GErrorHist[ARRAY_COUNT(GErrorHist)-1]=0;
-	MessageBoxA( NULL, GErrorHist, LocalizeError("Critical"), MB_OK|MB_ICONERROR|MB_TASKMODAL );
+	SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, LocalizeError("Critical"), GErrorHist, SDL_GetKeyboardFocus() );
 }
 
 //
@@ -90,8 +90,6 @@ void MainLoop( UEngine* Engine )
 	guard(MainLoop);
 
 	GIsRunning = 1;
-	DWORD ThreadId = GetCurrentThreadId();
-	HANDLE hThread = GetCurrentThread();
 	DOUBLE OldTime = appSeconds();
 	while( GIsRunning && !GIsRequestingExit )
 	{
@@ -104,43 +102,9 @@ void MainLoop( UEngine* Engine )
 		INT MaxTickRate = Engine->GetMaxTickRate();
 		if( MaxTickRate )
 		{
-			FLOAT Delta = (1.0/MaxTickRate) - (appSeconds()-OldTime);
+			DOUBLE Delta = (1.0/MaxTickRate) - (appSeconds()-OldTime);
 			if( Delta > 0.0 )
-				Sleep( Delta * 1000 );
-		}
-
-		// Handle all incoming messages.
-		MSG Msg;
-		GTickDue = 0;
-		while( !GTickDue && PeekMessage( &Msg, NULL, 0, 0, PM_REMOVE ) )
-		{
-			if( Msg.message == WM_QUIT )
-				GIsRequestingExit = 1;
-			TranslateMessage( &Msg );
-			DispatchMessage( &Msg );
-		}
-
-		// If editor thread doesn't have the focus, don't suck up too much CPU time.
-		if( GIsEditor )
-		{
-			static UBOOL HadFocus=1;
-			UBOOL HasFocus = (GetWindowThreadProcessId(GetForegroundWindow(),NULL) == ThreadId );
-			if( HadFocus && !HasFocus )
-			{
-				// Drop our priority to speed up whatever is in the foreground.
-				SetThreadPriority( hThread, THREAD_PRIORITY_BELOW_NORMAL );
-			}
-			else if( HasFocus && !HadFocus )
-			{
-				// Boost our priority back to normal.
-				SetThreadPriority( hThread, THREAD_PRIORITY_NORMAL );
-			}
-			if( !HasFocus )
-			{
-				// Surrender the rest of this timeslice.
-				Sleep(0);
-			}
-			HadFocus = HasFocus;
+				appSleep( Delta );
 		}
 	}
 	GIsRunning = 0;
@@ -172,7 +136,12 @@ int main( int argc, const char** argv )
 {
 #ifdef PLATFORM_WIN32
 	hInstance = hInInstance;
+#else
+	hInstance = NULL;
+	// Remember arguments since we don't have GetCommandLine().
+	appSetCmdLine( argc, argv );
 #endif
+
 	GIsStarted = 1;
 
 	// Set package name.
@@ -216,7 +185,5 @@ int main( int argc, const char** argv )
 	GExecHook=NULL;
 	appExit();
 	GIsStarted = 0;
-	return 0;
-
 	return 0;
 }

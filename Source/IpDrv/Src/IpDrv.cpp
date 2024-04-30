@@ -51,10 +51,14 @@ struct FResolveInfo
 		*Error = 0;
 	}
 };
+#ifdef PLATFORM_WIN32
 DWORD __stdcall ResolveThreadEntry( void* Arg )
+#else
+void* ResolveThreadEntry( void* Arg );
+#endif
 {
 	FResolveInfo* Info = (FResolveInfo*)Arg;
-	Info->Addr.S_un.S_addr = 0;
+	IpSetInt( Info->Addr, 0 );
 	HOSTENT* HostEnt = gethostbyname( Info->HostName ); 
 	if( HostEnt==NULL || HostEnt->h_addrtype!=PF_INET )
 		appSprintf( Info->Error, "Can't find host %s", Info->HostName );
@@ -67,43 +71,6 @@ DWORD __stdcall ResolveThreadEntry( void* Arg )
 /*-----------------------------------------------------------------------------
 	UTcpNetDriver.
 -----------------------------------------------------------------------------*/
-
-UBOOL wsaInit( char* Error256 )
-{
-	guard(wsaInit);
-
-	// Init names.
-	#define NAMES_ONLY
-	#define DECLARE_NAME(name) IPDRV_##name = FName(#name,FNAME_Intrinsic);
-	#include "IpDrvClasses.h"
-	#undef DECLARE_NAME
-	#undef NAMES_ONLY
-
-	// Init WSA.
-	static UBOOL Tried = 0;
-	if( !Tried )
-	{
-		Tried = 1;
-		WSADATA WSAData;
-		INT Code = WSAStartup( 0x0101, &WSAData );
-		if( Code==0 )
-		{
-			GInitialized = 1;
-			debugf
-			(
-				NAME_Init,
-				"WinSock: version %i.%i (%i.%i), MaxSocks=%i, MaxUdp=%i",
-				WSAData.wVersion>>8,WSAData.wVersion&255,
-				WSAData.wHighVersion>>8,WSAData.wHighVersion&255,
-				WSAData.iMaxSockets,WSAData.iMaxUdpDg
-			);
-			debugf( NAME_Init, "WinSock: %s", WSAData.szDescription );
-		}
-		else appSprintf( Error256, "WSAStartup failed (%s)", wsaError(Code) ); 
-	}
-	return GInitialized;
-	unguard;
-}
 
 //
 // Windows sockets network driver.
@@ -267,10 +234,10 @@ class DLL_EXPORT UTcpipConnection : public UNetConnection
 			(
 				"Resolved %s (%i.%i.%i.%i)",
 				ResolveInfo->HostName,
-				ResolveInfo->Addr.S_un.S_un_b.s_b1,
-				ResolveInfo->Addr.S_un.S_un_b.s_b2,
-				ResolveInfo->Addr.S_un.S_un_b.s_b3,
-				ResolveInfo->Addr.S_un.S_un_b.s_b4
+				IPBYTE(ResolveInfo->Addr, 1),
+				IPBYTE(ResolveInfo->Addr, 2),
+				IPBYTE(ResolveInfo->Addr, 3),
+				IPBYTE(ResolveInfo->Addr, 4)
 			);
 			delete ResolveInfo;
 			ResolveInfo = NULL;
@@ -314,10 +281,10 @@ class DLL_EXPORT UTcpipConnection : public UNetConnection
 			String256,
 			"%s [%i.%i.%i.%i]:%i state: ",
 			URL.Host,
-			RemoteAddr.sin_addr.S_un.S_un_b.s_b1,
-			RemoteAddr.sin_addr.S_un.S_un_b.s_b2,
-			RemoteAddr.sin_addr.S_un.S_un_b.s_b3,
-			RemoteAddr.sin_addr.S_un.S_un_b.s_b4,
+			IPBYTE(RemoteAddr.sin_addr, 1),
+			IPBYTE(RemoteAddr.sin_addr, 2),
+			IPBYTE(RemoteAddr.sin_addr, 3),
+			IPBYTE(RemoteAddr.sin_addr, 4),
 			ntohs(RemoteAddr.sin_port)
 		);
 		switch( State )
@@ -347,86 +314,6 @@ class DLL_EXPORT UTcpipConnection : public UNetConnection
 IMPLEMENT_CLASS(UTcpipConnection);
 
 /*-----------------------------------------------------------------------------
-	Helper functions.
------------------------------------------------------------------------------*/
-
-static UBOOL Matches( sockaddr_in& A, sockaddr_in& B )
-{
-	return	A.sin_addr.S_un.S_addr == B.sin_addr.S_un.S_addr
-	&&		A.sin_port             == B.sin_port
-	&&		A.sin_family           == B.sin_family;
-}
-
-/*-----------------------------------------------------------------------------
-	Windows sockets low level functions.
------------------------------------------------------------------------------*/
-
-//
-// Convert error code to text.
-//
-char* wsaError( INT Code )
-{
-	if( Code == -1 )
-		Code = WSAGetLastError();
-	switch( Code )
-	{
-		case WSAEINTR:				return "WSAEINTR";
-		case WSAEBADF:				return "WSAEBADF";
-		case WSAEACCES:				return "WSAEACCES";
-		case WSAEFAULT:				return "WSAEFAULT";
-		case WSAEINVAL:				return "WSAEINVAL";
-		case WSAEMFILE:				return "WSAEMFILE";
-		case WSAEWOULDBLOCK:		return "WSAEWOULDBLOCK";
-		case WSAEINPROGRESS:		return "WSAEINPROGRESS";
-		case WSAEALREADY:			return "WSAEALREADY";
-		case WSAENOTSOCK:			return "WSAENOTSOCK";
-		case WSAEDESTADDRREQ:		return "WSAEDESTADDRREQ";
-		case WSAEMSGSIZE:			return "WSAEMSGSIZE";
-		case WSAEPROTOTYPE:			return "WSAEPROTOTYPE";
-		case WSAENOPROTOOPT:		return "WSAENOPROTOOPT";
-		case WSAEPROTONOSUPPORT:	return "WSAEPROTONOSUPPORT";
-		case WSAESOCKTNOSUPPORT:	return "WSAESOCKTNOSUPPORT";
-		case WSAEOPNOTSUPP:			return "WSAEOPNOTSUPP";
-		case WSAEPFNOSUPPORT:		return "WSAEPFNOSUPPORT";
-		case WSAEAFNOSUPPORT:		return "WSAEAFNOSUPPORT";
-		case WSAEADDRINUSE:			return "WSAEADDRINUSE";
-		case WSAEADDRNOTAVAIL:		return "WSAEADDRNOTAVAIL";
-		case WSAENETDOWN:			return "WSAENETDOWN";
-		case WSAENETUNREACH:		return "WSAENETUNREACH";
-		case WSAENETRESET:			return "WSAENETRESET";
-		case WSAECONNABORTED:		return "WSAECONNABORTED";
-		case WSAECONNRESET:			return "WSAECONNRESET";
-		case WSAENOBUFS:			return "WSAENOBUFS";
-		case WSAEISCONN:			return "WSAEISCONN";
-		case WSAENOTCONN:			return "WSAENOTCONN";
-		case WSAESHUTDOWN:			return "WSAESHUTDOWN";
-		case WSAETOOMANYREFS:		return "WSAETOOMANYREFS";
-		case WSAETIMEDOUT:			return "WSAETIMEDOUT";
-		case WSAECONNREFUSED:		return "WSAECONNREFUSED";
-		case WSAELOOP:				return "WSAELOOP";
-		case WSAENAMETOOLONG:		return "WSAENAMETOOLONG";
-		case WSAEHOSTDOWN:			return "WSAEHOSTDOWN";
-		case WSAEHOSTUNREACH:		return "WSAEHOSTUNREACH";
-		case WSAENOTEMPTY:			return "WSAENOTEMPTY";
-		case WSAEPROCLIM:			return "WSAEPROCLIM";
-		case WSAEUSERS:				return "WSAEUSERS";
-		case WSAEDQUOT:				return "WSAEDQUOT";
-		case WSAESTALE:				return "WSAESTALE";
-		case WSAEREMOTE:			return "WSAEREMOTE";
-		case WSAEDISCON:			return "WSAEDISCON";
-		case WSASYSNOTREADY:		return "WSASYSNOTREADY";
-		case WSAVERNOTSUPPORTED:	return "WSAVERNOTSUPPORTED";
-		case WSANOTINITIALISED:		return "WSANOTINITIALISED";
-		case WSAHOST_NOT_FOUND:		return "WSAHOST_NOT_FOUND";
-		case WSATRY_AGAIN:			return "WSATRY_AGAIN";
-		case WSANO_RECOVERY:		return "WSANO_RECOVERY";
-		case WSANO_DATA:			return "WSANO_DATA";
-		case 0:						return "WSANO_NO_ERROR";
-		default:					return "WSA_Unknown";
-	}
-}
-
-/*-----------------------------------------------------------------------------
 	UTcpNetDriver init and exit.
 -----------------------------------------------------------------------------*/
 
@@ -443,7 +330,7 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 		return 0;
 
 	// Init WSA.
-	if( !wsaInit(Error256) )
+	if( !InitSockets(Error256) )
 		return 0;
 
 	// Get this host name.
@@ -464,10 +351,10 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 		&&	(C=appStrchr(B+1,'.'))!=NULL
 		&&	(D=appStrchr(C+1,'.'))!=NULL )
 		{
-			HostAddr.S_un.S_un_b.s_b1 = appAtoi(A);
-			HostAddr.S_un.S_un_b.s_b2 = appAtoi(B+1);
-			HostAddr.S_un.S_un_b.s_b3 = appAtoi(C+1);
-			HostAddr.S_un.S_un_b.s_b4 = appAtoi(D+1);
+			IPBYTE(HostAddr, 1) = appAtoi(A);
+			IPBYTE(HostAddr, 2) = appAtoi(B+1);
+			IPBYTE(HostAddr, 3) = appAtoi(C+1);
+			IPBYTE(HostAddr, 4) = appAtoi(D+1);
 		}
 		else appErrorf( "Invalid multihome IP address %s", Home );
 	}
@@ -487,13 +374,13 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 	if( Socket == INVALID_SOCKET )
 	{
 		Socket = 0;
-		appSprintf( Error256, "WinSock: socket failed (%s)", wsaError() );
+		appSprintf( Error256, "WinSock: socket failed (%s)", SocketError() );
 		return 0;
 	}
 	BOOL TrueBuffer=1;
 	if( setsockopt( Socket, SOL_SOCKET, SO_BROADCAST, (char*)&TrueBuffer, sizeof(TrueBuffer) ) )
 	{
-		appSprintf( Error256, "WinSock: setsockopt SO_BROADCAST failed (%s)", wsaError() );
+		appSprintf( Error256, "WinSock: setsockopt SO_BROADCAST failed (%s)", SocketError() );
 		return 0;
 	}
 
@@ -508,9 +395,9 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 	debugf( NAME_Init, "Socket queue %i / %i", RecvSize, SendSize );
 
 	// Bind socket to our port.
-    LocalAddr.sin_family      = AF_INET;
-    LocalAddr.sin_addr.s_addr = 0;
-    LocalAddr.sin_port        = 0;
+	LocalAddr.sin_family      = AF_INET;
+	LocalAddr.sin_addr.s_addr = 0;
+	LocalAddr.sin_port        = 0;
 	if( !Connect )
 	{
 		// Init as a server.
@@ -519,21 +406,21 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 		URL.Host.Setf
 		(
 			"%i.%i.%i.%i",
-			HostAddr.S_un.S_un_b.s_b1,
-			HostAddr.S_un.S_un_b.s_b2,
-			HostAddr.S_un.S_un_b.s_b3,
-			HostAddr.S_un.S_un_b.s_b4
+			IPBYTE(HostAddr, 1),
+			IPBYTE(HostAddr, 2),
+			IPBYTE(HostAddr, 3),
+			IPBYTE(HostAddr, 4)
 		);
 	}
     if( bind( Socket, (sockaddr*)&LocalAddr, sizeof(LocalAddr) ) )
 	{
-		appSprintf( Error256, "WinSock: binding to port %i failed (%s)", ntohs(LocalAddr.sin_port), wsaError() );
+		appSprintf( Error256, "WinSock: binding to port %i failed (%s)", ntohs(LocalAddr.sin_port), SocketError() );
 		return 0;
 	}
 	DWORD NoBlock=1;
 	if( ioctlsocket( Socket, FIONBIO, &NoBlock ) )
 	{
-		appSprintf( Error256, "WinSock: ioctlsocket failed (%s)", wsaError() );
+		appSprintf( Error256, "WinSock: ioctlsocket failed (%s)", SocketError() );
 		return 0;
 	}
 
@@ -544,7 +431,7 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 		sockaddr_in TempAddr;
 		TempAddr.sin_family           = AF_INET;
 		TempAddr.sin_port             = htons(URL.Port);
-		TempAddr.sin_addr.S_un.S_addr = 0;
+		IpSetInt( TempAddr.sin_addr, 0 );
 
 		// Create new connection.
 		ServerConnection = new UTcpipConnection( this, TempAddr, USOCK_Pending, 1 );
@@ -565,13 +452,22 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 		if( i==4 && s==NULL )
 		{
 			// Get numerical address directly.
-			GetServerConnection()->RemoteAddr.sin_addr.S_un.S_addr = inet_addr( *URL.Host );
+			IpSetInt( GetServerConnection()->RemoteAddr.sin_addr, inet_addr( *URL.Host ) );
 		}
 		else
 		{
 			// Create thread to resolve the address.
 			GetServerConnection()->ResolveInfo = new FResolveInfo( *URL.Host );
+#ifdef PLATFORM_WIN32
 			CreateThread( NULL, 0, ResolveThreadEntry, GetServerConnection()->ResolveInfo, 0, &GetServerConnection()->ResolveInfo->ThreadId );
+#else
+			GetServerConnection()->ResolveInfo->ThreadId = 1;
+			pthread_t	ResolveThread;
+			pthread_attr_t ThreadAttributes;
+			pthread_attr_init( &ThreadAttributes );
+			pthread_attr_setdetachstate( &ThreadAttributes, PTHREAD_CREATE_DETACHED );
+			pthread_create( &ResolveThread, &ThreadAttributes, &ResolveThreadEntry, this );
+#endif
 		}
 
 		// Set socket URL.
@@ -593,10 +489,10 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 		NAME_Log,
 		"WinSock: I am %s (%i.%i.%i.%i)",
 		HostName,
-		HostAddr.S_un.S_un_b.s_b1,
-		HostAddr.S_un.S_un_b.s_b2,
-		HostAddr.S_un.S_un_b.s_b3,
-		HostAddr.S_un.S_un_b.s_b4
+		IPBYTE(HostAddr, 1),
+		IPBYTE(HostAddr, 2),
+		IPBYTE(HostAddr, 3),
+		IPBYTE(HostAddr, 4)
 	);
 	return 1;
 	unguard;
@@ -628,7 +524,7 @@ void UTcpNetDriver::Destroy()
 	guard(CloseSocket);
 	if( Socket )
 		if( closesocket( Socket ) )
-			debugf( NAME_Exit, "WinSock closesocket error (%s)", wsaError() );
+			debugf( NAME_Exit, "WinSock closesocket error (%s)", SocketError() );
 	unguard;
 
 	debugf( NAME_Exit, "WinSock shut down" );
@@ -670,17 +566,17 @@ void UTcpNetDriver::Tick()
 		{
 			static UBOOL FirstError=1;
 			if( FirstError )
-				debugf( "UDP recvfrom error: %s", wsaError() );
+				debugf( "UDP recvfrom error: %s", SocketError() );
 			FirstError=0;
 		}
 		Count++;
 
 		// Figure out which socket it came from.
 		UTcpipConnection* Connection=NULL;
-		if( GetServerConnection() && Matches(GetServerConnection()->RemoteAddr,FromAddr) )
+		if( GetServerConnection() && IpMatches(GetServerConnection()->RemoteAddr,FromAddr) )
 			Connection = GetServerConnection();
 		for( INT i=0; i<Connections.Num() && !Connection; i++ )
-			if( Matches( ((UTcpipConnection*)Connections(i))->RemoteAddr, FromAddr ) )
+			if( IpMatches( ((UTcpipConnection*)Connections(i))->RemoteAddr, FromAddr ) )
 				Connection = (UTcpipConnection*)Connections(i);
 
 		// If we didn't find a connection, maybe create a new one.		
@@ -696,11 +592,11 @@ void UTcpNetDriver::Tick()
 			appSprintf
 			(
 				Temp,
-				"%i.%i.%i.%i", 
-				FromAddr.sin_addr.S_un.S_un_b.s_b1,
-				FromAddr.sin_addr.S_un.S_un_b.s_b2,
-				FromAddr.sin_addr.S_un.S_un_b.s_b3,
-				FromAddr.sin_addr.S_un.S_un_b.s_b4
+				"%i.%i.%i.%i",
+				IPBYTE(FromAddr.sin_addr, 1),
+				IPBYTE(FromAddr.sin_addr, 2),
+				IPBYTE(FromAddr.sin_addr, 3),
+				IPBYTE(FromAddr.sin_addr, 4)
 			);
 			Connection->URL.Host = Temp;//!!format
 			Notify->NotifyAcceptedConnection( Connection );

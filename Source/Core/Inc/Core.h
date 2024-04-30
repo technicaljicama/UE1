@@ -140,7 +140,7 @@ extern "C" DLL_EXPORT char GPackage[];
 #include "UnScript.h"		// Script class.
 #include "UnCache.h"		// Cache based memory management.
 #include "UnMem.h"			// Stack based memory management.
-#include "UnCID.h"          // Cache ID's.
+#include "UnCId.h"          // Cache ID's.
 
 /*-----------------------------------------------------------------------------
 	Core templates.

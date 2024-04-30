@@ -14,8 +14,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef PLATFORM_WIN32
 #include <direct.h>
 #include <io.h>
+#else
+#include <ctype.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#endif
 
 /*-----------------------------------------------------------------------------
 	Options.
@@ -371,7 +380,7 @@ CORE_API INT appFSize( const char* fname )
 	FILE* f;
 	long result;
 
-	f = fopen( fname, "rb" );
+	f = appFopen( fname, "rb" );
 	if( f == NULL )
 		return -1;
 
@@ -414,7 +423,10 @@ CORE_API const char* appFExt( const char* fname )
 //
 CORE_API TArray<FString> appFindFiles( const char* Spec )
 {
+	guard(appFindFiles)
 	TArray<FString> Result;
+
+#ifdef PLATFORM_WIN32
 	_finddata_t Found;
 	long hFind = _findfirst( Spec, &Found );
 	if( hFind != -1 )
@@ -422,15 +434,179 @@ CORE_API TArray<FString> appFindFiles( const char* Spec )
 		do new(Result)FString(Found.name);
 		while( _findnext( hFind, &Found )!=-1 );
 	}
+#else
+	DIR *Dirp;
+	struct dirent* Direntp;
+	char Path[256];
+	char File[256];
+	char *Filestart;
+	char *Cur;
+	UBOOL Match;
+
+	// Initialize Path to Filename.
+	appStrcpy( Path, Spec );
+
+	// Convert MS "\" to Unix "/".
+	for( Cur = Path; *Cur != '\0'; Cur++ )
+		if( *Cur == '\\' )
+			*Cur = '/';
+
+	// Separate path and filename.
+	Filestart = Path;
+	for( Cur = Path; *Cur != '\0'; Cur++ )
+		if( *Cur == '/' )
+			Filestart = Cur + 1;
+
+	// Store filename and remove it from Path.
+	appStrcpy( File, Filestart );
+	*Filestart = '\0';
+
+	// Check for empty path.
+	if (appStrlen( Path ) == 0)
+		appSprintf( Path, "./" );
+
+	// Open directory, get first entry.
+	Dirp = opendir( Path );
+	if (Dirp == NULL)
+			return Result;
+	Direntp = readdir( Dirp );
+
+	// Check each entry.
+	while( Direntp != NULL )
+	{
+		Match = false;
+
+		if( appStrcmp( File, "*" ) == 0 )
+		{
+			// Any filename.
+			Match = true;
+		}
+		else if( appStrcmp( File, "*.*" ) == 0 )
+		{
+			// Any filename with a '.'.
+			if( appStrchr( Direntp->d_name, '.' ) != NULL )
+				Match = true;
+		}
+		else if( File[0] == '*' )
+		{
+			// "*.ext" filename.
+			if( appStrstrFs( Direntp->d_name, (File + 1) ) != NULL )
+				Match = true;
+		}
+		else if( File[appStrlen( File ) - 1] == '*' )
+		{
+			// "name.*" filename.
+			if( appStrnicmp( Direntp->d_name, File, appStrlen( File ) - 1 ) == 0 )
+				Match = true;
+		}
+		else if( appStrstr( File, "*" ) != NULL )
+		{
+			// single str.*.str match.
+			char* star = appStrstr( File, "*" );
+			INT filelen = appStrlen( File );
+			INT starlen = appStrlen( star );
+			INT starpos = filelen - (starlen - 1);
+			char prefix[256];
+			appStrncpy( prefix, File, starpos );
+			star++;
+			if( appStrnicmp( Direntp->d_name, prefix, starpos - 1 ) == 0 )
+			{
+				// part before * matches
+				char* postfix = Direntp->d_name + (appStrlen(Direntp->d_name) - starlen) + 1;
+				if ( appStricmp( postfix, star ) == 0 )
+					Match = true;
+			}
+		}
+		else
+		{
+			// Literal filename.
+			if( appStricmp( Direntp->d_name, File ) == 0 )
+				Match = true;
+		}
+
+		// Does this entry match the Filename?
+		if( Match )
+		{
+			// Yes, add the file name to Result.
+			new(Result)FString(Direntp->d_name);
+		}
+	
+		// Get next entry.
+		Direntp = readdir( Dirp );
+	}
+
+	// Close directory.
+	closedir( Dirp );
+#endif
+
 	return Result;
+	unguard;
 }
 
 //
 // Standard file functions.
 //
-CORE_API FILE* appFopen( const char* Filename, const char* Mode )
+CORE_API FILE* appFopen( const char* Path, const char* Mode )
 {
-	return fopen(Filename,Mode);
+	FILE* F = fopen( Path, Mode );
+
+#ifdef PLATFORM_CASE_SENSITIVE_FS
+	if( F ) return F;
+
+	// Case-insensitive search.
+	char DirNameBuf[1024], TmpName[1024];
+	appStrncpy( DirNameBuf, Path, sizeof(DirNameBuf) - 1 );
+
+	// Fixup slashes.
+	for( char* Ch = DirNameBuf; *Ch; ++Ch )
+	{
+		if( *Ch == '\\' )
+			*Ch = '/';
+	}
+
+	// Find the directory path by terminating path at the last slash, if any.
+	const char* DirName = NULL;
+	const char* FileName = NULL;
+	char* Slash = (char*)strrchr( DirNameBuf, '/' );
+	if( Slash )
+	{
+		*Slash = '\0';
+		DirName = DirNameBuf;
+		FileName = Slash + 1;
+		// HACK: Canonicalize the first char of the directory name (e.g. ../maps -> ../Maps).
+		char* DirStart = DirNameBuf;
+		if( *DirStart == '.' )
+		{
+			while( *DirStart == '/' || *DirStart == '.' )
+				DirStart++;
+			if( *DirStart )
+				*DirStart = toupper( *DirStart );
+		}
+	}
+	else
+	{
+		DirName = "./";
+		FileName = DirNameBuf;
+	}
+
+	// Scan the directory.
+	DIR* Dir = opendir( DirName );
+	if( !Dir ) return F;
+	struct dirent* Ent = readdir( Dir );
+	while( Ent )
+	{
+		if( appStricmp( Ent->d_name, FileName ) == 0 )
+		{
+			snprintf( TmpName, sizeof(TmpName), "%s/%s", DirName, Ent->d_name );
+			F = fopen( TmpName, Mode );
+			break;
+		}
+		Ent = readdir( Dir );
+	}
+	closedir( Dir );
+#endif
+
+	return F;
 }
 CORE_API INT appFclose( FILE* Stream )
 {
@@ -462,7 +638,11 @@ CORE_API INT appFerror( FILE* F )
 }
 CORE_API INT appMkdir( const char* Dirname )
 {
+#ifdef PLATFORM_WIN32
 	return mkdir( Dirname );
+#else
+	return mkdir( Dirname, 0777 );
+#endif
 }
 CORE_API char* appGetcwd( char* Buffer, INT MaxLen )
 {
@@ -584,6 +764,14 @@ CORE_API char* appStrstr( const char* String, const char* Find )
 {
 	return const_cast<char*>( strstr(String,Find));
 }
+CORE_API char* appStrstrFs( const char* String, const char* Find )
+{
+#ifndef PLATFORM_CASE_SENSITIVE_FS
+	return appStrstr( String, Find );
+#else
+	return const_cast<char*>( strcasestr(String,Find) );
+#endif
+}
 CORE_API char* appStrchr( const char* String, int c )
 {
 	return const_cast<char*>(strchr(String,c));
@@ -595,6 +783,10 @@ CORE_API char* appStrcat( char* Dest, const char* Src )
 CORE_API INT appStrcmp( const char* String1, const char* String2 )
 {
 	return strcmp(String1,String2);
+}
+CORE_API INT appStrncmp( const char* String1, const char* String2, INT Num )
+{
+	return strncmp(String1,String2,Num);
 }
 CORE_API INT appStricmp( const char* String1, const char* String2 )
 {
@@ -610,7 +802,16 @@ CORE_API char* appStrcpy( char* Dest, const char* Src )
 }
 CORE_API char* appStrupr( char* String )
 {
+#ifdef PLATFORM_WIN32
 	return strupr(String);
+#else
+	if( String )
+	{
+		for( char* P = String; *P; ++P )
+			*P = toupper( *P );
+	}
+	return String;
+#endif
 }
 
 
