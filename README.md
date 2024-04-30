@@ -14,13 +14,13 @@ Requires assets from the original Unreal v200 retail release. Other versions hav
 
 ## Building and running
 
-**With GCC on a 32-bit platform:**
+**With GCC on MINGW32 or Linux i686:**
 ```
 cmake -Bbuild -G"Unix Makefiles" Source
 cmake --build build && cmake --install build --config Debug
 ```
 
-**With GCC on a 64-bit platform:**
+**With GCC on Linux x86_64:**
 ```
 cmake -Bbuild -G"Unix Makefiles" Source -DCMAKE_C_COMPILER=i686-linux-gnu-gcc -DCMAKE_CXX_COMPILER=i686-linux-gnu-g++
 cmake --build build && cmake --install build --config Debug
