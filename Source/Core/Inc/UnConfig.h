@@ -141,7 +141,7 @@ public:
 	FConfigFile* FindConfig( const char* Filename, UBOOL CreateIfNotFound );
 
 protected:
-	char DefaultIni[MAX_INI_NAME];
+	char DefaultIni[MAX_INI_NAME + 1];
 	TArray<FConfigFile*> Configs;
 };
 

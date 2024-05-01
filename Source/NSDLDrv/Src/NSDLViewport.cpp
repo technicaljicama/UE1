@@ -401,7 +401,6 @@ void UNSDLViewport::CloseWindow()
 		}
 		if( GLCtx )
 		{
-			SDL_GL_MakeCurrent( hWnd, NULL );
 			SDL_GL_DeleteContext( GLCtx );
 			GLCtx = NULL;
 		}
