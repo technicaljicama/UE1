@@ -11,6 +11,7 @@ set(SRC_FILES
   "Src/UnOutDev.cpp"
   "Src/UnPlat.cpp"
   "Src/UnProp.cpp"
+  "Src/UnConfig.cpp"
   "Src/Core.cpp"
 )
 

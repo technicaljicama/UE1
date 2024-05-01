@@ -553,6 +553,10 @@ CORE_API FILE* appFopen( const char* Path, const char* Mode )
 #ifdef PLATFORM_CASE_SENSITIVE_FS
 	if( F ) return F;
 
+	// Don't search if we're creating the file.
+	if( Mode[0] != 'r' )
+		return F;
+
 	// Case-insensitive search.
 	char DirNameBuf[1024], TmpName[1024];
 	appStrncpy( DirNameBuf, Path, sizeof(DirNameBuf) - 1 );
@@ -655,8 +659,51 @@ CORE_API INT appChdir( const char* Dirname )
 CORE_API INT appFprintf( FILE* F, const char* Fmt, ... )
 {
 	char Temp[32768];
-	 GET_VARARGS(Temp,Fmt);
+	GET_VARARGS(Temp,Fmt);
 	return appFwrite( Temp, 1, strlen(Temp), F );
+}
+CORE_API UBOOL appLoadFileToString( FString& Result, const char* Filename )
+{
+	guard(appLoadFileToString);
+
+	FILE* f = appFopen( Filename, "rb" );
+	if( !f ) return false;
+
+	appFseek( f, 0, USEEK_END );
+	const INT Size = appFtell( f );
+	appFseek( f, 0, USEEK_SET );
+
+	TArray<char>& CharArray = Result.GetCharArray();
+	CharArray.SetNum( Size + 1 );
+
+	INT Rx = appFread( (void*)&CharArray(0), 1, Size, f );
+	appFclose( f );
+	CharArray(CharArray.Num() - 1) = '\0';
+
+	if( Rx == 0 && Size != 0 )
+		return false;
+
+	return true;
+
+	unguard;
+}
+CORE_API UBOOL appSaveStringToFile( const FString& Str, const char* Filename )
+{
+	guard(appLoadFileToString);
+
+	FILE* f = appFopen( Filename, "wb" );
+	if( !f ) return false;
+
+	INT Wx = 0;
+	const TArray<char>& CharArray = Str.GetCharArray();
+	if( CharArray.Num() > 1 )
+		Wx = appFwrite( &CharArray(0), 1, CharArray.Num() - 1, f );
+
+	appFclose( f );
+
+	return ( CharArray.Num() <= 1 || Wx == CharArray.Num() - 1 );
+
+	unguard;
 }
 
 /*-----------------------------------------------------------------------------

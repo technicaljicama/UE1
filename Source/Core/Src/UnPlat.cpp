@@ -49,8 +49,6 @@
 #include <new>
 #include <memory>
 
-#include "MIni.h"
-
 #include "Core.h"
 
 #ifndef MAX_COMPUTERNAME_LENGTH
@@ -61,135 +59,6 @@ CORE_API FGlobalPlatform GTempPlatform;
 INT GSlowTaskCount=0;
 FILE* GLogFile=NULL;
 char GLogFname[256]="";
-
-/*-----------------------------------------------------------------------------
-	FConfigFile.
------------------------------------------------------------------------------*/
-
-struct FConfigFile
-{
-	char ReadFname[256] = "";
-	char WriteFname[256] = "";
-	mINI::INIStructure Ini;
-	UBOOL AutoSave;
-
-	~FConfigFile()
-	{
-		if( AutoSave && Ini.size() && WriteFname[0] )
-			Save();
-	}
-
-	void Init( const char* ReadName, const char* WriteName = NULL, UBOOL AutoSave = false )
-	{
-		guard(FConfigFile::Init);
-
-		const UBOOL NewFile = appStrcmp( ReadName, ReadFname ) != 0;
-		if( NewFile )
-			appStrcpy( ReadFname, ReadName );
-
-		if( WriteName )
-			appStrcpy( WriteFname, WriteName );
-		else
-			WriteFname[0] = '\0';
-
-		if( NewFile )
-		{
-			Ini.clear();
-			Load();
-		}
-
-		unguard;
-	}
-
-	UBOOL Load()
-	{
-		guard(FConfigFile::Load);
-
-		mINI::INIFile File( ReadFname );
-
-		UBOOL Ret = File.read( Ini );
-		if( !Ret && *WriteFname )
-		{
-			File = mINI::INIFile( WriteFname );
-			Ret = File.read( Ini );
-		}
-
-		return Ret;
-
-		unguard;
-	}
-
-	UBOOL Save()
-	{
-		guard(FConfigFile::Save);
-		if( *WriteFname )
-		{
-			mINI::INIFile File( WriteFname );
-			return File.write( Ini );
-		}
-		return false;
-		unguard;
-	}
-
-	void SetString( const char* Sec, const char* Key, const char* Val )
-	{
-		guard(FConfigFile::SetString);
-		Ini[Sec][Key] = Val;
-		unguard;
-	}
-
-	UBOOL GetString( const char* Sec, const char* Key, char* Out, INT OutLen )
-	{
-		guard(FConfigFile::GetString);
-
-		*Out = '\0';
-
-		if( Ini.size() )
-		{
-			const auto& Val = Ini[Sec][Key];
-			if( !Val.empty() )
-			{
-				snprintf( Out, OutLen, "%s", Val.c_str() );
-				return true;
-			}
-		}
-
-		return false;
-
-		unguard;
-	}
-
-	UBOOL GetSection( const char* Sec, char* Out, INT OutLen )
-	{
-		guard(FConfigFile::GetSection);
-
-		appMemset( Out, 0, OutLen );
-		--OutLen;
-
-		if( Ini.has( Sec ) )
-		{
-			const auto& Map = Ini[Sec];
-			char* Dst = Out;
-			INT OutLeft = OutLen;
-			for( const auto& P : Map )
-			{
-				const INT Count = snprintf( Dst, OutLeft, "%s=%s", P.first.c_str(), P.second.c_str() ) + 1;
-				if( Count >= OutLeft || OutLeft <= 1 )
-					break;
-				OutLeft -= Count;
-				Dst += Count;
-			}
-			return true;
-		}
-
-		return false;
-
-		unguard;
-	}
-};
-
-static FConfigFile GConfig;
-static TArray<FConfigFile*> GTransientConfigs(E_NoInit);
 
 /*-----------------------------------------------------------------------------
 	Globals.
@@ -493,36 +362,35 @@ void appInit()
 	// Parameters.
 	GIsStrict = ParseParam( appCmdLine(), "STRICT" );
 
-	// Write-ini.
-	char Temp[256] = "", WriteIni[256] = "", ReadIni[256] = "";
-	appStrcpy( WriteIni, appBaseDir() );
+	// Ini.
+	char Ini[MAX_INI_NAME + 1] = "";
+	char Temp[MAX_INI_NAME + 1] = "";
+	appStrcpy( Ini, appBaseDir() );
 	if( Parse( appCmdLine(), "INI=", Temp, ARRAY_COUNT(Temp) ) )
 	{
-		appStrcat( WriteIni, Temp );
+		appStrcat( Ini, Temp );
 	}
 	else
 	{
-		appStrcat( WriteIni, appPackage() );
-		appStrcat( WriteIni, ".ini" );
+		appStrcat( Ini, appPackage() );
+		appStrcat( Ini, ".ini" );
+		// Create Package.ini from Default.ini if it doesn't exist.
+		if( appFSize( Ini ) <= 0 )
+		{
+			char DefaultIni[MAX_INI_NAME + 1];
+			snprintf( DefaultIni, MAX_INI_NAME, "%sDefault.ini", appBaseDir() );
+			appCopyFile( DefaultIni, Ini );
+		}
 	}
-	FILE* F;
-	F = fopen( WriteIni, "at" );
+
+	FILE* F = appFopen( Ini, "at" );
 	if( F )
-		fclose( F );
+		appFclose( F );
 	else
-		GSystem->Warnf( LocalizeError("IniReadOnly"), WriteIni );
+		GSystem->Warnf( LocalizeError("IniReadOnly"), Ini );
 
-	// Read-ini.
-	appStrcpy( ReadIni, WriteIni );
-	if( Parse( appCmdLine(), "READINI=", Temp, ARRAY_COUNT(Temp) ) )
-	{
-		appStrcpy( ReadIni, appBaseDir() );
-		appStrcat( ReadIni, Temp );
-	}
-
-	// Parse the read ini.
-	GConfig.Init( ReadIni, WriteIni, true );
-	GConfig.Load();
+	// Init config cache.
+	GConfigCache.Init( Ini );
 
 	// Language.
 	if( GetConfigString( "Engine.Engine", "Language", Temp, ARRAY_COUNT(Temp) ) )
@@ -1362,32 +1230,6 @@ UBOOL VARARGS FGlobalPlatform::StatusUpdatef( INT Numerator, INT Denominator, co
 	Profile functions.
 -----------------------------------------------------------------------------*/
 
-static FConfigFile* FindOrAddConfig( const char* Filename )
-{
-	guard(FindOrAddConfig);
-
-	if( !Filename || appStrcmp( GConfig.ReadFname, Filename ) == 0 )
-		return &GConfig;
-
-	for( INT i = 0; i < GTransientConfigs.Num(); ++i )
-	{
-		FConfigFile* Ptr = GTransientConfigs(i);
-		if( !appStrcmp( Ptr->ReadFname, Filename ) )
-			return Ptr;
-	}
-
-	FConfigFile* NewCfg = new FConfigFile;
-	NewCfg->Init( Filename );
-	if( !NewCfg->Load() )
-		return NULL;
-	
-	INT i = GTransientConfigs.AddItem( NewCfg );
-
-	return GTransientConfigs(i);
-
-	unguard;
-}
-
 //
 // Read a string from the profile.
 //
@@ -1401,15 +1243,7 @@ UBOOL GetConfigString
 )
 {
 	guard(GetConfigString);
-
-	*Value = 0;
-
-	FConfigFile* Cfg = FindOrAddConfig( Filename );
-	if( !Cfg )
-		return false;
-
-	return Cfg->GetString( Section, Key, Value, Size ) && Value[0];
-
+	return GConfigCache.GetString( Section, Key, Value, Size, Filename );
 	unguard;
 }
 
@@ -1530,15 +1364,7 @@ UBOOL GetConfigSection
 )
 {
 	guard(GetConfigSection);
-
-	*Result = '\0';
-
-	FConfigFile* Cfg = FindOrAddConfig( Filename );
-	if( !Cfg )
-		return false;
-
-	return Cfg->GetSection( Section, Result, Size ) && *Result != '\0';
-
+	return GConfigCache.GetSection( Section, Result, Size, Filename );
 	unguard;
 }
 
@@ -1554,14 +1380,7 @@ void SetConfigString
 )
 {
 	guard(SetConfigString);
-
-	FConfigFile* Cfg = FindOrAddConfig( Filename );
-	if( !Cfg )
-		return;
-
-	Cfg->SetString( Section, Key, Value );
-	Cfg->Save();
-
+	GConfigCache.SetString( Section, Key, Value, Filename );
 	unguard;
 }	
 

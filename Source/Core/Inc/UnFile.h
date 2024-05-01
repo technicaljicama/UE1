@@ -220,6 +220,9 @@ CORE_API INT appChdir( const char* Dirname );
 CORE_API INT appFprintf( FILE* F, const char* Fmt, ... );
 CORE_API INT appFerror( FILE* F );
 
+CORE_API UBOOL appLoadFileToString( FString& Result, const char* Filename );
+CORE_API UBOOL appSaveStringToFile( const FString& Str, const char* Filename );
+
 /*-----------------------------------------------------------------------------
 	OS functions.
 -----------------------------------------------------------------------------*/

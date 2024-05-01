@@ -84,6 +84,8 @@ class FPackageInfo;
 class FTransactionTracker;
 class FUnknown;
 class FRepLink;
+class FConfigFile;
+class FConfigCache;
 
 /*----------------------------------------------------------------------------
 	Global variables.
@@ -118,8 +120,9 @@ CORE_API extern UBOOL					GIsSlowTask;
 CORE_API extern UBOOL					GIsGuarded;
 CORE_API extern UBOOL					GIsRequestingExit;
 CORE_API extern UBOOL					GIsStrict;
-CORE_API extern UBOOL                   GScriptEntryTag;
-CORE_API extern UBOOL                   GNoAutoReplace;
+CORE_API extern UBOOL					GScriptEntryTag;
+CORE_API extern UBOOL					GNoAutoReplace;
+CORE_API extern FConfigCache	GConfigCache;
 
 // Per module globals.
 extern "C" DLL_EXPORT char GPackage[];
@@ -128,7 +131,7 @@ extern "C" DLL_EXPORT char GPackage[];
 #include "UnFile.h"			// Low level utility code.
 #include "UnObjVer.h"		// Object version info.
 #include "UnArc.h"			// Archive class.
-#include "UnTemplate.h"     // Dynamic arrays.
+#include "UnTemplate.h"	// Dynamic arrays.
 #include "UnName.h"			// Global name subsystem.
 #include "UnNames.h"		// Hardcoded names.
 #include "UnPlatfm.h"		// Platform dependent subsystem definition.
@@ -140,7 +143,8 @@ extern "C" DLL_EXPORT char GPackage[];
 #include "UnScript.h"		// Script class.
 #include "UnCache.h"		// Cache based memory management.
 #include "UnMem.h"			// Stack based memory management.
-#include "UnCId.h"          // Cache ID's.
+#include "UnCId.h"			// Cache ID's.
+#include "UnConfig.h"		// Config cache.
 
 /*-----------------------------------------------------------------------------
 	Core templates.

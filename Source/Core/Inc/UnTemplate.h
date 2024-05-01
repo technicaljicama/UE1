@@ -310,6 +310,18 @@ public:
 	{
 		return (*this)(0) != 0;
 	}
+	TArray<char>& GetCharArray()
+	{
+		// warning: Operations on the TArray<char> can be unsafe, such as adding
+		// non-terminating 0's or removing the terminating zero.
+		return (TArray<char>&)*this;
+	}
+	const TArray<char>& GetCharArray() const
+	{
+		// warning: Operations on the TArray<char> can be unsafe, such as adding
+		// non-terminating 0's or removing the terminating zero.
+		return (const TArray<char>&)*this;
+	}
 
 	// Operators.
 	FString& operator +=( const char* Str )
