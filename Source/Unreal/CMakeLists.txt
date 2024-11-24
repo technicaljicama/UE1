@@ -29,8 +29,7 @@ else()
   message(FATAL_ERROR "Non-Windows platforms can only use NSDLDrv.")
 endif()
 
-if(TARGET_IS_ARM)
-  # TODO: probably remove this when not building for Vita
+if(TARGET_IS_ARM AND BUILD_FOR_PSVITA)
   set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif()
 

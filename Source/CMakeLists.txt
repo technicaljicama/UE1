@@ -21,6 +21,7 @@ option(BUILD_NOPENGLDRV "Build NOpenGLDrv" OFF)
 option(BUILD_NOPENGLESDRV "Build NOpenGLESDrv" ON)
 option(BUILD_NULLSOUNDDRV "Build SoundDrv (Null driver)" ON)
 option(BUILD_NOPENALDRV "Build NOpenALDrv" ON)
+option(BUILD_FOR_PSVITA "Build binaries that can be loaded by so_loader on the Vita" OFF)
 
 # Determine target arch and get normalized arch string
 
@@ -83,6 +84,10 @@ message(STATUS "Windows target: ${TARGET_IS_WINDOWS}")
 
 # Common compiler options
 
+if(BUILD_FOR_PSVITA AND NOT TARGET_IS_ARM)
+  message(FATAL_ERROR "PSVita is ARM.")
+endif()
+
 if(TARGET_IS_64BIT)
   add_definitions(-DPLATFORM_64BIT)
 else()
@@ -94,8 +99,12 @@ if(TARGET_IS_X86)
 elseif(TARGET_IS_ARM)
   add_definitions(-DPLATFORM_ARM)
   add_compile_options(-fsigned-char -fno-short-enums)
-  # TODO: probably remove this when not building for Vita
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  if(BUILD_FOR_PSVITA)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    add_compile_options(-mtune=cortex-a9 -mfpu=neon -marm -mfloat-abi=hard)
+    add_link_options(-mtune=cortex-a9 -mfpu=neon -marm -mfloat-abi=hard)
+    add_link_options(-Wl,-q -Wl,-z,nocopyreloc -Wl,--hash-style=sysv)
+  endif()
 endif()
 
 if(TARGET_IS_BIG_ENDIAN)
