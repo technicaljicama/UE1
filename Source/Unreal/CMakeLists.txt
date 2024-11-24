@@ -31,6 +31,9 @@ endif()
 
 if(TARGET_IS_ARM AND BUILD_FOR_PSVITA)
   set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+  # hammer in the PIE
+  target_compile_options(${PROJECT_NAME} PRIVATE -fPIC -fPIE -pie)
+  target_link_options(${PROJECT_NAME} PRIVATE -fPIC -fPIE -pie)
 endif()
 
 target_link_libraries(${PROJECT_NAME} Engine Core)
