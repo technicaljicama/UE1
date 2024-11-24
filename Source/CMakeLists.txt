@@ -6,8 +6,10 @@ project(UE1 CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS ON)
 
-if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "" FORCE)
+if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
+  if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "" FORCE)
+  endif()
 endif()
 
 # Options
@@ -91,6 +93,9 @@ if(TARGET_IS_X86)
   add_definitions(-DPLATFORM_X86)
 elseif(TARGET_IS_ARM)
   add_definitions(-DPLATFORM_ARM)
+  add_compile_options(-fsigned-char -fno-short-enums)
+  # TODO: probably remove this when not building for Vita
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(TARGET_IS_BIG_ENDIAN)
