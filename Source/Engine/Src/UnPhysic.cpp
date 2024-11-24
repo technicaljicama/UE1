@@ -384,7 +384,7 @@ void AActor::physicsRotation(FLOAT deltaTime)
 	unguard;
 }
 
-inline void AActor::TwoWallAdjust(FVector &DesiredDir, FVector &Delta, FVector &HitNormal, FVector &OldHitNormal, FLOAT HitTime)
+void AActor::TwoWallAdjust(FVector &DesiredDir, FVector &Delta, FVector &HitNormal, FVector &OldHitNormal, FLOAT HitTime)
 {
 	guard(AActor::TwoWallAdjust);
 
