@@ -46,12 +46,12 @@ void FSortedPathList::FindVisiblePaths(APawn *Searcher, FVector Dest, FSortedPat
 {
 	guard(FSortedPathList::FindVisiblePaths);
 
-	//unclock(XLevel->FindPathCycles);
+	//uunclock(XLevel->FindPathCycles);
 	//debugf("Pre-Vis time was %f", XLevel->FindPathCycles * GSystem->MSecPerCycle);
 	//debugf("%d actors in level", GetLevel()->Num);
 	//if (startanchor) debugf("Start anchor");
 	//if (endanchor) debugf("End anchor");
-	//clock(XLevel->FindPathCycles);
+	//uclock(XLevel->FindPathCycles);
 
 	// find paths visible from this pawn
 	//FIXME - PVS check here
@@ -93,11 +93,11 @@ void FSortedPathList::FindVisiblePaths(APawn *Searcher, FVector Dest, FSortedPat
 		Nav = Nav->nextNavigationPoint;
 	}
 
-	//unclock(XLevel->FindPathCycles);
+	//uunclock(XLevel->FindPathCycles);
 	//debugf("Vis time was %f", XLevel->FindPathCycles * GSystem->MSecPerCycle);
 	//if (startanchor) debugf("Start anchor");
 	//if (endanchor) debugf("End anchor");
-	//clock(XLevel->FindPathCycles);
+	//uclock(XLevel->FindPathCycles);
 
 	unguard;
 }
@@ -304,10 +304,10 @@ int APawn::findPathToward(AActor *goal, INT bSinglePath, AActor *&bestPath, INT 
 		return 0;
 	}
 
-	//unclock(XLevel->FindPathCycles);
+	//uunclock(XLevel->FindPathCycles);
 	//debugf(" %s FindPathToward %s", GetName(), goal->GetName());
 	//debugf("Start time was %f", XLevel->FindPathCycles * GSystem->MSecPerCycle);
-	//clock(XLevel->FindPathCycles);
+	//uclock(XLevel->FindPathCycles);
 
 	if ( (Physics != PHYS_Flying) && goal->IsA(APawn::StaticClass) && (goal->Physics == PHYS_Falling) )
 	{
@@ -388,9 +388,9 @@ int APawn::findPathToward(AActor *goal, INT bSinglePath, AActor *&bestPath, INT 
 	if ( !endanchor && bHunting )
 		endanchor = 1;
 
-	//unclock(XLevel->FindPathCycles);
+	//uunclock(XLevel->FindPathCycles);
 	//debugf("Setup time was %f", XLevel->FindPathCycles * GSystem->MSecPerCycle);
-	//clock(XLevel->FindPathCycles);
+	//uclock(XLevel->FindPathCycles);
 	//if ( !endanchor )
 	//	debugf("No end anchor found");
 	if ( endanchor )
@@ -431,10 +431,10 @@ FLOAT APawn::findPathTowardBestInventory(AActor *&bestPath, INT bClearPaths, FLO
 		return 0;
 	}
 
-	//unclock(XLevel->FindPathCycles);
+	//uunclock(XLevel->FindPathCycles);
 	//debugf(" %s FindPathTowardBestInvnetory", GetName());
 	//debugf("Start time was %f", XLevel->FindPathCycles * GSystem->MSecPerCycle);
-	//clock(XLevel->FindPathCycles);
+	//uclock(XLevel->FindPathCycles);
 
 	FVector RealLocation = Location;
 	FSortedPathList EndPoints;
@@ -464,9 +464,9 @@ FLOAT APawn::findPathTowardBestInventory(AActor *&bestPath, INT bClearPaths, FLO
 
 	EndPoints.expandAnchor(this);
 
-	//unclock(XLevel->FindPathCycles);
+	//uunclock(XLevel->FindPathCycles);
 	//debugf(NAME_DevPath,"Setup time");
-	//clock(XLevel->FindPathCycles);
+	//uclock(XLevel->FindPathCycles);
 
 	AActor *newPath = NULL;
 	int moveFlags = calcMoveFlags();
@@ -489,9 +489,9 @@ int APawn::findPathTo(FVector Dest, INT bSinglePath, AActor *&bestPath, INT bCle
 {
 	guard(APawn::findPathTo);
 
-	//unclock(XLevel->FindPathCycles);
+	//uunclock(XLevel->FindPathCycles);
 	//debugf("Start time was %f", XLevel->FindPathCycles * GSystem->MSecPerCycle);
-	//clock(XLevel->FindPathCycles);
+	//uclock(XLevel->FindPathCycles);
 	bestPath = NULL;
 	if ( !GetLevel()->GetLevelInfo()->NavigationPointList || !GetLevel()->ReachSpecs.Num() )
 	{
@@ -553,10 +553,10 @@ int APawn::findPathTo(FVector Dest, INT bSinglePath, AActor *&bestPath, INT bCle
 		}
 	}
 
-	//unclock(XLevel->FindPathCycles);
+	//uunclock(XLevel->FindPathCycles);
 	//debugf("Setup time was %f", XLevel->FindPathCycles * GSystem->MSecPerCycle);
 	//debugf("Dest point is %s",DestPoints.Path[0]->GetName());
-	//clock(XLevel->FindPathCycles);
+	//uclock(XLevel->FindPathCycles);
 
 	if (endanchor)
 	{
@@ -565,9 +565,9 @@ int APawn::findPathTo(FVector Dest, INT bSinglePath, AActor *&bestPath, INT bCle
 		((ANavigationPoint *)DestPoints.Path[0])->visitedWeight = DestPoints.Dist[0];
 		if (breadthPathFrom(DestPoints.Path[0], newPath, bSinglePath, moveFlags))
 		{
-			//unclock(XLevel->FindPathCycles);
+			//uunclock(XLevel->FindPathCycles);
 			//debugf("BFS time was %f", XLevel->FindPathCycles * GSystem->MSecPerCycle);
-			//clock(XLevel->FindPathCycles);
+			//uclock(XLevel->FindPathCycles);
 			bestPath = newPath;
 			GetLevel()->FarMoveActor(this, RealLocation, 1, 1);
 			if ( !startanchor && !bSinglePath )

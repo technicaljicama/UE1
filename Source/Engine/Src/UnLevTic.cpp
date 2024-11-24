@@ -368,7 +368,7 @@ UBOOL AActor::Tick( FLOAT DeltaSeconds, ELevelTick TickType )
 void ULevel::TickNetClient( FLOAT DeltaSeconds )
 {
 	guard(ULevel::TickNetClient);
-	clock(NetTickCycles);
+	uclock(NetTickCycles);
 	if( NetDriver->ServerConnection->State==USOCK_Open )
 	{
 		for( FTypedChannelIterator<FActorChannel> It(NetDriver->ServerConnection); It; ++It )
@@ -398,7 +398,7 @@ void ULevel::TickNetClient( FLOAT DeltaSeconds )
 		// Server disconnected.
 		Engine->SetClientTravel(NULL,"?failed",1,0,TRAVEL_Absolute);
 	}
-	unclock(NetTickCycles);
+	uunclock(NetTickCycles);
 	unguard;
 }
 
@@ -512,12 +512,12 @@ void ULevel::TickNetServer( FLOAT DeltaSeconds )
 	guard(ULevel::TickNetServer);
 
 	// Update all clients.
-	clock(NetTickCycles);
+	uclock(NetTickCycles);
 	INT Updated=0;
 	INT i;
 	for( i=0; i<NetDriver->Connections.Num(); i++ )
 		Updated += ServerTickClient( NetDriver->Connections(i), DeltaSeconds );
-	unclock(NetTickCycles);
+	uunclock(NetTickCycles);
 
 	// Stats.
 	if( Updated ) for( i=0; i<NetDriver->Connections.Num(); i++ )
@@ -599,7 +599,7 @@ void ULevel::Tick( ELevelTick TickType, FLOAT DeltaSeconds )
 	&&	(!NetDriver || !NetDriver->ServerConnection || NetDriver->ServerConnection->State==USOCK_Open) )
 	{
 		// Tick all actors, owners before owned.
-		clock(ActorTickCycles);
+		uclock(ActorTickCycles);
 		NewlySpawned=NULL;
 		INT Updated=0;
 		for( INT iActor=iFirstDynamicActor; iActor<Num(); iActor++ )
@@ -632,7 +632,7 @@ void ULevel::Tick( ELevelTick TickType, FLOAT DeltaSeconds )
 				Actors(iActor)->Tick(DeltaSeconds,TickType);
 		}
 	}
-	unclock(ActorTickCycles);
+	uunclock(ActorTickCycles);
 
 	// Update net server.
 	if( NetDriver && !NetDriver->ServerConnection )

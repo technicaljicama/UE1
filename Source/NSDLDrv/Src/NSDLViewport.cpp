@@ -420,7 +420,7 @@ void UNSDLViewport::CloseWindow()
 UBOOL UNSDLViewport::Lock( FPlane FlashScale, FPlane FlashFog, FPlane ScreenClear, DWORD RenderLockFlags, BYTE* HitData, INT* HitSize )
 {
 	guard(UNSDLViewport::LockWindow);
-	clock(Client->DrawCycles);
+	uclock(Client->DrawCycles);
 
 	// Make sure window is lockable.
 	if( !hWnd )
@@ -445,7 +445,7 @@ UBOOL UNSDLViewport::Lock( FPlane FlashScale, FPlane FlashFog, FPlane ScreenClea
 	}
 
 	// Success.
-	unclock(Client->DrawCycles);
+	uunclock(Client->DrawCycles);
 
 	return UViewport::Lock( FlashScale, FlashFog, ScreenClear, RenderLockFlags, HitData, HitSize );
 
@@ -460,7 +460,7 @@ void UNSDLViewport::Unlock( UBOOL Blit )
 	guard(UNSDLViewport::Unlock);
 
 	Client->DrawCycles=0;
-	clock(Client->DrawCycles);
+	uclock(Client->DrawCycles);
 
 	// Unlock base.
 	UViewport::Unlock( Blit );
@@ -482,7 +482,7 @@ void UNSDLViewport::Unlock( UBOOL Blit )
 		}
 	}
 
-	unclock(Client->DrawCycles);
+	uunclock(Client->DrawCycles);
 
 	unguard;
 }

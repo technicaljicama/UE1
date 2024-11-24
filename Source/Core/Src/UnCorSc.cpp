@@ -2745,7 +2745,7 @@ void UObject::CallFunction( FFrame& Stack, BYTE*& Result, UFunction* Function )
 {
 	guardSlow(UObject::CallFunction);
 #if DO_SLOW_GUARD
-	DWORD Cycles=0; clock(Cycles);
+	DWORD Cycles=0; uclock(Cycles);
 #endif
 
 	// Found it.
@@ -2807,7 +2807,7 @@ void UObject::CallFunction( FFrame& Stack, BYTE*& Result, UFunction* Function )
 		Mark.Pop();
 	}
 #if DO_SLOW_GUARD
-	unclock(Cycles);
+	uunclock(Cycles);
 	Function->Cycles += Cycles;
 	Function->Calls++;
 #endif
@@ -2861,7 +2861,7 @@ void UObject::ProcessEvent( UFunction* Function, void* Parms )
 	// Checks.
 	debug(Function->ParmsSize==0 || Parms!=NULL);
 	if( ++GScriptEntryTag == 1 )
-		clock(GScriptCycles);
+		uclock(GScriptCycles);
 
 	// Call the function.
 	if
@@ -2897,7 +2897,7 @@ void UObject::ProcessEvent( UFunction* Function, void* Parms )
 		Mark.Pop();
 	}
 	if( --GScriptEntryTag == 0 )
-		unclock(GScriptCycles);
+		uunclock(GScriptCycles);
 	unguardf(( "(%s, %s)", GetFullName(), Function->GetFullName() ));
 }
 

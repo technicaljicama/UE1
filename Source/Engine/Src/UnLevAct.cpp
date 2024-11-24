@@ -858,7 +858,7 @@ UBOOL ULevel::MoveActor
 	// Set up.
 	Hit = FCheckResult(1.0);
 	NumMoves++;
-	clock(MoveCycles);
+	uclock(MoveCycles);
 	FMemMark Mark(GMem);
 	FLOAT DeltaSize;
 	FVector DeltaDir;
@@ -963,7 +963,7 @@ UBOOL ULevel::MoveActor
 	// Abort if encroachment declined.
 	if( !bTest && !bNoFail && !Actor->IsA(APawn::StaticClass) && CheckEncroachment( Actor, Actor->Location + FinalDelta, NewRotation, 0 ) )
 	{
-		unclock(MoveCycles);
+		uunclock(MoveCycles);
 		return 0;
 	}
 
@@ -1006,7 +1006,7 @@ UBOOL ULevel::MoveActor
 	Mark.Pop();
 
 	// Return whether we moved at all.
-	unclock(MoveCycles);
+	uunclock(MoveCycles);
 	return Hit.Time>0.0;
 	unguard;
 }

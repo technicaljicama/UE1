@@ -438,7 +438,7 @@ void UWindowsViewport::CloseWindow()
 UBOOL UWindowsViewport::Lock( FPlane FlashScale, FPlane FlashFog, FPlane ScreenClear, DWORD RenderLockFlags, BYTE* HitData, INT* HitSize )
 {
 	guard(UWindowsViewport::LockWindow);
-	clock(Client->DrawCycles);
+	uclock(Client->DrawCycles);
 
 	// Make sure window is lockable.
 	if( hWnd && !IsWindow(hWnd) )
@@ -479,7 +479,7 @@ UBOOL UWindowsViewport::Lock( FPlane FlashScale, FPlane FlashFog, FPlane ScreenC
 	check(ScreenPointer);
 
 	// Success.
-	unclock(Client->DrawCycles);
+	uunclock(Client->DrawCycles);
 	return UViewport::Lock(FlashScale,FlashFog,ScreenClear,RenderLockFlags,HitData,HitSize);
 	unguard;
 }
@@ -491,7 +491,7 @@ void UWindowsViewport::Unlock( UBOOL Blit )
 {
 	guard(UWindowsViewport::Unlock);
 	Client->DrawCycles=0;
-	clock(Client->DrawCycles);
+	uclock(Client->DrawCycles);
 
 	// Unlock base.
 	UViewport::Unlock( Blit );
@@ -529,7 +529,7 @@ void UWindowsViewport::Unlock( UBOOL Blit )
 				appErrorf( "ReleaseDC failed: %s", winError() );
 		}
 	}
-	unclock(Client->DrawCycles);
+	uunclock(Client->DrawCycles);
 	unguard;
 }
 

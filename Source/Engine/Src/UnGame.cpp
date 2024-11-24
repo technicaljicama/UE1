@@ -894,9 +894,9 @@ void UGameEngine::Draw( UViewport* Viewport, BYTE* HitData, INT* HitSize )
 	// Update level audio.
 	if( Audio )
 	{
-		clock(GLevel->AudioTickCycles);
+		uclock(GLevel->AudioTickCycles);
 		Audio->Update( ViewActor->Region, Frame->Coords );
-		unclock(GLevel->AudioTickCycles);
+		uunclock(GLevel->AudioTickCycles);
 	}
 	FMemMark MemMark(GMem);
 	FMemMark DynMark(GDynMem);
@@ -1018,7 +1018,7 @@ void UGameEngine::Tick( FLOAT DeltaSeconds )
 {
 	guard(UGameEngine::Tick);
 	INT LocalTickCycles=0;
-	clock(LocalTickCycles);
+	uclock(LocalTickCycles);
 
 	// If all viewports closed, time to exit.
 	if( Client && Client->Viewports.Num()==0 )
@@ -1048,12 +1048,12 @@ void UGameEngine::Tick( FLOAT DeltaSeconds )
 	// Update the level.
 	guard(TickLevel);
 	GameCycles=0;
-	clock(GameCycles);
+	uclock(GameCycles);
 	if( GLevel )
 		GLevel->Tick( LEVELTICK_All, DeltaSeconds );
 	if( Client && Client->Viewports.Num() && Client->Viewports(0)->Actor->XLevel!=GLevel )
 		Client->Viewports(0)->Actor->XLevel->Tick( LEVELTICK_All, DeltaSeconds );
-	unclock(GameCycles);
+	uunclock(GameCycles);
 	unguard;
 
 	// Handle server travelling.
@@ -1155,14 +1155,14 @@ void UGameEngine::Tick( FLOAT DeltaSeconds )
 	INT LocalClientCycles=0;
 	if( Client )
 	{
-		clock(LocalClientCycles);
+		uclock(LocalClientCycles);
 		Client->Tick();
-		unclock(LocalClientCycles);
+		uunclock(LocalClientCycles);
 	}
 	ClientCycles=LocalClientCycles;
 	unguard;
 
-	unclock(LocalTickCycles);
+	uunclock(LocalTickCycles);
 	TickCycles=LocalTickCycles;
 	GTicks++;
 	unguard;

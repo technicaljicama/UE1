@@ -1931,7 +1931,7 @@ void AActor::ProcessState( FLOAT DeltaSeconds )
 	&&	!IsPendingKill() )
 	{
 		if( ++GScriptEntryTag==1 )
-			clock(GScriptCycles);
+			uclock(GScriptCycles);
 
 		// Create a work area for UnrealScript.
 		BYTE Buffer[MAX_CONST_SIZE], *Addr;
@@ -1957,7 +1957,7 @@ void AActor::ProcessState( FLOAT DeltaSeconds )
 			}
 		}
 		if( --GScriptEntryTag==0 )
-			unclock(GScriptCycles);
+			uunclock(GScriptCycles);
 	}
 	unguardobj;
 }

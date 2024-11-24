@@ -446,7 +446,7 @@ BYTE* FMemCache::Create
 )
 {
 	guard(FMemCache::Create);
-	clock(CreateCycles);
+	uclock(CreateCycles);
 	check( Initialized );
 	check( CreateSize > 0 );
 	check( Id != 0 );
@@ -566,7 +566,7 @@ BYTE* FMemCache::Create
 	Item = BestFirst;
 
 	ConditionalCheckState();
-	unclock(CreateCycles);
+	uunclock(CreateCycles);
 
 	return Result;
 	unguard;
@@ -582,7 +582,7 @@ BYTE* FMemCache::Create
 void FMemCache::Tick()
 {
 	guard(FMemCache::Tick);
-	clock(TickCycles);
+	uclock(TickCycles);
 	ConditionalCheckState();
 	MruId     = 0;
 	MruItem   = NULL;
@@ -623,7 +623,7 @@ void FMemCache::Tick()
 
 	// Update the cache's time.
 	Time++;
-	unclock(TickCycles);
+	uunclock(TickCycles);
 	unguard;
 }
 

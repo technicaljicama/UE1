@@ -515,7 +515,7 @@ void FLightManager::ShadowMapGen( FTextureInfo& Tex, BYTE* SrcBits, BYTE* Dest1 
 FPlane FLightManager::Light( FTransSample& Vert, DWORD PolyFlags )
 {
 	guard(FLightManager::Light);
-	STAT(clock(GStat.MeshLightTime));
+	STAT(uclock(GStat.MeshLightTime));
 
 	FPlane Color(0,0,0,0);
 	if( !(PolyFlags & PF_Unlit) )
@@ -560,7 +560,7 @@ FPlane FLightManager::Light( FTransSample& Vert, DWORD PolyFlags )
 	if( (PolyFlags & PF_Selected) && GIsEditor )
 		Color = Color*0.5 + FVector(0.5,0.5,0.5);
 
-	STAT(unclock(GStat.MeshLightTime));
+	STAT(uunclock(GStat.MeshLightTime));
 	return Color;
 	unguard;
 }
@@ -574,7 +574,7 @@ FPlane FLightManager::Fog( FTransSample& Vert, DWORD PolyFlags )
 	guard(FLightManager::Fog);
 	if( PolyFlags & PF_RenderFog )
 	{
-		STAT(clock(GStat.MeshLightTime));
+		STAT(uclock(GStat.MeshLightTime));
 		FPlane Fog(0,0,0,0);
 		for( FLightInfo* LightInfo=FirstLight; LightInfo<LastLight; LightInfo++ )
 		{
@@ -584,7 +584,7 @@ FPlane FLightManager::Fog( FTransSample& Vert, DWORD PolyFlags )
 				Fog = Fog + LocalFog - Fog*LocalFog;
 			}
 		}
-		STAT(unclock(GStat.MeshLightTime));
+		STAT(uunclock(GStat.MeshLightTime));
 		return Fog*(FVector(2,2,2)-Fog);
 	}
 	else return FPlane(0,0,0,0);
@@ -598,7 +598,7 @@ inline FPlane FLightManager::Fog(FTransSample& Vert, DWORD PolyFlags )
 	guard(FLightManager::Fog);
 	if( PolyFlags & PF_RenderFog )
 	{
-		STAT(clock(GStat.MeshLightTime));
+		STAT(uclock(GStat.MeshLightTime));
 		FPlane Fog(0,0,0,0);
 
 		// First fog light is copied, all next lights are merged.
@@ -660,7 +660,7 @@ inline FPlane FLightManager::Fog(FTransSample& Vert, DWORD PolyFlags )
 			}
 		}
 		
-		STAT(unclock(GStat.MeshLightTime));
+		STAT(uunclock(GStat.MeshLightTime));
 		return Fog; 
 	}
 	else return FPlane(0,0,0,0);
@@ -1398,7 +1398,7 @@ void FLightManager::FLightInfo::ComputeFromActor( FTextureInfo& Map, FSceneNode*
 	if( Surface )
 	{
 		// Cache the scaler palette.
-		clock(GStat.ExtraTime);
+		uclock(GStat.ExtraTime);
 		QWORD CacheID = MakeCacheID( CID_LightPalette, Actor );
 		FVector* Color = (FVector*)GCache.Get(CacheID,*TopItemToUnlock++);
 		if( !Color || *Color!=FloatColor || Actor->bLightChanged )
@@ -1419,7 +1419,7 @@ void FLightManager::FLightInfo::ComputeFromActor( FTextureInfo& Map, FSceneNode*
 			}
 		}
 		Palette = (FColor*)(Color+1);
-		unclock(GStat.ExtraTime);
+		uunclock(GStat.ExtraTime);
 
 		// Compute clipping region.
 		FLOAT   PlaneDot    = (Actor->Location - MapCoords->Origin) | MapCoords->ZAxis;
@@ -1445,7 +1445,7 @@ void FLightManager::FLightInfo::ComputeFromActor( FTextureInfo& Map, FSceneNode*
 		VolumetricColor.A = (FLOAT)Actor->VolumeFog * (1.f/255.f);
 
 		// Cache the volumetric color scaler palette
-		clock(GStat.ExtraTime);
+		uclock(GStat.ExtraTime);
 		QWORD CacheID = MakeCacheID( CID_Extra2, Actor );
 		FPlane* Color = (FPlane*)GCache.Get(CacheID,*TopItemToUnlock++);
 		if( !Color || *Color!=VolumetricColor || Actor->bLightChanged )
@@ -1468,7 +1468,7 @@ void FLightManager::FLightInfo::ComputeFromActor( FTextureInfo& Map, FSceneNode*
 			}
 		}
 		VolPalette = (FColor*)(Color+1);
-		unclock(GStat.ExtraTime);
+		uunclock(GStat.ExtraTime);
 
 		VolRadius			= Actor->WorldVolumetricRadius();
 		VolRadiusSquared	= VolRadius * VolRadius;
@@ -1500,7 +1500,7 @@ void FLightManager::SetupForSurf
 )
 {
 	guard(FLightManager::SetupForSurf);
-	STAT(clock(GStat.IllumTime));
+	STAT(uclock(GStat.IllumTime));
 	INT Key=0;
 
 #if 0
@@ -1979,7 +1979,7 @@ void FLightManager::SetupForSurf
 	// Set pointers.
 	LightMip.DataPtr = (BYTE*)Stream;
 
-	STAT(unclock(GStat.IllumTime));
+	STAT(uunclock(GStat.IllumTime));
 	unguard;
 }
 

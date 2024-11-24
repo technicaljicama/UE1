@@ -175,8 +175,8 @@ CORE_API void VARARGS appThrowf( const char* Fmt, ... );
 //
 // Normal timing.
 //
-#define clock(Timer)   {Timer -= appCycles();}
-#define unclock(Timer) {Timer += appCycles()-34;}
+#define uclock(Timer)   {Timer -= appCycles();}
+#define uunclock(Timer) {Timer += appCycles()-34;}
 
 //
 // Performance critical timing.

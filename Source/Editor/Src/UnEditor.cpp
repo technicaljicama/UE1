@@ -282,7 +282,7 @@ void UEditorEngine::Tick( float DeltaSeconds )
 	// Update audio.
 	if( Audio )
 	{
-		clock(Level->AudioTickCycles);
+		uclock(Level->AudioTickCycles);
 		UViewport* AudioViewport = FindObject<UViewport>( GObj.GetTransientPackage(), "Standard3V" );
 		FCoords C = GMath.ViewCoords;
 		FPointRegion Region(NULL);
@@ -292,7 +292,7 @@ void UEditorEngine::Tick( float DeltaSeconds )
 			Region = AudioViewport->Actor->Region;
 		}
 		Audio->Update( Region, C );
-		unclock(Level->AudioTickCycles);
+		uunclock(Level->AudioTickCycles);
 	}
 
 	// Render everything.

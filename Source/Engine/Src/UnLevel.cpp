@@ -773,7 +773,7 @@ static UBOOL CanSee
 INT ULevel::GetRelevantActors( APlayerPawn* InViewer, AActor** List, INT Max )
 {
 	guard(ULevel::GetRelevantActors);
-	clock(GetRelevantCycles);
+	uclock(GetRelevantCycles);
 	debug(Max>0);
 	NetTag++;
 
@@ -818,7 +818,7 @@ INT ULevel::GetRelevantActors( APlayerPawn* InViewer, AActor** List, INT Max )
 		}
 	}
 	NumPV += Count;
-	unclock(GetRelevantCycles);
+	uunclock(GetRelevantCycles);
 	return Count;
 	unguard;
 }

@@ -893,7 +893,7 @@ UBOOL URender::BoundVisible
 {
 	guard(URender::BoundVisible);
 	STAT(GStat.BoxChecks++);
-	clock(GStat.BoxTime);
+	uclock(GStat.BoxTime);
 
 	FCoords		BoxDot[2];
 	FTransform	Pts[8], *Pt;
@@ -910,7 +910,7 @@ UBOOL URender::BoundVisible
 		Project( Frame, Bound->Max, Result.MaxX, Result.MaxY, NULL );
 		if( Result.MinX > Result.MaxX ) Exchange( Result.MinX, Result.MaxX );
 		if( Result.MinY > Result.MaxY ) Exchange( Result.MinY, Result.MaxY );
-		unclock(GStat.BoxTime);
+		uunclock(GStat.BoxTime);
 		return Result.MaxX>0.0 && Result.MaxY>0.0 && Result.MinX<Frame->FX && Result.MinY<Frame->FY;
 	}
 
@@ -1033,7 +1033,7 @@ UBOOL URender::BoundVisible
 		Result.MaxY = Frame->FY;
 		Result.MinZ = 0;
 		STAT(GStat.BoxIn++);
-		unclock(GStat.BoxTime);
+		uunclock(GStat.BoxTime);
 		return 1;
 	}
 
@@ -1047,7 +1047,7 @@ UBOOL URender::BoundVisible
 			FLOAT Dot = Frame->ViewPlanes[i].PlaneDot(Center);
 			if( Dot<0.0 && Square(Dot)>RadiusSq )
 			{
-				unclock(GStat.BoxTime);
+				uunclock(GStat.BoxTime);
 				return 0;
 			}
 		}
@@ -1064,7 +1064,7 @@ UBOOL URender::BoundVisible
 	&&	BoxDot[1].ZAxis.X<0.0 && BoxDot[1].ZAxis.Y<0.0 && BoxDot[1].ZAxis.Z<0.0 )
 	{
 		STAT(GStat.BoxBacks++);
-		unclock(GStat.BoxTime);
+		uunclock(GStat.BoxTime);
 		return 0;
 	}
 
@@ -1104,7 +1104,7 @@ UBOOL URender::BoundVisible
 	{
 		// Invisible - pyramid reject.
 		STAT(GStat.BoxOutOfPyramid++;);
-		unclock(GStat.BoxTime);
+		uunclock(GStat.BoxTime);
 		return 0;
 	}
 
@@ -1134,13 +1134,13 @@ UBOOL URender::BoundVisible
 	Result.MinZ  = ::Max( BoxMinZ, 0.f );
 	if( !SpanBuffer || SpanBuffer->BoxIsVisible( BoxMinX, BoxMinY, BoxMaxX, BoxMaxY ) )
 	{
-		unclock(GStat.BoxTime);
+		uunclock(GStat.BoxTime);
 		return 1;
 	}
 	else
 	{
 		STAT(GStat.BoxSpanOccluded++);
-		unclock(GStat.BoxTime);
+		uunclock(GStat.BoxTime);
 		return 0;
 	}
 	unguard;
@@ -1289,7 +1289,7 @@ void URender::OccludeBsp( FSceneNode* Frame )
 		appMemset( Frame->Screen(0,0), 0, Frame->X*Frame->Y*4 );
 		_Verts = &Model->Verts->Element(0);
 		_Nodes = &Model->Nodes->Element(0);
-		clock(GStat.ExtraTime);
+		uclock(GStat.ExtraTime);
 		Traverse( Frame, 0 );
 		/*
 		static FTransform V;
@@ -1303,14 +1303,14 @@ void URender::OccludeBsp( FSceneNode* Frame )
 				*Frame->Screen(X,Y) = 0xfe;
 			}
 		}*/
-		unclock(GStat.ExtraTime);
+		uunclock(GStat.ExtraTime);
 		return;
 	}
 #endif
 ///////////////////////////////////////////////////////////////////////////////
 
 	// Start clocking stats.
-	STAT(clock(GStat.OcclusionTime));
+	STAT(uclock(GStat.OcclusionTime));
 
 	// Init temporary caches.
 	Stamp++;
@@ -1355,7 +1355,7 @@ void URender::OccludeBsp( FSceneNode* Frame )
 			Frame->Coords * Warp->WarpCoords * Warp->OtherSideActor->WarpCoords.Transpose(),
 			NULL
 		);
-		STAT(unclock(GStat.OcclusionTime));
+		STAT(uunclock(GStat.OcclusionTime));
 		unguard;
 		return;
 	}
@@ -1504,10 +1504,10 @@ void URender::OccludeBsp( FSceneNode* Frame )
 					goto NextCoplanar;
 
 				// Clip it.
-				clock(GStat.ClipTime);
+				uclock(GStat.ClipTime);
 				STAT(GStat.NodesDone++);
 				NumPts = ClipBspSurf( iNode, Pts );
-				unclock(GStat.ClipTime);
+				uunclock(GStat.ClipTime);
 				if( !NumPts )
 					goto NextCoplanar;
 
@@ -1517,13 +1517,13 @@ void URender::OccludeBsp( FSceneNode* Frame )
 						Exchange( Pts[i], Pts[NumPts-i-1] );
 
 				// Setup.
-				clock(GStat.RasterTime);
+				uclock(GStat.RasterTime);
 				if( !SetupRaster( Pts, NumPts, (Node->NodeFlags & NF_PolyOccluded) ? SpanBuffer : NULL, Frame->Y ) )
 				{
-					unclock(GStat.RasterTime);
+					uunclock(GStat.RasterTime);
 					goto NextCoplanar;
 				}
-				unclock(GStat.RasterTime);
+				uunclock(GStat.RasterTime);
 
 				// Assimilate the texture's flags.
 				if( Poly->Texture )
@@ -1545,7 +1545,7 @@ void URender::OccludeBsp( FSceneNode* Frame )
 				TempDrawList->Span.AllocIndex( RasterStartY, RasterEndY, (Merge || !RenDev->SpanBased) ? &GMem : &GDynMem );
 
 				// Perform the span buffer clipping and updating.
-				clock(GStat.SpanTime);
+				uclock(GStat.SpanTime);
 				if
 				(	!(PolyFlags & PF_NoOcclude)
 				||	(PolyFlags&(PF_Portal|PF_Invisible))==(PF_Portal|PF_Invisible) 
@@ -1553,7 +1553,7 @@ void URender::OccludeBsp( FSceneNode* Frame )
 					Visible = TempDrawList->Span.CopyFromRasterUpdate( *SpanBuffer, RasterStartY, RasterEndY, HackRaster+RasterStartY );
 				else		
 					Visible = TempDrawList->Span.CopyFromRaster( *SpanBuffer, RasterStartY, RasterEndY, HackRaster+RasterStartY );
-				unclock(GStat.SpanTime);
+				uunclock(GStat.SpanTime);
 
 				// Process the spans.
 				DrawBin = 1 + ((PolyFlags & PF_NoOcclude)!=0);
@@ -1656,13 +1656,13 @@ void URender::OccludeBsp( FSceneNode* Frame )
 							ActiveZoneMask |= ((QWORD)1)<<iOppositeZone;
 							if( ActiveZoneMask != OldMask )
 								ActiveZones[NumActiveZones++] = iOppositeZone;
-							clock(GStat.SpanTime);
+							uclock(GStat.SpanTime);
 							if( RenderPortal )
 								ZoneSpanBuffer[iOppositeZone].MergeWith( FSpanBuffer( TempDrawList->Span, GDynMem) );
 							else
 								ZoneSpanBuffer[iOppositeZone].MergeWith( TempDrawList->Span );
 							Model->Nodes->Zones[iOppositeZone].LastRenderTime = TimeSeconds;
-							unclock(GStat.SpanTime);
+							uunclock(GStat.SpanTime);
 						}
 						else
 						{
@@ -1785,9 +1785,9 @@ void URender::OccludeBsp( FSceneNode* Frame )
 						}
 						else
 						{
-							clock(GStat.SpanTime);
+							uclock(GStat.SpanTime);
 							Merge->Span.MergeWith( TempDrawList->Span );
-							unclock(GStat.SpanTime);
+							uunclock(GStat.SpanTime);
 						}
 						TempDrawList->Span.Release();
 
@@ -1869,7 +1869,7 @@ void URender::OccludeBsp( FSceneNode* Frame )
 		if( ZoneSpanBuffer[i].EndY )
 			STAT(GStat.VisibleZones++);
 
-	STAT(unclock(GStat.OcclusionTime));
+	STAT(uunclock(GStat.OcclusionTime));
 	unguard;
 }
 
@@ -2160,9 +2160,9 @@ void URender::DrawFrame( FSceneNode* Frame )
 
 			// Draw the surface.
 			PUSH_HIT(Frame,HBspSurf, Draw->iSurf);
-			clock(GStat.PolyVTime);
+			uclock(GStat.PolyVTime);
 			Viewport->RenDev->DrawComplexSurface( Frame, Surface, Facet );
-			unclock(GStat.PolyVTime);
+			uunclock(GStat.PolyVTime);
 			POP_HIT(Frame);
 
 			// Finish up.

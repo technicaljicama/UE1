@@ -1824,7 +1824,7 @@ UClass* FObjectManager::LoadClass( UClass* BaseClass, UObject* InParent, const c
 UObject* FObjectManager::LoadPackage( UObject* InParent, const char* Filename, DWORD LoadFlags )
 {
 	guard(FObjectManager::LoadPackage);
-	//DWORD Time=0; clock(Time);
+	//DWORD Time=0; uclock(Time);
 	UObject* Result;
 
 	// Try to load.
@@ -1844,7 +1844,7 @@ UObject* FObjectManager::LoadPackage( UObject* InParent, const char* Filename, D
 		SafeLoadError( LoadFlags, Error, LocalizeError("FailedLoadPackage"), Error );
 		Result = NULL;
 	}
-	//unclock(Time); debugf(NAME_Log,"LoadPackage=%f",GSecondsPerCycle*1000*Time);
+	//uunclock(Time); debugf(NAME_Log,"LoadPackage=%f",GSecondsPerCycle*1000*Time);
 	return Result;
 	unguard;
 }
@@ -2052,7 +2052,7 @@ UBOOL FObjectManager::SavePackage( UObject* InParent, UObject* Base, DWORD TopLe
 	guard(FObjectManager::SavePackage);
 	check(InParent);
 	check(Filename);
-	DWORD Time=0; clock(Time);
+	DWORD Time=0; uclock(Time);
 
 	// Tag parent flags.
 	if( Cast<UPackage>( InParent ) )
@@ -2318,7 +2318,7 @@ UBOOL FObjectManager::SavePackage( UObject* InParent, UObject* Base, DWORD TopLe
 	{
 		delete Linker;
 	}
-	unclock(Time); debugf(NAME_Log,"Save=%f",GSecondsPerCycle*1000*Time);
+	uunclock(Time); debugf(NAME_Log,"Save=%f",GSecondsPerCycle*1000*Time);
 	if( Success )
 	{
 		// Move the temporary file.
@@ -2370,7 +2370,7 @@ void FObjectManager::RemoveFromRoot( UObject* Obj )
 FName FObjectManager::MakeUniqueObjectName( UObject* Parent, UClass* Class )
 {
 	guard(FObjectManager::MakeUniqueObjectName);
-	//DWORD Time=0; clock(Time);
+	//DWORD Time=0; uclock(Time);
 	check(Class);
 
 	char NewBase[NAME_SIZE], Result[NAME_SIZE];
@@ -2392,7 +2392,7 @@ FName FObjectManager::MakeUniqueObjectName( UObject* Parent, UClass* Class )
 		appStrcat( Result, TempIntStr );
 	} while( FindObject( NULL, Parent, Result ) );
 
-	//unclock(Time); debugf(NAME_Log,"MakeUniqueObjectName=%f",GSecondsPerCycle*1000*Time);
+	//uunclock(Time); debugf(NAME_Log,"MakeUniqueObjectName=%f",GSecondsPerCycle*1000*Time);
 	return Result;
 	unguard;
 }
@@ -2489,7 +2489,7 @@ UObject* FObjectManager::AllocateObject
 )
 {
 	guard(FObjectManager::AllocateObject);
-	//DWORD Time=0; clock(Time);
+	//DWORD Time=0; uclock(Time);
 
 	check(InClass!=NULL);
 	if( !InParent && InClass!=UPackage::StaticClass )
@@ -2574,7 +2574,7 @@ UObject* FObjectManager::AllocateObject
 	}
 
 	// Success.
-	//unclock(Time); debugf(NAME_Log,"AllocateObject=%f",GSecondsPerCycle*1000*Time);
+	//uunclock(Time); debugf(NAME_Log,"AllocateObject=%f",GSecondsPerCycle*1000*Time);
 	return Obj;
 	unguardf(( "(%s %s)", InClass ? InClass->GetName() : "NULL", *InName ));
 }
@@ -2592,7 +2592,7 @@ UObject* FObjectManager::ConstructObject
 )
 {
 	guard(FObjectManager::ConstructObject);
-	//DWORD Time=0; clock(Time);
+	//DWORD Time=0; uclock(Time);
 
 	if( GCheckConflicts )
 		for( UObject* Hash=ObjHash[InName.GetIndex() & (ARRAY_COUNT(ObjHash)-1)]; Hash!=NULL; Hash=Hash->HashNext )
@@ -2620,7 +2620,7 @@ UObject* FObjectManager::ConstructObject
 		Result->LoadConfig( NAME_Localized );
 	}
 
-	//unclock(Time); debugf(NAME_Log,"ConstructObject=%f",GSecondsPerCycle*1000);
+	//uunclock(Time); debugf(NAME_Log,"ConstructObject=%f",GSecondsPerCycle*1000);
 	return Result;
 	unguard;
 }

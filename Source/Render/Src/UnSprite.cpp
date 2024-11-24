@@ -25,7 +25,7 @@ void URender::SetupDynamics( FSceneNode* Frame, AActor* Exclude )
 	(	!(Frame->Level->Model->Nodes->Num())
 	||	!(Frame->Viewport->Actor->ShowFlags & SHOW_Actors) )
 		return;
-	STAT(clock(GStat.FilterTime));
+	STAT(uclock(GStat.FilterTime));
 	UBOOL HighDetailActors=Frame->Viewport->RenDev->HighDetailActors;
 
 	// Traverse entire actor list.
@@ -77,7 +77,7 @@ void URender::SetupDynamics( FSceneNode* Frame, AActor* Exclude )
 			}
 		}
 	}
-	STAT(unclock(GStat.FilterTime));
+	STAT(uunclock(GStat.FilterTime));
 	unguard;
 }
 

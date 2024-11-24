@@ -105,7 +105,7 @@ void RenderSubsurface
 		// Compute side distances.
 		INT CutSide[3], Cuts=0;
 		FLOAT Alpha[3];
-		STAT(clock(GStat.MeshSubTime));
+		STAT(uclock(GStat.MeshSubTime));
 		for( INT i=0,j=2; i<3; j=i++ )
 		{
 			FLOAT Dist   = FDistSquared(Pts[j]->Point,Pts[i]->Point);
@@ -115,12 +115,12 @@ void RenderSubsurface
 			CutSide[j]   = Alpha[j]>0.0;
 			Cuts        += (CutSide[j]<<j);
 		}
-		STAT(unclock(GStat.MeshSubTime));
+		STAT(uunclock(GStat.MeshSubTime));
 
 		// See if it should be subdivided.
 		if( Cuts )
 		{
-			STAT(clock(GStat.MeshSubTime));
+			STAT(uclock(GStat.MeshSubTime));
 			FTransTexture Tmp[3];
 			Pts[3]=Tmp+0;
 			Pts[4]=Tmp+1;
@@ -171,7 +171,7 @@ void RenderSubsurface
 					NewPts[j] = Pts[CutTable[Cuts][i][j]];
 				RenderSubsurface( Frame, Texture, Span, NewPts, PolyFlags, SubCount+1 );
 			}
-			STAT(unclock(GStat.MeshSubTime));
+			STAT(uunclock(GStat.MeshSubTime));
 			return;
 		}
 	}
@@ -256,9 +256,9 @@ void RenderSubsurface
 	}
 
 	// Render it.
-	STAT(clock(GStat.MeshTmapTime));
+	STAT(uclock(GStat.MeshTmapTime));
 	Frame->Viewport->RenDev->DrawGouraudPolygon( Frame, Texture, Pts, NumPts, PolyFlags, Span );
-	STAT(unclock(GStat.MeshTmapTime));
+	STAT(uunclock(GStat.MeshTmapTime));
 	STAT(GStat.MeshSubCount++);
 
 	unguard;
@@ -300,7 +300,7 @@ void URender::DrawMesh
 )
 {
 	guard(URender::DrawMesh);
-	STAT(clock(GStat.MeshTime));
+	STAT(uclock(GStat.MeshTime));
 	FMemMark Mark(GMem);
 	UMesh*  Mesh = Owner->Mesh;
 	FVector Hack = FVector(0,-8,0);
@@ -320,11 +320,11 @@ void URender::DrawMesh
 	FTransTexture* Samples=NULL;
 	UBOOL bWire=0;
 	guardSlow(Transform);
-	STAT(clock(GStat.MeshGetFrameTime));
+	STAT(uclock(GStat.MeshGetFrameTime));
 	Samples = New<FTransTexture>(GMem,Mesh->FrameVerts);
 	bWire = Frame->Viewport->IsOrtho() || Frame->Viewport->Actor->RendMap==REN_Wire;
 	Mesh->GetFrame( &Samples->Point, sizeof(Samples[0]), bWire ? GMath.UnitCoords : Coords, Owner );
-	STAT(unclock(GStat.MeshGetFrameTime));
+	STAT(uunclock(GStat.MeshGetFrameTime));
 	unguardSlow;
 
 	// Compute outcodes.
@@ -356,7 +356,7 @@ void URender::DrawMesh
 				P1 = P2;
 			}
 		}
-		STAT(unclock(GStat.MeshTime));
+		STAT(uunclock(GStat.MeshTime));
 		Mark.Pop();
 		unguardSlow;
 		return;
@@ -410,7 +410,7 @@ void URender::DrawMesh
 			}
 		}
 		Mark.Pop();
-		STAT(unclock(GStat.MeshTime));
+		STAT(uunclock(GStat.MeshTime));
 		unguardSlow;
 		return;
 	}
@@ -428,7 +428,7 @@ void URender::DrawMesh
 		TriNormals = New<FVector>(GMem,Mesh->Tris.Num());
 
 		// Set up list for triangle sorting, adding all possibly visible triangles.
-		STAT(clock(GStat.MeshProcessTime));
+		STAT(uclock(GStat.MeshProcessTime));
 		FMeshTriSort* TriTop = &TriPool[0];
 		for( INT i=0; i<Mesh->Tris.Num(); i++ )
 		{
@@ -463,7 +463,7 @@ void URender::DrawMesh
 				}
 			}
 		}
-		STAT(unclock(GStat.MeshProcessTime));
+		STAT(uunclock(GStat.MeshProcessTime));
 		unguardSlow;
 	}
 
@@ -504,9 +504,9 @@ void URender::DrawMesh
 		unguardSlow;
 
 		// Build list of all incident lights on the mesh.
-		STAT(clock(GStat.MeshLightSetupTime));
+		STAT(uclock(GStat.MeshLightSetupTime));
 		ExtraFlags |= GLightManager->SetupForActor( Frame, Owner, LeafLights, Volumetrics );
-		STAT(unclock(GStat.MeshLightSetupTime));
+		STAT(uunclock(GStat.MeshLightSetupTime));
 
 		// Perform all vertex lighting.
 		guardSlow(Light);
@@ -594,7 +594,7 @@ void URender::DrawMesh
 	}
 
 	STAT(GStat.MeshCount++);
-	STAT(unclock(GStat.MeshTime));
+	STAT(uunclock(GStat.MeshTime));
 	Mark.Pop();
 	unguardf(( "(%s)", Owner->Mesh->GetName() ));
 }

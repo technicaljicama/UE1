@@ -169,7 +169,7 @@ void APawn::execFindBestInventoryPath( FFrame& Stack, BYTE*& Result )
 	P_GET_UBOOL(bPredictRespawns);
 	P_FINISH;
 
-	clock(XLevel->FindPathCycles);
+	uclock(XLevel->FindPathCycles);
 	AActor * bestPath = NULL;
 	AActor * newPath;
 	FLOAT BestWeight = findPathTowardBestInventory(newPath, 1, *Weight, bPredictRespawns);
@@ -193,7 +193,7 @@ void APawn::execFindBestInventoryPath( FFrame& Stack, BYTE*& Result )
 		if ( bestPath == SpecialGoal )
 			SpecialGoal = NULL;
 	}
-	unclock(XLevel->FindPathCycles);
+	uunclock(XLevel->FindPathCycles);
 	//debugf("Find path to time was %f", XLevel->FindPathCycles * GApp->MSecPerCycle);
 
 	*(AActor**)Result = bestPath; 
@@ -533,9 +533,9 @@ void APawn::execPickWallAdjust( FFrame& Stack, BYTE*& Result )
 
 	P_FINISH;
 
-	clock(XLevel->FindPathCycles);
+	uclock(XLevel->FindPathCycles);
 	*(DWORD*)Result = PickWallAdjust();
-	unclock(XLevel->FindPathCycles);
+	uunclock(XLevel->FindPathCycles);
 	unguardSlow;
 }
 AUTOREGISTER_INTRINSIC( APawn, AI_PickWallAdjust, execPickWallAdjust);
@@ -639,7 +639,7 @@ void APawn::execactorReachable( FFrame& Stack, BYTE*& Result )
 		*(DWORD*)Result = 0; 
 		return;
 	}
-	clock(XLevel->FindPathCycles);
+	uclock(XLevel->FindPathCycles);
 	if ( actor->IsA(AInventory::StaticClass) && ((AInventory *)actor)->myMarker )
 		actor = ((AInventory *)actor)->myMarker;
 	if ( actor->IsA(ANavigationPoint::StaticClass) && GetLevel()->ReachSpecs.Num() && (CollisionRadius <= MAXCOMMONRADIUS) )
@@ -659,7 +659,7 @@ void APawn::execactorReachable( FFrame& Stack, BYTE*& Result )
 				if ( (MoveTarget == actor) || CanMoveTo(MoveTarget, actor) )
 				{
 					*(DWORD*)Result = 1;
-					unclock(XLevel->FindPathCycles);
+					uunclock(XLevel->FindPathCycles);
 					return;
 				}
 			}
@@ -677,7 +677,7 @@ void APawn::execactorReachable( FFrame& Stack, BYTE*& Result )
 					if ( (Nav == actor) || CanMoveTo(Nav, actor) )
 					{
 						*(DWORD*)Result = 1;
-						unclock(XLevel->FindPathCycles);
+						uunclock(XLevel->FindPathCycles);
 						return;
 					}
 				}
@@ -687,12 +687,12 @@ void APawn::execactorReachable( FFrame& Stack, BYTE*& Result )
 		if ( bOnPath && (Physics != PHYS_Flying) )
 		{
 			*(DWORD*)Result = 0;
-			unclock(XLevel->FindPathCycles);
+			uunclock(XLevel->FindPathCycles);
 			return;
 		}
 	}	
 	*(DWORD*)Result = actorReachable(actor);  
-	unclock(XLevel->FindPathCycles);
+	uunclock(XLevel->FindPathCycles);
 	unguardSlow;
 }
 AUTOREGISTER_INTRINSIC( APawn, AI_ActorReachable, execactorReachable);
@@ -704,9 +704,9 @@ void APawn::execpointReachable( FFrame& Stack, BYTE*& Result )
 	P_GET_VECTOR(point);
 	P_FINISH;
 
-	clock(XLevel->FindPathCycles);
+	uclock(XLevel->FindPathCycles);
 	*(DWORD*)Result = pointReachable(point);  
-	unclock(XLevel->FindPathCycles);
+	uunclock(XLevel->FindPathCycles);
 	unguardSlow;
 }
 AUTOREGISTER_INTRINSIC( APawn, AI_PointReachable, execpointReachable);
@@ -731,7 +731,7 @@ void APawn::execFindPathTo( FFrame& Stack, BYTE*& Result )
 	P_GET_UBOOL_OPT(bClearPaths, 1);
 	P_FINISH;
 
-	clock(XLevel->FindPathCycles);
+	uclock(XLevel->FindPathCycles);
 	AActor * bestPath = NULL;
 	AActor * newPath;
 	if (findPathTo(point, bSinglePath, newPath, bClearPaths))
@@ -748,7 +748,7 @@ void APawn::execFindPathTo( FFrame& Stack, BYTE*& Result )
 
 	if ( bestPath == SpecialGoal )
 		SpecialGoal = NULL;
-	unclock(XLevel->FindPathCycles);
+	uunclock(XLevel->FindPathCycles);
 	//debugf("Find path to time was %f", XLevel->FindPathCycles * GApp->MSecPerCycle);
 
 	*(AActor**)Result = bestPath; 
@@ -771,7 +771,7 @@ void APawn::execFindPathToward( FFrame& Stack, BYTE*& Result )
 		*(AActor**)Result = NULL; 
 		return;
 	}
-	clock(XLevel->FindPathCycles);
+	uclock(XLevel->FindPathCycles);
 	AActor * bestPath = NULL;
 	AActor * newPath;
 	if (findPathToward(goal, bSinglePath, newPath, bClearPaths))
@@ -788,7 +788,7 @@ void APawn::execFindPathToward( FFrame& Stack, BYTE*& Result )
 
 	if ( bestPath == SpecialGoal )
 		SpecialGoal = NULL;
-	unclock(XLevel->FindPathCycles);
+	uunclock(XLevel->FindPathCycles);
 	//debugf("Find path toward time was %f", XLevel->FindPathCycles * GApp->MSecPerCycle);
 
 	*(AActor**)Result = bestPath; 
@@ -806,7 +806,7 @@ void APawn::execFindRandomDest( FFrame& Stack, BYTE*& Result )
 	P_GET_UBOOL_OPT(bClearPaths, 1);
 	P_FINISH;
 
-	clock(XLevel->FindPathCycles);
+	uclock(XLevel->FindPathCycles);
 	if (bClearPaths)
 		clearPaths();
 	ANavigationPoint * bestPath = NULL;
@@ -814,7 +814,7 @@ void APawn::execFindRandomDest( FFrame& Stack, BYTE*& Result )
 	if ( findRandomDest(newPath) )
 		bestPath = (ANavigationPoint *)newPath;
 
-	unclock(XLevel->FindPathCycles);
+	uunclock(XLevel->FindPathCycles);
 
 	*(ANavigationPoint**)Result = bestPath; 
 	unguardSlow;
@@ -827,9 +827,9 @@ void APawn::execClearPaths( FFrame& Stack, BYTE*& Result )
 
 	P_FINISH;
 
-	clock(XLevel->FindPathCycles);
+	uclock(XLevel->FindPathCycles);
 	clearPaths(); 
-	unclock(XLevel->FindPathCycles);
+	uunclock(XLevel->FindPathCycles);
 	unguardSlow;
 }
 AUTOREGISTER_INTRINSIC( APawn, AI_ClearPaths, execClearPaths);
@@ -1520,7 +1520,7 @@ void APawn::CheckEnemyVisible()
 {
 	guard(APawn::CheckEnemyVisible);
 
-	clock(XLevel->SeePlayer);
+	uclock(XLevel->SeePlayer);
 	if ( Enemy )
 	{
 		check(Enemy->IsValid());
@@ -1536,7 +1536,7 @@ void APawn::CheckEnemyVisible()
 				eventHearNoise(Enemy->noise2loudness, Enemy->noise2other);
 		}
 	}
-	unclock(XLevel->SeePlayer);
+	uunclock(XLevel->SeePlayer);
 
 	unguard;
 }
@@ -1548,7 +1548,7 @@ void APawn::ShowSelf()
 {
 	guard(APawn::ShowSelf);
 
-	clock(XLevel->SeePlayer);
+	uclock(XLevel->SeePlayer);
 	APawn *Pawn = GetLevel()->GetLevelInfo()->PawnList;
 
 	while ( Pawn )
@@ -1573,7 +1573,7 @@ void APawn::ShowSelf()
 		Pawn = Pawn->nextPawn;
 	}
 
-	unclock(XLevel->SeePlayer);
+	uunclock(XLevel->SeePlayer);
 	unguard;
 }
 
