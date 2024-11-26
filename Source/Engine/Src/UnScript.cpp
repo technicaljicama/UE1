@@ -198,7 +198,12 @@ AUTOREGISTER_INTRINSIC( AActor, EX_RotationConst, execRotationConst );
 void AActor::execVectorConst( FFrame& Stack, BYTE*& Result )
 {
 	guardSlow(AActor::execVectorConst);
+#ifdef PLATFORM_ARM
+	// try to avoid potential unaligned accesses
+	appMemcpy( (void*)Result, (void*)Stack.Code, sizeof(FVector) );
+#else
 	*(FVector*)Result = *(FVector*)Stack.Code;
+#endif
 	Stack.Code += sizeof(FVector);
 	unguardexecSlow;
 }
@@ -980,7 +985,13 @@ void AActor::execPollSleep( FFrame& Stack, BYTE*& Result )
 {
 	guardSlow(AActor::execPollSleep);
 
+#ifdef PLATFORM_ARM
+	// try to avoid potential unaligned accesses
+	FLOAT DeltaSeconds = 0.0f;
+	appMemcpy( (void*)&DeltaSeconds, (void*)Result, sizeof(FLOAT) );
+#else
 	FLOAT DeltaSeconds = *(FLOAT*)Result;
+#endif
 	if( (LatentFloat-=DeltaSeconds) < 0.5 * DeltaSeconds )
 	{
 		// Awaken.
