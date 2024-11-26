@@ -22,6 +22,11 @@ IMPLEMENT_CLASS(UNOpenALAudioSubsystem);
 	UNOpenALAudioSubsystem implementation.
 -----------------------------------------------------------------------------*/
 
+#ifndef AL_SOFT_callback_buffer
+typedef ALsizei (AL_APIENTRY*ALBUFFERCALLBACKTYPESOFT)(ALvoid *userptr, ALvoid *sampledata, ALsizei numbytes);
+typedef void (AL_APIENTRY*LPALBUFFERCALLBACKSOFT)(ALuint buffer, ALenum format, ALsizei freq, ALBUFFERCALLBACKTYPESOFT callback, ALvoid *userptr);
+#endif
+
 void UNOpenALAudioSubsystem::InternalClassInitializer( UClass* Class )
 {
 	guardSlow(UNOpenALAudioSubsystem::InternalClassInitializer);
@@ -110,7 +115,6 @@ UBOOL UNOpenALAudioSubsystem::Init()
 
 	alGenBuffers( 1, &MusicBuffer );
 
-#ifdef AL_SOFT_callback_buffer
 	LPALBUFFERCALLBACKSOFT palBufferCallbackSOFT = (LPALBUFFERCALLBACKSOFT)alGetProcAddress( "alBufferCallbackSOFT" );
 	if( palBufferCallbackSOFT )
 	{
@@ -118,7 +122,6 @@ UBOOL UNOpenALAudioSubsystem::Init()
 		alSourcei( MusicSource, AL_BUFFER, MusicBuffer );
 	}
 	else
-#endif
 	{
 		// TODO: set up a buffer queue
 		debugf( NAME_Warning, "alBufferCallbackSOFT is not available; music will be silent" );
