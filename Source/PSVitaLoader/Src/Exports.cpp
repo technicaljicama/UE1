@@ -1,0 +1,184 @@
+#define _GNU_SOURCE
+#define AL_ALEXT_PROTOTYPES
+
+#include <time.h>
+#include <netdb.h>
+#include <utime.h>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alext.h>
+#include <AL/efx.h>
+#include <SDL2/SDL.h>
+#include <xmp.h>
+#include <vitaGL.h>
+
+#include "PSVitaLauncherPrivate.h"
+
+// libc and libstdc++ internals
+extern "C"
+{
+	extern void *_ZTIi;
+	extern void *_ZTIPKc;
+	extern void *_ZTIPc;
+	extern void *__aeabi_uidiv;
+	extern void *__aeabi_idiv;
+	extern void *__aeabi_idivmod;
+	extern void *__aeabi_ul2d;
+	extern void *__dso_handle;
+}
+
+// Generic stub that returns 0
+static int ret0(void)
+{
+  return 0;
+}
+
+// Linux RTLD_ constants have different values, so we need to wrap dlopen()
+static void* wrap_dlopen( const char* name, int flags )
+{
+  int outflags = 0;
+  if ( flags & 0x0100 )
+    outflags |= VRTLD_GLOBAL;
+  if ( flags & 0x0001 )
+    outflags |= VRTLD_LAZY;
+  return vrtld_dlopen( name, outflags );
+}
+
+// glibc ctype table
+static const unsigned short** fake_ctype_b_loc(void)
+{
+  static const unsigned short tab[384] =
+  {
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0x200, 0x200, 0x200, 0x200, 0x200, 0x200, 0x200, 0x200,
+    0x200, 0x320, 0x220, 0x220, 0x220, 0x220, 0x200, 0x200,
+    0x200, 0x200, 0x200, 0x200, 0x200, 0x200, 0x200, 0x200,
+    0x200, 0x200, 0x200, 0x200, 0x200, 0x200, 0x200, 0x200,
+    0x160, 0x4c0, 0x4c0, 0x4c0, 0x4c0, 0x4c0, 0x4c0, 0x4c0,
+    0x4c0, 0x4c0, 0x4c0, 0x4c0, 0x4c0, 0x4c0, 0x4c0, 0x4c0,
+    0x8d8, 0x8d8, 0x8d8, 0x8d8, 0x8d8, 0x8d8, 0x8d8, 0x8d8,
+    0x8d8, 0x8d8, 0x4c0, 0x4c0, 0x4c0, 0x4c0, 0x4c0, 0x4c0,
+    0x4c0, 0x8d5, 0x8d5, 0x8d5, 0x8d5, 0x8d5, 0x8d5, 0x8c5,
+    0x8c5, 0x8c5, 0x8c5, 0x8c5, 0x8c5, 0x8c5, 0x8c5, 0x8c5,
+    0x8c5, 0x8c5, 0x8c5, 0x8c5, 0x8c5, 0x8c5, 0x8c5, 0x8c5,
+    0x8c5, 0x8c5, 0x8c5, 0x4c0, 0x4c0, 0x4c0, 0x4c0, 0x4c0,
+    0x4c0, 0x8d6, 0x8d6, 0x8d6, 0x8d6, 0x8d6, 0x8d6, 0x8c6,
+    0x8c6, 0x8c6, 0x8c6, 0x8c6, 0x8c6, 0x8c6, 0x8c6, 0x8c6,
+    0x8c6, 0x8c6, 0x8c6, 0x8c6, 0x8c6, 0x8c6, 0x8c6, 0x8c6,
+    0x8c6, 0x8c6, 0x8c6, 0x4c0, 0x4c0, 0x4c0, 0x4c0, 0x200,
+  };
+  static const unsigned short *tabptr = tab + 128;
+  return &tabptr;
+}
+
+// all the exports that were not caught by GEN_EXPORTS
+const vrtld_export_t GAuxExports[] =
+{
+	/* libstdc++ internals */
+	VRTLD_EXPORT_SYMBOL( _ZTIi ),
+	VRTLD_EXPORT_SYMBOL( _ZTIPKc ),
+	VRTLD_EXPORT_SYMBOL( _ZTIPc ),
+	/* libgcc internals */
+	VRTLD_EXPORT_SYMBOL( __aeabi_uidiv ),
+	VRTLD_EXPORT_SYMBOL( __aeabi_idiv ),
+	VRTLD_EXPORT_SYMBOL( __aeabi_idivmod ),
+	VRTLD_EXPORT_SYMBOL( __aeabi_ul2d ),
+	/* libc functions */
+	VRTLD_EXPORT_SYMBOL( ceilf ),
+	VRTLD_EXPORT_SYMBOL( difftime ),
+	VRTLD_EXPORT_SYMBOL( ferror ),
+	VRTLD_EXPORT_SYMBOL( floorf ),
+	VRTLD_EXPORT_SYMBOL( gethostbyname ),
+	VRTLD_EXPORT_SYMBOL( gethostname ),
+	VRTLD_EXPORT_SYMBOL( getpid ),
+	VRTLD_EXPORT_SYMBOL( getpid ),
+	VRTLD_EXPORT_SYMBOL( localtime ),
+	VRTLD_EXPORT_SYMBOL( qsort ),
+	VRTLD_EXPORT_SYMBOL( rand ),
+	VRTLD_EXPORT_SYMBOL( srand ),
+	VRTLD_EXPORT_SYMBOL( stpcpy ),
+	VRTLD_EXPORT_SYMBOL( strcasecmp ),
+	VRTLD_EXPORT_SYMBOL( strcasestr ),
+	VRTLD_EXPORT_SYMBOL( strncasecmp ),
+	VRTLD_EXPORT_SYMBOL( strncat ),
+	VRTLD_EXPORT_SYMBOL( strstr ),
+	VRTLD_EXPORT_SYMBOL( time ),
+	VRTLD_EXPORT_SYMBOL( toupper ),
+	VRTLD_EXPORT_SYMBOL( unlink ),
+	VRTLD_EXPORT_SYMBOL( utime ),
+	VRTLD_EXPORT_SYMBOL( vsprintf ),
+	/* SDL2 functions */
+	VRTLD_EXPORT_SYMBOL( SDL_GetCPUCount ),
+	VRTLD_EXPORT_SYMBOL( SDL_GetKeyboardFocus ),
+	VRTLD_EXPORT_SYMBOL( SDL_GetPerformanceCounter ),
+	VRTLD_EXPORT_SYMBOL( SDL_GetPerformanceFrequency ),
+	VRTLD_EXPORT_SYMBOL( SDL_GetPlatform ),
+	VRTLD_EXPORT_SYMBOL( SDL_GetTicks ),
+  VRTLD_EXPORT_SYMBOL( SDL_GetBasePath ),
+	VRTLD_EXPORT_SYMBOL( SDL_GetClipboardText ),
+	VRTLD_EXPORT_SYMBOL( SDL_HasClipboardText ),
+	VRTLD_EXPORT_SYMBOL( SDL_SetClipboardText ),
+	VRTLD_EXPORT_SYMBOL( SDL_ShowMessageBox ),
+	VRTLD_EXPORT_SYMBOL( SDL_ShowSimpleMessageBox ),
+	VRTLD_EXPORT_SYMBOL( SDL_PushEvent ),
+	VRTLD_EXPORT_SYMBOL( SDL_free ),
+	/* OpenAL functions */
+	VRTLD_EXPORT_SYMBOL( alAuxiliaryEffectSloti ),
+	VRTLD_EXPORT_SYMBOL( alBufferData ),
+	VRTLD_EXPORT_SYMBOL( alDeleteBuffers ),
+	VRTLD_EXPORT_SYMBOL( alDeleteSources ),
+	VRTLD_EXPORT_SYMBOL( alDistanceModel ),
+	VRTLD_EXPORT_SYMBOL( alDopplerFactor ),
+	VRTLD_EXPORT_SYMBOL( alEffectf ),
+	VRTLD_EXPORT_SYMBOL( alEffectfv ),
+	VRTLD_EXPORT_SYMBOL( alEffecti ),
+	VRTLD_EXPORT_SYMBOL( alGenAuxiliaryEffectSlots ),
+	VRTLD_EXPORT_SYMBOL( alGenBuffers ),
+	VRTLD_EXPORT_SYMBOL( alGenEffects ),
+	VRTLD_EXPORT_SYMBOL( alGenSources ),
+	VRTLD_EXPORT_SYMBOL( alGetProcAddress ),
+	VRTLD_EXPORT_SYMBOL( alGetSourcei ),
+	VRTLD_EXPORT_SYMBOL( alIsBuffer ),
+	VRTLD_EXPORT_SYMBOL( alListenerf ),
+	VRTLD_EXPORT_SYMBOL( alListenerfv ),
+	VRTLD_EXPORT_SYMBOL( alSource3f ),
+	VRTLD_EXPORT_SYMBOL( alSource3i ),
+	VRTLD_EXPORT_SYMBOL( alSourcePause ),
+	VRTLD_EXPORT_SYMBOL( alSourcePlay ),
+	VRTLD_EXPORT_SYMBOL( alSourceStop ),
+	VRTLD_EXPORT_SYMBOL( alSourcef ),
+	VRTLD_EXPORT_SYMBOL( alSourcefv ),
+	VRTLD_EXPORT_SYMBOL( alSourcei ),
+	VRTLD_EXPORT_SYMBOL( alcCloseDevice ),
+	VRTLD_EXPORT_SYMBOL( alcCreateContext ),
+	VRTLD_EXPORT_SYMBOL( alcDestroyContext ),
+	VRTLD_EXPORT_SYMBOL( alcGetError ),
+	VRTLD_EXPORT_SYMBOL( alcGetProcAddress ),
+	VRTLD_EXPORT_SYMBOL( alcMakeContextCurrent ),
+	VRTLD_EXPORT_SYMBOL( alcOpenDevice ),
+  /* libxmp functions */
+	VRTLD_EXPORT_SYMBOL( xmp_create_context ),
+	VRTLD_EXPORT_SYMBOL( xmp_end_player ),
+	VRTLD_EXPORT_SYMBOL( xmp_free_context ),
+	VRTLD_EXPORT_SYMBOL( xmp_load_module_from_memory ),
+	VRTLD_EXPORT_SYMBOL( xmp_play_buffer ),
+	VRTLD_EXPORT_SYMBOL( xmp_release_module ),
+	VRTLD_EXPORT_SYMBOL( xmp_set_player ),
+	VRTLD_EXPORT_SYMBOL( xmp_set_position ),
+	VRTLD_EXPORT_SYMBOL( xmp_start_player ),
+	/* unimplemented functions */
+	VRTLD_EXPORT( "__libc_start_main", (void *)ret0 ),
+	VRTLD_EXPORT( "__isoc99_sscanf", (void *)sscanf ),
+	VRTLD_EXPORT( "__ctype_b_loc", (void *)fake_ctype_b_loc ),
+	/* libdl functions */
+	VRTLD_EXPORT( "dlopen", (void *)wrap_dlopen ),
+	VRTLD_EXPORT( "dlclose", (void *)vrtld_dlclose ),
+	VRTLD_EXPORT( "dlsym", (void *)vrtld_dlsym ),
+	VRTLD_EXPORT( "dlerror", (void *)vrtld_dlerror ),
+	VRTLD_EXPORT( "dladdr", (void *)vrtld_dladdr ),
+};
+
+const size_t GNumAuxExports = sizeof(GAuxExports) / sizeof(*GAuxExports);
