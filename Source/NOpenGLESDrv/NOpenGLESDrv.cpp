@@ -44,8 +44,9 @@ static constexpr DWORD AttribSizes[AT_Count] = {
 // from XOpenGLDrv:
 // PF_Masked requires index 0 to be transparent, but is set on the polygon instead of the texture,
 // so we potentially need two copies of any palettized texture in the cache
-// luckily low bits of the CacheID are not used, so we can use them as a tag
-#define MASKED_TEXTURE_TAG 4
+// unlike in newer unreal versions the low cache bits are actually used, so we have use one of the
+// actually unused higher bits for this purpose, thereby breaking 64-bit compatibility for now
+#define MASKED_TEXTURE_TAG (1ULL << 60ULL)
 
 // FColor is adjusted for endianness
 #define ALPHA_MASK 0xff000000
@@ -65,6 +66,7 @@ void UNOpenGLESRenderDevice::InternalClassInitializer( UClass* Class )
 	new(Class, "NoFiltering",    RF_Public)UBoolProperty( CPP_PROPERTY(NoFiltering),    "Options", CPF_Config );
 	new(Class, "Overbright",     RF_Public)UBoolProperty( CPP_PROPERTY(Overbright),     "Options", CPF_Config );
 	new(Class, "DetailTextures", RF_Public)UBoolProperty( CPP_PROPERTY(DetailTextures), "Options", CPF_Config );
+	new(Class, "UseVAO",         RF_Public)UBoolProperty( CPP_PROPERTY(UseVAO),         "Options", CPF_Config );
 	unguardSlow;
 }
 
@@ -73,6 +75,7 @@ UNOpenGLESRenderDevice::UNOpenGLESRenderDevice()
 	DetailTextures = true;
 	Overbright = true;
 	NoFiltering = false;
+	UseVAO = false;
 }
 
 UBOOL UNOpenGLESRenderDevice::Init( UViewport* InViewport )
@@ -108,9 +111,12 @@ UBOOL UNOpenGLESRenderDevice::Init( UViewport* InViewport )
 	IdxDataPtr = IdxData;
 	IdxCount = 0;
 
-	glGenBuffers( 1, &GLBuf );
-	glBindBuffer( GL_ARRAY_BUFFER, GLBuf );
-	glBufferData( GL_ARRAY_BUFFER, VtxDataSize, (void*)VtxData, GL_DYNAMIC_DRAW );
+	if ( UseVAO )
+	{
+		glGenBuffers( 1, &GLBuf );
+		glBindBuffer( GL_ARRAY_BUFFER, GLBuf );
+		glBufferData( GL_ARRAY_BUFFER, VtxDataSize, (void*)VtxData, GL_DYNAMIC_DRAW );
+	}
 
 	// Set permanent state.
 	glEnable( GL_DEPTH_TEST );
@@ -620,7 +626,7 @@ void UNOpenGLESRenderDevice::SetShader( DWORD ShaderFlags )
 		for( INT i = 0; i < UF_Count; ++i )
 			UniformsChanged[i] = true;
 
-		DWORD Ptr = 0;
+		BYTE* Ptr = UseVAO ? nullptr : (BYTE*)VtxData;
 		for( INT i = 0; i < AT_Count; ++i )
 		{
 			if( ShaderInfo->Attribs[i] )

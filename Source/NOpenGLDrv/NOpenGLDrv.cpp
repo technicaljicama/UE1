@@ -17,8 +17,9 @@ IMPLEMENT_CLASS(UNOpenGLRenderDevice);
 // from XOpenGLDrv:
 // PF_Masked requires index 0 to be transparent, but is set on the polygon instead of the texture,
 // so we potentially need two copies of any palettized texture in the cache
-// luckily low bits of the CacheID are not used, so we can use them as a tag
-#define MASKED_TEXTURE_TAG 4
+// unlike in newer unreal versions the low cache bits are actually used, so we have use one of the
+// actually unused higher bits for this purpose, thereby breaking 64-bit compatibility for now
+#define MASKED_TEXTURE_TAG (1 << 60)
 
 // FColor is adjusted for endianness
 #define ALPHA_MASK 0xff000000

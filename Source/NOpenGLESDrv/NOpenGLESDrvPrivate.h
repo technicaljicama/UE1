@@ -62,6 +62,7 @@ class DLL_EXPORT UNOpenGLESRenderDevice : public URenderDevice
 	UBOOL UseBGRA;
 	UBOOL Overbright;
 	UBOOL DetailTextures;
+	UBOOL UseVAO;
 
 	// All currently cached textures.
 	struct FCachedTexture
@@ -181,7 +182,8 @@ private:
 		{
 			check( IdxDataPtr <= IdxDataEnd );
 			check( VtxDataPtr <= VtxDataEnd );
-			glBufferSubData( GL_ARRAY_BUFFER, 0, ( (BYTE*)VtxDataPtr - (BYTE*)VtxData ), VtxData );
+			if ( UseVAO )
+				glBufferSubData( GL_ARRAY_BUFFER, 0, ( (BYTE*)VtxDataPtr - (BYTE*)VtxData ), VtxData );
 			glDrawElements( GL_TRIANGLES, IdxDataPtr - IdxData, GL_UNSIGNED_SHORT, IdxData );
 			IdxCount = 0;
 		}
