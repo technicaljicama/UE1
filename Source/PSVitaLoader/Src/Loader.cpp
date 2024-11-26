@@ -64,7 +64,7 @@ static bool FindRootPath( char* Out, int OutLen )
 {
 	static const char *Drives[] = { "uma0", "imc0", "ux0" };
 
-	// check if a maxpayne folder exists on one of the drives
+	// check if an unreal folder exists on one of the drives
 	// default to the last one (ux0)
 	for ( unsigned int i = 0; i < sizeof(Drives) / sizeof(*Drives); ++i )
 	{
@@ -154,7 +154,7 @@ int main( int argc, const char** argv )
 
 	unreal_main_fn pmain = (unreal_main_fn)vrtld_dlsym( GMainElf, "main" );
 	if ( !pmain )
-		FatalError( "could not find main() in Unreal.bin: vrtld_dlerror()" );
+		FatalError( "could not find main() in Unreal.bin: %s", vrtld_dlerror() );
 
 	vglInitWithCustomThreshold( 0, 960, 544, VGL_MEM_THRESHOLD, 0, 0, 0, SCE_GXM_MULTISAMPLE_NONE );
 
