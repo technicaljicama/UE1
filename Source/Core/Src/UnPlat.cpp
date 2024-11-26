@@ -1512,24 +1512,30 @@ CORE_API const char* appCmdLine()
 CORE_API const char* appBaseDir()
 {
 	static char BaseDir[1024]="";
+
 	if( !BaseDir[0] )
 	{
 		// Get directory this executable was launched from.
 #if defined(PLATFORM_WIN32)
 		GetModuleFileName( hInstance, BaseDir, ARRAY_COUNT(BaseDir) );
-#elif defined(PLATFORM_SDL)
-		char* BasePath = SDL_GetBasePath();
-		snprintf( BaseDir, sizeof(BaseDir), "%sUnreal", BasePath );
-		SDL_free( BasePath );
-#else
-		strcpy( BaseDir, "./Unreal" );
-#endif
 		INT i;
 		for (i = strlen(BaseDir) - 1; i > 0; i--)
 			if (BaseDir[i - 1] == '\\' || BaseDir[i - 1] == '/')
 				break;
 		BaseDir[i] = 0;
+#elif defined(PLATFORM_PSVITA)
+		if ( getcwd( BaseDir, sizeof(BaseDir) ) )
+			appStrncat( BaseDir, "/", sizeof(BaseDir) - 1 );
+#elif defined(PLATFORM_SDL)
+		char* BasePath = SDL_GetBasePath();
+		appStrncpy( BaseDir, BasePath, sizeof(BaseDir) );
+		SDL_free( BasePath );
+#endif
+		// Fallback to CWD.
+		if ( !BaseDir[0] )
+			strcpy( BaseDir, "./" );
 	}
+
 	return BaseDir;
 }
 
