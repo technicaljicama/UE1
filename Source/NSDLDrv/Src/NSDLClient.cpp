@@ -21,11 +21,12 @@ void UNSDLClient::InternalClassInitializer( UClass* Class )
 		new(Class, "DefaultDisplay",    RF_Public)UIntProperty(CPP_PROPERTY(DefaultDisplay),     "Display",  CPF_Config );
 		new(Class, "StartupFullscreen", RF_Public)UBoolProperty(CPP_PROPERTY(StartupFullscreen), "Display",  CPF_Config );
 		new(Class, "UseJoystick",       RF_Public)UBoolProperty(CPP_PROPERTY(UseJoystick),       "Joystick", CPF_Config );
-		new(Class, "DeadZoneXYZ",       RF_Public)UBoolProperty(CPP_PROPERTY(DeadZoneXYZ),       "Joystick", CPF_Config );
-		new(Class, "DeadZoneRUV",       RF_Public)UBoolProperty(CPP_PROPERTY(DeadZoneRUV),       "Joystick", CPF_Config );
-		new(Class, "InvertVertical",    RF_Public)UBoolProperty(CPP_PROPERTY(InvertVertical),    "Joystick", CPF_Config );
+		new(Class, "DeadZoneXYZ",       RF_Public)UFloatProperty(CPP_PROPERTY(DeadZoneXYZ),      "Joystick", CPF_Config );
+		new(Class, "DeadZoneRUV",       RF_Public)UFloatProperty(CPP_PROPERTY(DeadZoneRUV),      "Joystick", CPF_Config );
 		new(Class, "ScaleXYZ",          RF_Public)UFloatProperty(CPP_PROPERTY(ScaleXYZ),         "Joystick", CPF_Config );
 		new(Class, "ScaleRUV",          RF_Public)UFloatProperty(CPP_PROPERTY(ScaleRUV),         "Joystick", CPF_Config );
+		new(Class, "InvertY",           RF_Public)UBoolProperty(CPP_PROPERTY(InvertY),           "Joystick", CPF_Config );
+		new(Class, "InvertV",           RF_Public)UBoolProperty(CPP_PROPERTY(InvertV),           "Joystick", CPF_Config );
 	}
 	unguard;
 }
@@ -38,6 +39,11 @@ UNSDLClient::UNSDLClient()
 	guard(UNSDLClient::UWindowsClient);
 	Controller = NULL;
 	DefaultDisplay = 0;
+	UseJoystick = true;
+	ScaleXYZ = 100.f;
+	ScaleRUV = 100.f;
+	DeadZoneXYZ = 0.1f;
+	DeadZoneRUV = 0.1f;
 	unguard;
 }
 

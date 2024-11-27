@@ -57,6 +57,10 @@ private:
 	// Static variables.
 	static BYTE KeyMap[SDL_NUM_SCANCODES]; // SDL_Scancode -> EInputKey map
 	static const BYTE MouseButtonMap[6]; // SDL_BUTTON_ -> EInputKey map
+	static const BYTE JoyButtonMap[SDL_CONTROLLER_BUTTON_MAX]; // SDL_GameControllerButton -> EInputKey map
+	static const BYTE JoyAxisMap[SDL_CONTROLLER_AXIS_MAX]; // SDL_GameControllerAxis -> EInputKey map
+	static const FLOAT JoyAxisDefaultScale[SDL_CONTROLLER_AXIS_MAX];
+	static const SWORD JoyAxisPressThreshold = 8192;
 
 	// Variables.
 	class UNSDLClient* Client;
@@ -68,6 +72,7 @@ private:
 	UBOOL Destroyed;
 	INT DisplayIndex;
 	SDL_Rect DisplaySize;
+	SWORD JoyAxis[SDL_CONTROLLER_AXIS_MAX];
 
 	// Info saved during captures and fullscreen sessions.
 	INT SavedX, SavedY;
@@ -92,11 +97,12 @@ class NSDLDRV_API UNSDLClient : public UClient, public FNotifyHook
 	INT DefaultDisplay;
 	UBOOL StartupFullscreen;
 	UBOOL UseJoystick;
-	UBOOL DeadZoneXYZ;
-	UBOOL DeadZoneRUV;
-	UBOOL InvertVertical;
+	UBOOL InvertY;
+	UBOOL InvertV;
 	FLOAT ScaleXYZ;
 	FLOAT ScaleRUV;
+	FLOAT DeadZoneXYZ;
+	FLOAT DeadZoneRUV;
 
 	// Constructors.
 	UNSDLClient();

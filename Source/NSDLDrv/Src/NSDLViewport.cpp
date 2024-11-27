@@ -11,6 +11,67 @@ IMPLEMENT_CLASS( UNSDLViewport );
 -----------------------------------------------------------------------------*/
 
 //
+// SDL_BUTTON_ -> EInputKey translation map.
+//
+const BYTE UNSDLViewport::MouseButtonMap[6] =
+{
+	/* invalid           */ IK_None,
+	/* SDL_BUTTON_LEFT   */ IK_LeftMouse,
+	/* SDL_BUTTON_MIDDLE */ IK_MiddleMouse,
+	/* SDL_BUTTON_RIGHT  */ IK_RightMouse,
+	/* SDL_BUTTON_X1     */ IK_None,
+	/* SDL_BUTTON_X2     */ IK_None
+};
+
+//
+// SDL_CONTROLLER_BUTTON_ -> EInputKey translation map.
+//
+const BYTE UNSDLViewport::JoyButtonMap[SDL_CONTROLLER_BUTTON_MAX] =
+{
+	/* BUTTON_A             */ IK_Joy1,
+	/* BUTTON_B             */ IK_Joy2,
+	/* BUTTON_X             */ IK_Joy3,
+	/* BUTTON_Y             */ IK_Joy4,
+	/* BUTTON_BACK          */ IK_Joy5,
+	/* BUTTON_GUIDE         */ IK_Joy6,
+	/* BUTTON_START         */ IK_Joy7,
+	/* BUTTON_LEFTSTICK     */ IK_Joy8,
+	/* BUTTON_RIGHTSTICK    */ IK_Joy9,
+	/* BUTTON_LEFTSHOULDER  */ IK_Joy10,
+	/* BUTTON_RIGHTSHOULDER */ IK_Joy11,
+	/* BUTTON_DPAD_UP       */ IK_JoyPovUp,
+	/* BUTTON_DPAD_DOWN     */ IK_JoyPovDown,
+	/* BUTTON_DPAD_LEFT     */ IK_JoyPovLeft,
+	/* BUTTON_DPAD_RIGHT    */ IK_JoyPovRight,
+};
+
+//
+// SDL_CONTROLLER_BUTTON_ -> EInputKey translation map.
+//
+const BYTE UNSDLViewport::JoyAxisMap[SDL_CONTROLLER_AXIS_MAX] =
+{
+	/* AXIS_LEFT_X          */ IK_JoyX,
+	/* AXIS_LEFT_Y          */ IK_JoyY,
+	/* AXIS_RIGHT_X         */ IK_JoyU,
+	/* AXIS_RIGHT_Y         */ IK_JoyV,
+	/* AXIS_LTRIGGER        */ IK_Joy12,
+	/* AXIS_RTRIGGER        */ IK_Joy13,
+};
+
+//
+// Additional scale to apply per SDL axis.
+//
+const FLOAT UNSDLViewport::JoyAxisDefaultScale[SDL_CONTROLLER_AXIS_MAX] =
+{
+	/* AXIS_LEFT_X          */ +1.f,
+	/* AXIS_LEFT_Y          */ -1.f,
+	/* AXIS_RIGHT_X         */ +1.f,
+	/* AXIS_RIGHT_Y         */ +1.f,
+	/* AXIS_LTRIGGER        */ +1.f,
+	/* AXIS_RTRIGGER        */ +1.f,
+};
+
+//
 // SDL_Scancode -> EInputKey translation map.
 //
 BYTE UNSDLViewport::KeyMap[512];
@@ -66,19 +127,6 @@ void UNSDLViewport::InitKeyMap()
 
 	#undef INIT_KEY_RANGE
 }
-
-//
-// SDL_BUTTON_ -> EInputKey translation map.
-//
-const BYTE UNSDLViewport::MouseButtonMap[6] =
-{
-	/* invalid           */ IK_None,
-	/* SDL_BUTTON_LEFT   */ IK_LeftMouse,
-	/* SDL_BUTTON_MIDDLE */ IK_MiddleMouse,
-	/* SDL_BUTTON_RIGHT  */ IK_RightMouse,
-	/* SDL_BUTTON_X1     */ IK_None,
-	/* SDL_BUTTON_X2     */ IK_None
-};
 
 //
 // Static init.
@@ -704,7 +752,34 @@ UBOOL UNSDLViewport::TickInput()
 				break;
 			case SDL_CONTROLLERBUTTONDOWN:
 			case SDL_CONTROLLERBUTTONUP:
-				// TODO
+				CauseInputEvent( JoyButtonMap[Ev.cbutton.button], ( Ev.type == SDL_CONTROLLERBUTTONDOWN ) ? IST_Press : IST_Release );
+				break;
+			case SDL_CONTROLLERAXISMOTION:
+				{
+					const BYTE Key = JoyAxisMap[Ev.caxis.axis];
+					const INT PrevValue = JoyAxis[Ev.caxis.axis];
+					INT NewValue = Ev.caxis.value;
+					INT DeadZone = 0;
+					if ( Key < IK_JoyX )
+					{
+						// Treat the axis like a trigger.
+						if ( PrevValue < JoyAxisPressThreshold && NewValue >= JoyAxisPressThreshold )
+							CauseInputEvent( Key, IST_Press );
+						else if ( PrevValue >= JoyAxisPressThreshold && NewValue < JoyAxisPressThreshold )
+							CauseInputEvent( Key, IST_Release );
+					}
+					else
+					{
+						// Apply deadzone.
+						if ( Key >= IK_JoyX && Key <= IK_JoyZ )
+							DeadZone = Client->DeadZoneXYZ * 32767.f;
+						else if ( Key == IK_JoyR || Key == IK_JoyU || Key == IK_JoyV )
+							DeadZone = Client->DeadZoneRUV * 32767.f;
+						if ( Abs(NewValue) < DeadZone )
+							NewValue = 0;
+					}
+					JoyAxis[Ev.caxis.axis] = NewValue;
+				}
 				break;
 			case SDL_MOUSEMOTION:
 				if( !Client->FullscreenViewport && !SDL_GetRelativeMouseMode() )
@@ -728,6 +803,22 @@ UBOOL UNSDLViewport::TickInput()
 				break;
 			default:
 				break;
+		}
+	}
+
+	// Constantly hammer the input system with axis events for axes that are not zero.
+	for ( INT i = 0; i < SDL_CONTROLLER_AXIS_MAX; ++i )
+	{
+		const BYTE Key = JoyAxisMap[i];
+		const SWORD Value = JoyAxis[i];
+		if ( Value && Key && Key >= IK_JoyX )
+		{
+			const FLOAT FltValue = Clamp( Value / 32767.f, -1.f, 1.f );
+			FLOAT Scale = ( Key >= IK_JoyX && Key <= IK_JoyZ ) ? Client->ScaleXYZ : Client->ScaleRUV;
+			Scale *= JoyAxisDefaultScale[i];
+			if ( ( Client->InvertV && Key == IK_JoyV ) || ( Client->InvertY && Key == IK_JoyY ) )
+				Scale = -Scale;
+			CauseInputEvent( Key, IST_Axis, FltValue * Scale );
 		}
 	}
 
