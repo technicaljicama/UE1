@@ -46,6 +46,28 @@ const BYTE UNSDLViewport::JoyButtonMap[SDL_CONTROLLER_BUTTON_MAX] =
 };
 
 //
+// SDL_CONTROLLER_BUTTON_ -> EInputKey translation map for UI controls.
+//
+const BYTE UNSDLViewport::JoyButtonMapUI[SDL_CONTROLLER_BUTTON_MAX] =
+{
+	/* BUTTON_A             */ IK_Enter,
+	/* BUTTON_B             */ IK_Escape,
+	/* BUTTON_X             */ IK_N,
+	/* BUTTON_Y             */ IK_Y,
+	/* BUTTON_BACK          */ IK_Escape,
+	/* BUTTON_GUIDE         */ IK_Escape,
+	/* BUTTON_START         */ IK_Escape,
+	/* BUTTON_LEFTSTICK     */ IK_Joy8,
+	/* BUTTON_RIGHTSTICK    */ IK_Joy9,
+	/* BUTTON_LEFTSHOULDER  */ IK_Joy10,
+	/* BUTTON_RIGHTSHOULDER */ IK_Joy11,
+	/* BUTTON_DPAD_UP       */ IK_Up,
+	/* BUTTON_DPAD_DOWN     */ IK_Down,
+	/* BUTTON_DPAD_LEFT     */ IK_Left,
+	/* BUTTON_DPAD_RIGHT    */ IK_Right,
+};
+
+//
 // SDL_CONTROLLER_BUTTON_ -> EInputKey translation map.
 //
 const BYTE UNSDLViewport::JoyAxisMap[SDL_CONTROLLER_AXIS_MAX] =
@@ -752,7 +774,15 @@ UBOOL UNSDLViewport::TickInput()
 				break;
 			case SDL_CONTROLLERBUTTONDOWN:
 			case SDL_CONTROLLERBUTTONUP:
-				CauseInputEvent( JoyButtonMap[Ev.cbutton.button], ( Ev.type == SDL_CONTROLLERBUTTONDOWN ) ? IST_Press : IST_Release );
+				{
+					// HACK: Swap to alternate bindings when in menus, but not when waiting for keypress in the keybind menu.
+					const UBOOL bIsInUI = Console &&
+						((UObject*)Console)->GetMainFrame() &&
+						((UObject*)Console)->GetMainFrame()->StateNode &&
+						((UObject*)Console)->GetMainFrame()->StateNode->GetFName() == "Menuing";
+					const BYTE* JoyMap = bIsInUI ? JoyButtonMapUI : JoyButtonMap;
+					CauseInputEvent( JoyMap[Ev.cbutton.button], ( Ev.type == SDL_CONTROLLERBUTTONDOWN ) ? IST_Press : IST_Release );
+				}
 				break;
 			case SDL_CONTROLLERAXISMOTION:
 				{
