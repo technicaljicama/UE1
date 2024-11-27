@@ -8,12 +8,12 @@
 
 typedef int (*unreal_main_fn)(int argc, const char **argv);
 
-// 200MB libc heap, 512K main thread stack, 8MB for loading game DLLs
+// 200MB libc heap, 512K main thread stack, 16MB for loading game DLLs
 // the rest goes to vitaGL
 extern "C" { SceUInt32 sceUserMainThreadStackSize = 512 * 1024; }
 extern "C" { unsigned int _pthread_stack_default_user = 512 * 1024; }
 extern "C" { unsigned int _newlib_heap_size_user = 200 * 1024 * 1024; }
-#define VGL_MEM_THRESHOLD ( 8 * 1024 * 1024 )
+#define VGL_MEM_THRESHOLD ( 16 * 1024 * 1024 )
 
 char GRootPath[MAX_PATH] = "app0:/";
 
@@ -25,7 +25,7 @@ int GMainArgc = 1;
 char GMainArgvData[MAX_ARGV_NUM][MAX_PATH];
 const char* GMainArgv[MAX_ARGV_NUM];
 
-static inline void Logf( const char* Fmt, ... )
+void Logf( const char* Fmt, ... )
 {
 	va_list va;
 	va_start( va, Fmt );
@@ -122,8 +122,6 @@ int main( int argc, const char** argv )
 	if ( vrtld_init( 0 ) < 0 )
 		FatalError( "could not init vrtld: %s", vrtld_dlerror() );
 
-	vrtld_set_main_exports( GAuxExports, GNumAuxExports );
-
 	if ( !FindRootPath( GRootPath, sizeof(GRootPath) ) )
 		FatalError( "could not find Unreal directory" );
 
@@ -143,7 +141,6 @@ int main( int argc, const char** argv )
 		FatalError( "could not load Core.so: %s", vrtld_dlerror() );
 
 	// then force vrtld to reloc and init the libs
-
 	vrtld_dlsym( GCoreElf, "?" );
 	vrtld_dlsym( GEngineElf, "?" );
 	vrtld_dlerror();
@@ -165,7 +162,15 @@ int main( int argc, const char** argv )
 	GMainArgv[0] = GMainArgvData[0];
 
 	Logf( "entering main with %d args", GMainArgc );
-	pmain( GMainArgc, GMainArgv );
+
+	try
+	{
+		pmain( GMainArgc, GMainArgv );
+	}
+	catch ( ... )
+	{
+		FatalError( "unhandled exception" );
+	}
 
 	vrtld_quit();
 	return 0;

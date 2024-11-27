@@ -23,5 +23,11 @@
 #define DATA_PATH "data/unreal/System/"
 
 extern char GRootPath[];
-extern const vrtld_export_t GAuxExports[];
-extern const size_t GNumAuxExports;
+
+extern "C" const vrtld_export_t *__vrtld_exports;
+extern "C" const size_t __vrtld_num_exports;
+
+extern "C" const vrtld_export_t* __vrtld_override_exports;
+extern "C" const size_t __vrtld_num_override_exports;
+
+void Logf( const char* Fmt, ... );

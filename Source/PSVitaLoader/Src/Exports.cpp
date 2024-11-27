@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #define AL_ALEXT_PROTOTYPES
 
+#include <dirent.h>
 #include <time.h>
 #include <netdb.h>
 #include <utime.h>
@@ -44,6 +45,32 @@ static void* wrap_dlopen( const char* name, int flags )
 	return vrtld_dlopen( name, outflags );
 }
 
+// glibc opendir/readdir have a different dirent struct
+struct dirent_linux
+{
+	unsigned int d_ino;
+	unsigned int d_off;
+	unsigned short d_reclen;
+	unsigned char d_type;
+	char d_name[256];
+};
+static struct dirent_linux* wrap_readdir( DIR* Dirp )
+{
+	// statically allocating this is allowed by spec I think
+	static struct dirent_linux Dent;
+
+	struct dirent* DentNative = readdir( Dirp );
+	if ( DentNative == nullptr )
+		return nullptr;
+
+	Dent.d_type = SCE_SO_ISDIR( DentNative->d_stat.st_mode ) ? 4 : 8;
+	Dent.d_reclen = sizeof(Dent);
+	strncpy( Dent.d_name, DentNative->d_name, sizeof(Dent.d_name) );
+	Dent.d_name[sizeof(Dent.d_name) - 1] = 0;
+
+	return &Dent;
+}
+
 // glibc ctype table
 static const unsigned short** fake_ctype_b_loc(void)
 {
@@ -75,7 +102,7 @@ static const unsigned short** fake_ctype_b_loc(void)
 }
 
 // all the exports that were not caught by GEN_EXPORTS
-const vrtld_export_t GAuxExports[] =
+static const vrtld_export_t GAuxExports[] =
 {
 	/* libstdc++ internals */
 	VRTLD_EXPORT_SYMBOL( _ZTIi ),
@@ -169,7 +196,7 @@ const vrtld_export_t GAuxExports[] =
 	VRTLD_EXPORT_SYMBOL( xmp_set_player ),
 	VRTLD_EXPORT_SYMBOL( xmp_set_position ),
 	VRTLD_EXPORT_SYMBOL( xmp_start_player ),
-	/* unimplemented functions */
+	/* unimplemented/wrapped functions */
 	VRTLD_EXPORT( "__libc_start_main", (void *)ret0 ),
 	VRTLD_EXPORT( "__isoc99_sscanf", (void *)sscanf ),
 	VRTLD_EXPORT( "__ctype_b_loc", (void *)fake_ctype_b_loc ),
@@ -181,4 +208,14 @@ const vrtld_export_t GAuxExports[] =
 	VRTLD_EXPORT( "dladdr", (void *)vrtld_dladdr ),
 };
 
-const size_t GNumAuxExports = sizeof(GAuxExports) / sizeof(*GAuxExports);
+/* override exports; prioritized over module exports */
+static const vrtld_export_t GOverrideExports[] =
+{
+	VRTLD_EXPORT( "readdir", (void *)wrap_readdir ),
+};
+
+const vrtld_export_t *__vrtld_exports = GAuxExports;
+const size_t __vrtld_num_exports = sizeof(GAuxExports) / sizeof(vrtld_export_t);
+
+const vrtld_export_t* __vrtld_override_exports = GOverrideExports;
+const size_t __vrtld_num_override_exports = sizeof(GOverrideExports) / sizeof(vrtld_export_t);
