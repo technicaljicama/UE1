@@ -673,7 +673,7 @@ int UTransBuffer::Redo( ULevel* Level )
 	Found:
 
 	BeginChanges( Transaction );
-	for( i=0; i<NumChanges; i++ )
+	for( int i=0; i<NumChanges; i++ )
 	{
 		Change = &ChangeLog[i];
 		if( Change->TransCount == UndoTransCount )

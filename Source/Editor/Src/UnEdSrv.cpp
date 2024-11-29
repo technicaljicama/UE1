@@ -975,7 +975,8 @@ UBOOL UEditorEngine::Exec( const char* Stream, FOutputDevice* Out )
 				if( Level->Model->Polys ) Level->Model->Polys->SetFlags( RF_Transactional );
 				for( TObjectIterator<AActor> It; It; ++It )
 				{
-					for( INT i=0; i<Level->Num(); i++ )
+					INT i;
+					for( i=0; i<Level->Num(); i++ )
 						if( *It==Level->Actors(i) )
 							break;
 					if( i==Level->Num() )
@@ -1900,7 +1901,7 @@ UBOOL UEditorEngine::Exec( const char* Stream, FOutputDevice* Out )
 				INT OpenY = INDEX_NONE;
 				Parse( Str, "X=", OpenX );
 				Parse( Str, "Y=", OpenY );
-				Viewport->OpenWindow( hWndParent, 0, NewX, NewY, OpenX, OpenY );
+				Viewport->OpenWindow( (void*)hWndParent, 0, NewX, NewY, OpenX, OpenY );
 				if( appStricmp(Viewport->GetName(),"Standard3V")==0 )
 					ResetSound();
 			}
@@ -1980,7 +1981,8 @@ UBOOL UEditorEngine::Exec( const char* Stream, FOutputDevice* Out )
 			}
 
 			// Find playerstart.
-			for( int i=0; i<Level->Num(); i++ )
+			int i;
+			for( i=0; i<Level->Num(); i++ )
 				if( Level->Actors(i) && Level->Actors(i)->IsA(APlayerStart::StaticClass) )
 					break;
 			if( i == Level->Num() )

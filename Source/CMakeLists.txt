@@ -21,6 +21,7 @@ option(BUILD_NOPENGLDRV "Build NOpenGLDrv" OFF)
 option(BUILD_NOPENGLESDRV "Build NOpenGLESDrv" ON)
 option(BUILD_NULLSOUNDDRV "Build SoundDrv (Null driver)" ON)
 option(BUILD_NOPENALDRV "Build NOpenALDrv" ON)
+option(BUILD_WINDRV "Build WinDrv" OFF)
 option(BUILD_FOR_PSVITA "Build binaries that can be loaded by so_loader on the Vita" OFF)
 
 # Determine target arch and get normalized arch string
@@ -229,6 +230,13 @@ if(USE_SDL)
   list(APPEND INSTALL_TARGETS NSDLDrv)
 else()
   # archaic WinAPI shit
+  set(BUILD_WINDRV ON)
+  set(BUILD_SOFTDRV ON)
+  set(BUILD_NOPENGLDRV OFF)
+  set(BUILD_NOPENGLESDRV OFF)
+endif()
+
+if(BUILD_WINDRV OR BUILD_EDITOR)
   add_subdirectory(Window)
   add_subdirectory(WinDrv)
   list(APPEND INSTALL_TARGETS Window WinDrv)

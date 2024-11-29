@@ -99,7 +99,7 @@ void UEditorEngine::edactDuplicateSelected( ULevel* Level )
 			Level->Actors(i)->bTempEditor = 0;
 
 	// Duplicate and deselect all actors.
-	for( i=0; i<Level->Num(); i++ )
+	for( int i=0; i<Level->Num(); i++ )
 	{
 		AActor* Actor = Level->Actors(i);
 		if
@@ -154,7 +154,7 @@ void UEditorEngine::edactReplaceSelectedBrush( ULevel* Level )
 
 	// Replace all selected brushes
 	ABrush* DefaultBrush = Level->Brush();
-	for( i=0; i<Level->Num(); i++ )
+	for( int i=0; i<Level->Num(); i++ )
 	{
 		AActor* Actor = Level->Actors(i);
 		if
@@ -197,7 +197,7 @@ void UEditorEngine::edactReplaceSelectedWithClass( ULevel* Level,UClass* Class )
 
 	// Replace all selected brushes
 	ABrush* DefaultBrush = Level->Brush();
-	for( i=0; i<Level->Num(); i++ )
+	for( int i=0; i<Level->Num(); i++ )
 	{
 		AActor* Actor = Level->Actors(i);
 		if
@@ -346,7 +346,7 @@ void UEditorEngine::edactSelectAll( ULevel* Level )
 	// otherwise, select all actors that match one of the groups,
 	} else {
 		// use appStrfind() to allow selection based on hierarchically organized group names
-		for( i=0; i<Level->Num(); i++ )
+		for( int i=0; i<Level->Num(); i++ )
 		{
 			AActor* Actor = Level->Actors(i);
 			if( Actor && !Actor->IsA(ACamera::StaticClass) && !Actor->bSelected && !Actor->bHiddenEd )
@@ -390,7 +390,7 @@ void UEditorEngine::edactSelectInside( ULevel* Level )
 			Level->Actors(i)->bTempEditor = 0;
 
 	// tag all candidate actors
-	for( i=0; i<Level->Num(); i++ )
+	for( INT i=0; i<Level->Num(); i++ )
 	{
 		AActor* Actor = Level->Actors(i);
 		if( Actor && !Actor->IsA(ACamera::StaticClass) && Actor!=Level->Brush() && !Actor->bHiddenEd )
@@ -402,7 +402,7 @@ void UEditorEngine::edactSelectInside( ULevel* Level )
 	// deselect all actors that are outside the default brush
 	UModel* DefaultBrush = Level->Brush()->Brush;
 	FCoords DefaultBrushC(Level->Brush()->ToWorld());
-	for( i=0; i<DefaultBrush->Polys->Num(); i++ )
+	for( INT i=0; i<DefaultBrush->Polys->Num(); i++ )
 	{
 		// get the plane for each polygon in the default brush
 		FPoly* Poly = &DefaultBrush->Polys->Element( i );
@@ -442,7 +442,7 @@ void UEditorEngine::edactSelectInside( ULevel* Level )
 	}
 
 	// update the selection state with the result from above
-	for( i=0; i<Level->Num(); i++ )
+	for( INT i=0; i<Level->Num(); i++ )
 	{
 		AActor* Actor = Level->Actors(i);
 		if( Actor && Actor->bSelected != Actor->bTempEditor )

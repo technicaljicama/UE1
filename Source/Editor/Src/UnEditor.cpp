@@ -130,7 +130,7 @@ void UEditorEngine::Init()
 								FName::GetEntry(i)->Flags &= ~RF_TagExp;
 						for( TObjectIterator<UClass> It; It; ++It )
 							It->ClearFlags( RF_TagImp | RF_TagExp );
-						for( It=TObjectIterator<UClass>(); It; ++It )
+						for( TObjectIterator<UClass> It=TObjectIterator<UClass>(); It; ++It )
 							if( It->GetParent()==PkgObject )
 								It->SetFlags( RF_TagExp );
 

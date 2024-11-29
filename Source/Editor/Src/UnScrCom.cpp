@@ -132,7 +132,7 @@ public:
 		guard(FTransaction::Restore);
 		for( INT i=0; i<Records.Num(); i++ )
 			Records(i).Restore();
-		for( i=0; i<Records.Num(); i++ )
+		for( INT i=0; i<Records.Num(); i++ )
 			Records(i).Object->PostLoad();
 		unguard;
 	}
@@ -1597,7 +1597,8 @@ UBOOL FScriptCompiler::CompileFieldExpr
 		// Parse the parameters.
 		FToken ParmToken[MAX_FUNC_PARMS];
 		INT Count=0;
-		for( TFieldIterator<UProperty> It(Function); It && (It->PropertyFlags&(CPF_Parm|CPF_ReturnParm))==CPF_Parm; ++It,++Count )
+		TFieldIterator<UProperty> It(Function);
+		for( It; It && (It->PropertyFlags&(CPF_Parm|CPF_ReturnParm))==CPF_Parm; ++It,++Count )
 		{
 			// Get parameter.
 			FPropertyBase Parm = FPropertyBase( *It );
@@ -1742,7 +1743,8 @@ int FScriptCompiler::ConversionCost
 			// The fewer classes traversed in this conversion, the better the quality.
 			check(Dest.Type==CPT_ObjectReference);
 			check(Dest.PropertyClass!=NULL);
-			for( UClass* Test=Source.PropertyClass; Test && Test!=Dest.PropertyClass; Test=Test->GetSuperClass() )
+			UClass* Test;
+			for( Test=Source.PropertyClass; Test && Test!=Dest.PropertyClass; Test=Test->GetSuperClass() )
 				Result++;
 			check(Test!=NULL);
 		}
@@ -2845,7 +2847,8 @@ void FScriptCompiler::PopNest( ENestType NestType, const char* Descr )
 			if( Fixup->Type == FIXUP_Label )
 			{
 				// Fixup a local label.
-				for( FLabelRecord* LabelRecord = TopNest->LabelList; LabelRecord; LabelRecord=LabelRecord->Next )
+				FLabelRecord* LabelRecord;
+				for( LabelRecord = TopNest->LabelList; LabelRecord; LabelRecord=LabelRecord->Next )
 				{
 					if( LabelRecord->Name == Fixup->Name )
 					{
@@ -4396,7 +4399,8 @@ void FScriptCompiler::CompileCommand( FToken& Token, UBOOL& NeedSemicolon )
 		// Only valid from within a function or operator.
 		guard(Return);
 		CheckAllow( "'Return'", ALLOW_Return );
-		for( INT i=NestLevel-1; i>0; i-- )
+		INT i;
+		for( i=NestLevel-1; i>0; i-- )
 		{
 			if( Nest[i].NestType==NEST_Function )
 				break;
@@ -4605,7 +4609,8 @@ void FScriptCompiler::CompileCommand( FToken& Token, UBOOL& NeedSemicolon )
 		else
 		{
 			// Get label list for this nest level.
-			for( INT iNest=NestLevel-1; iNest>=2; iNest-- )
+			INT iNest;
+			for( iNest=NestLevel-1; iNest>=2; iNest-- )
 				if( Nest[iNest].NestType==NEST_State || Nest[iNest].NestType==NEST_Function || Nest[iNest].NestType==NEST_ForEach )
 					break;
 			if( iNest < 2 )
@@ -4675,7 +4680,8 @@ void FScriptCompiler::CompileCommand( FToken& Token, UBOOL& NeedSemicolon )
 		}
 
 		// Get label list for this nest level.
-		for( INT iNest=NestLevel-1; iNest>=2; iNest-- )
+		INT iNest;
+		for( iNest=NestLevel-1; iNest>=2; iNest-- )
 			if( Nest[iNest].NestType==NEST_State || Nest[iNest].NestType==NEST_Function || Nest[iNest].NestType==NEST_ForEach )
 				break;
 		if( iNest < 2 )

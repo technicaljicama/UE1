@@ -655,7 +655,7 @@ void UEditorEngine::bspValidateBrush
 			Brush->Polys->Element(i).iLink = i;
 		}
 		INT n=0;
-		for( i=0; i<Brush->Polys->Num(); i++ )
+		for( INT i=0; i<Brush->Polys->Num(); i++ )
 		{
 			FPoly* EdPoly = &Brush->Polys->Element(i);
 			if( EdPoly->iLink==i )
@@ -744,7 +744,7 @@ int TryToMerge( FPoly *Poly1, FPoly *Poly2 )
 			Vertex=0;
 	}
 	Vertex = End2;
-	for( i=0; i<(Poly2->NumVertices-2); i++ )
+	for( INT i=0; i<(Poly2->NumVertices-2); i++ )
 	{
 		if( ++Vertex >= Poly2->NumVertices )
 			Vertex=0;
@@ -846,7 +846,7 @@ void UEditorEngine::bspMergeCoplanars( UModel* Model, UBOOL RemapLinks, UBOOL Me
 	FMemMark Mark(GMem);
 	INT* PolyList = new(GMem,Model->Polys->Max())INT;
 	INT n=0;
-	for( i=0; i<Model->Polys->Num(); i++ )
+	for( INT i=0; i<Model->Polys->Num(); i++ )
 	{
 		FPoly* EdPoly = &Model->Polys->Element(i);
 		if( EdPoly->NumVertices>0 && !(EdPoly->PolyFlags & PF_EdProcessed) )
@@ -886,7 +886,7 @@ void UEditorEngine::bspMergeCoplanars( UModel* Model, UBOOL RemapLinks, UBOOL Me
 	// Get rid of empty EdPolys while remapping iLinks.
 	INT j=0;
 	INT* Remap = new(GMem,Model->Polys->Num())INT;
-	for( i=0; i<Model->Polys->Num(); i++ )
+	for( INT i=0; i<Model->Polys->Num(); i++ )
 	{
 		if( Model->Polys->Element(i).NumVertices )
 		{
@@ -897,7 +897,7 @@ void UEditorEngine::bspMergeCoplanars( UModel* Model, UBOOL RemapLinks, UBOOL Me
 	}
 	Model->Polys->SetNum( j );
 	if( RemapLinks )
-		for( i=0; i<Model->Polys->Num(); i++ )
+		for( INT i=0; i<Model->Polys->Num(); i++ )
 			if( Model->Polys->Element(i).iLink != INDEX_NONE )
 				Model->Polys->Element(i).iLink = Remap[Model->Polys->Element(i).iLink];
 	debugf( NAME_Log, "BspMergeCoplanars reduced %i->%i", OriginalNum, Model->Polys->Num() );
@@ -2219,10 +2219,10 @@ void AddPointToNode
 		check( Model->Verts->Element(iOldVert + i).pVertex != pVertex );
 
 	// Copy the old vertex pool to the new one.
-	for( i=0; i<VertexNumber; i++ )
+	for( INT i=0; i<VertexNumber; i++ )
 		Model->Verts->Element(Node.iVertPool + i) = Model->Verts->Element(iOldVert + i);
 
-	for( i=VertexNumber; i<Node.NumVertices; i++ )
+	for( INT i=VertexNumber; i<Node.NumVertices; i++ )
 		Model->Verts->Element(Node.iVertPool + i + 1) = Model->Verts->Element(iOldVert + i);
 
 	// Add the new point to the new vertex pool.
@@ -2279,7 +2279,8 @@ int DistributePoint
 			FVert *VertPool = &Model->Verts->Element(Model->Nodes->Element(iNode).iVertPool);
 
 			// Skip this node if it already contains the point in question.
-			for( INT i=0; i<Model->Nodes->Element(iNode).NumVertices; i++ )
+			INT i;
+			for( i=0; i<Model->Nodes->Element(iNode).NumVertices; i++ )
 				if( VertPool[i].pVertex == pVertex )
 					break;
 			if( i != Model->Nodes->Element(iNode).NumVertices )
@@ -2403,17 +2404,17 @@ void MergeNearPoints( UModel *Model, FLOAT Dist )
 	}
 
 	// Remap VertPool.
-	for( i=0; i<Model->Verts->Num(); i++ )
+	for( INT i=0; i<Model->Verts->Num(); i++ )
 		if( Model->Verts->Element(i).pVertex>=0 && Model->Verts->Element(i).pVertex<Model->Points->Num() )
 			Model->Verts->Element(i).pVertex = PointRemap[Model->Verts->Element(i).pVertex];
 
 	// Remap Surfs.
-	for( i=0; i<Model->Surfs->Num(); i++ )
+	for( INT i=0; i<Model->Surfs->Num(); i++ )
 		if( Model->Surfs->Element(i).pBase>=0 && Model->Surfs->Element(i).pBase<Model->Points->Num() )
 			Model->Surfs->Element(i).pBase = PointRemap[Model->Surfs->Element(i).pBase];
 
 	// Remove duplicate points from nodes.
-	for( i=0; i<Model->Nodes->Num(); i++ )
+	for( INT i=0; i<Model->Nodes->Num(); i++ )
 	{
 		FBspNode &Node = Model->Nodes->Element(i);
 		FVert *Pool = &Model->Verts->Element(Node.iVertPool);
@@ -2566,7 +2567,7 @@ void UEditorEngine::bspOptGeom( UModel *Model )
 	unguard;
 
 	// Gather stats.
-	i=0; int j=0;
+	int i=0; int j=0;
 	guard(3);
 	for( INT iNode=0; iNode < Model->Nodes->Num(); iNode++ )
 	{

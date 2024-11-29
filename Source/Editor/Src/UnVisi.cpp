@@ -545,7 +545,8 @@ INT FEditorVisibility::ActorVisibility
 
 	// Add this actor to the permeated leaf if it's not already there.
 	int Count = 0;
-	for( FActorLink* Link=LeafLights[iLeaf]; Link; Link=Link->Next )
+	FActorLink* Link;
+	for( Link=LeafLights[iLeaf]; Link; Link=Link->Next )
 		if( Link->Actor == Actor )
 			break;
 	if( !Link )
@@ -778,9 +779,10 @@ void FEditorVisibility::BspVisibility( INT iNode )
 	guard(FEditorVisibility::BspVisibility);
 	FBspNode& Node = Model->Nodes->Element(iNode);
 	INT FragmentCount = 0;
+	FPortal* ClipPortal;
 
 	// Mark this node's portals as partitioners.
-	for( FPortal* ClipPortal = NodePortals[iNode]; ClipPortal; ClipPortal=ClipPortal->NodeNext )
+	for( ClipPortal = NodePortals[iNode]; ClipPortal; ClipPortal=ClipPortal->NodeNext )
 		ClipPortal->IsTesting++;
 
 	// Recurse, so that we can use intersubtree visibility to reject intrasubtree
@@ -932,7 +934,7 @@ void FEditorVisibility::FormZonesFromLeaves()
 	debugf( NAME_Log, "Found %i zones", NumZones );
 
 	// Confine the zones to 1-63.
-	for( i=0; i<Model->Leaves.Num(); i++ )
+	for( INT i=0; i<Model->Leaves.Num(); i++ )
 		Model->Leaves(i).iZone = (Model->Leaves(i).iZone % 63) + 1;
 
 	// Set official zone count.
@@ -993,23 +995,23 @@ void FEditorVisibility::AssignAllZones( INT iNode, int Outside )
 					for( int j=0; j<2; j++ )
 						if( Model->Nodes->Element(i).iZone[j] != 0 )
 							iZone[j] = Model->Nodes->Element(i).iZone[j];
-				for( i=OriginalNumNodes; i<Model->Nodes->Num(); i++ )
+				for( int i=OriginalNumNodes; i<Model->Nodes->Num(); i++ )
 					for( int j=0; j<2; j++ )
 						if( Model->Nodes->Element(i).iZone[j]!=0 && Model->Nodes->Element(i).iZone[j]!=iZone[j] )
 							CanMerge=0;
 				if( CanMerge )
 				{
 					// All fragments were in the same zone, so keep the original and discard the new fragments.
-					for( i=OriginalNumNodes; i<Model->Nodes->Num(); i++ )
+					for( int i=OriginalNumNodes; i<Model->Nodes->Num(); i++ )
 						Model->Nodes->Element(i).NumVertices = 0;
-					for( i=0; i<2; i++ )
+					for( int i=0; i<2; i++ )
 						Model->Nodes->Element(iNode).iZone[i] = iZone[i];
 				}
 				else
 				{
 					// Keep the multi-zone fragments and remove the original plus any interior unnecessary polys.
 					Model->Nodes->Element(iNode).NumVertices = 0;
-					for( i=OriginalNumNodes; i<Model->Nodes->Num(); i++ )
+					for( int i=OriginalNumNodes; i<Model->Nodes->Num(); i++ )
 						if( Model->Nodes->Element(i).iZone[0]==0 && Model->Nodes->Element(i).iZone[1]==0 )
 							Model->Nodes->Element(i).NumVertices = 0;
 				}
@@ -1066,7 +1068,7 @@ void FEditorVisibility::BuildConnectivity()
 		// Init to identity.
 		Model->Nodes->Zones[i].Connectivity = ((QWORD)1)<<i;
 	}
-	for( i=0; i<Model->Nodes->Num(); i++ )
+	for( int i=0; i<Model->Nodes->Num(); i++ )
 	{
 		// Process zones connected by portals.
 		FBspNode &Node = Model->Nodes->Element(i);
@@ -1108,7 +1110,7 @@ void FEditorVisibility::BuildZoneInfo()
 		if( Level->Actors(iActor) )
 			Level->Actors(iActor)->Region = FPointRegion( Level->GetLevelInfo(), INDEX_NONE, 0 );
 	}
-	for( iActor=0; iActor<Level->Num(); iActor++ )
+	for( INT iActor=0; iActor<Level->Num(); iActor++ )
 	{
 		AZoneInfo* Actor = Cast<AZoneInfo>( Level->Actors(iActor) );
 		if( Actor && !Actor->IsA(ALevelInfo::StaticClass) )
@@ -1171,13 +1173,13 @@ void FEditorVisibility::BuildZoneInfo()
 					}
 
 					// Sort them.
-					for( i=0; i<Samples.Num(); i++ )
+					for( int i=0; i<Samples.Num(); i++ )
 						for( int j=0; j<i; j++ )
 							if( Samples(i).X < Samples(j).X )
 								Exchange( Samples(i), Samples(j) );
 
 					// Copy reverb times to the zone info.
-					for( i=0; i<Samples.Num(); i++ )
+					for( int i=0; i<Samples.Num(); i++ )
 					{
 						Actor->Delay[i] = Clamp( Samples(i).X*1000.0, 0.0, 255.0 );
 						Actor->Gain [i] = Clamp( Samples(i).Y*255.0/NumTraces, 0.0, 255.0 );
@@ -1216,7 +1218,7 @@ void FEditorVisibility::BuildZoneInfo()
 			}
 		}
 	}
-	for( iActor=0; iActor<Level->Num(); iActor++ )
+	for( int iActor=0; iActor<Level->Num(); iActor++ )
 		if( Level->Actors(iActor) )
 			Level->SetActorZone( Level->Actors(iActor), 1, 1 );
 	debugf( NAME_Log, "BuildZoneInfo: %i ZoneInfo actors, %i duplicates, %i zoneless", Infos, Duplicates, Zoneless );
@@ -1270,7 +1272,7 @@ void FEditorVisibility::TestVisibility()
 			Model->Nodes->Element(i).iZone [j] = 0;
 		}
 	}
-	for( i=0; i<Model->Surfs->Num(); i++ )
+	for( int i=0; i<Model->Surfs->Num(); i++ )
 		Model->Surfs->Element(i).iLightMap = INDEX_NONE;
 
 	// Allocate objects.
@@ -1315,7 +1317,7 @@ void FEditorVisibility::TestVisibility()
 	DOUBLE LightSeconds=appSeconds();
 	for( INT Pass=0; Pass<2; Pass++ )
 	{
-		for( i=0; i<Level->Num(); i++ )
+		for( INT i=0; i<Level->Num(); i++ )
 		{
 			AActor* Actor = Level->Actors(i);
 			if
@@ -1339,7 +1341,7 @@ void FEditorVisibility::TestVisibility()
 
 	// Form list of leaf-permeating lights.
 	guard(FormLights);
-	for( i=0; i<Model->Leaves.Num(); i++ )
+	for( INT i=0; i<Model->Leaves.Num(); i++ )
 	{
 		check(Model->Leaves(i).iPermeating==INDEX_NONE);
 		if( LeafLights[i] )
@@ -1354,9 +1356,9 @@ void FEditorVisibility::TestVisibility()
 
 	// Test permeation of volumetric lights.
 	guard(TestVolumetrics);
-	for( i=0; i<Model->Leaves.Num(); i++ )
+	for( INT i=0; i<Model->Leaves.Num(); i++ )
 		LeafLights[i] = NULL;
-	for( i=0; i<Level->Num(); i++ )
+	for( INT i=0; i<Level->Num(); i++ )
 	{
 		AActor* Actor = Level->Actors(i);
 		if
@@ -1374,7 +1376,7 @@ void FEditorVisibility::TestVisibility()
 
 	// Form list of leaf volumetrics.
 	guard(FormVolumetrics);
-	for( i=0; i<Model->Leaves.Num(); i++ )
+	for( INT i=0; i<Model->Leaves.Num(); i++ )
 	{
 		check(Model->Leaves(i).iVolumetric==INDEX_NONE);
 		if( LeafLights[i] )
@@ -1583,7 +1585,8 @@ void UpdateConvolutionWithPolys( UModel *Model, INT iNode, FPoly **PolyList, int
 	{
 		if( PolyList[i]->iBrushPoly != INDEX_NONE )
 		{
-			for( int j=0; j<i; j++ )
+			int j;
+			for( j=0; j<i; j++ )
 				if( PolyList[j]->iBrushPoly == PolyList[i]->iBrushPoly )
 					break;
 			if( j >= i )

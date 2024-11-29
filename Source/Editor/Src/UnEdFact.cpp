@@ -155,7 +155,8 @@ static void ForceValid( ULevel* Level, UStruct* Struct, BYTE* Data )
 				UObject*& Obj = *(UObject**)Value;
 				if( Obj && Obj->IsA(AActor::StaticClass) )
 				{
-					for( INT j=0; j<Level->Num(); j++ )
+					INT j;
+					for( j=0; j<Level->Num(); j++ )
 						if( Level->Actors(j)==Obj )
 							break;
 					if( j==Level->Num() )
@@ -1158,9 +1159,10 @@ UObject* UFontFactory::Create
 	if( Font )
 	{
 		// Init.
+		int i;
 		BYTE* TextureData = &Font->GetMip(0)->DataArray(0);
 		Font->Characters.Add( UFont::NUM_FONT_CHARS );
-		for( int i=0; i<Font->Characters.Num(); i++ )
+		for( i=0; i<Font->Characters.Num(); i++ )
 		{
 			Font->Characters(i).StartU = 0; Font->Characters(i).USize = 0;
 			Font->Characters(i).StartV = 0; Font->Characters(i).VSize = 0;

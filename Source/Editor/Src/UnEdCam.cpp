@@ -353,7 +353,8 @@ void UEditorEngine::NoteActorMovement( ULevel* Level )
 		GEditor->ClickFlags |= CF_MOVE_ACTOR;
 		GEditor->Trans->Begin( Level, "Actor movement" );
 		GSnapping=0;
-		for( INT i=0; i<Level->Num(); i++ )
+		INT i;
+		for( i=0; i<Level->Num(); i++ )
 		{
 			AActor* Actor = Level->Actors(i);
 			if( Actor && Actor->bSelected )
@@ -575,7 +576,7 @@ void GrabVertex( ULevel* Level )
 
 	// examine all the points and grab those that are within range of the pivot location
 	UPolys* Polys = VertexEditActor->Brush->Polys;
-	for( i=0; i<Polys->Num(); i++ ) 
+	for( INT i=0; i<Polys->Num(); i++ ) 
 	{
 		FCoords BrushC(VertexEditActor->ToWorld());
 		for( INT j=0; j<Polys->Element(i).NumVertices; j++ ) 
@@ -1770,7 +1771,7 @@ void UEditorEngine::SelectNone( ULevel *Level, UBOOL Notify )
 	}
 
 	// Unselect all surfaces.
-	for( i=0; i<Level->Model->Surfs->Num(); i++ )
+	for( INT i=0; i<Level->Model->Surfs->Num(); i++ )
 	{
 		FBspSurf& Surf = Level->Model->Surfs->Element(i);
 		if( Surf.PolyFlags & PF_Selected )

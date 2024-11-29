@@ -311,7 +311,7 @@ void UEditorEngine::csgRebuild( ULevel* Level )
 
 #if 1
 	// Compose all detail brushes.
-	for( It=FStaticBrushIterator(Level); It; ++It )
+	for( FStaticBrushIterator It=FStaticBrushIterator(Level); It; ++It )
 	{
 		if
 		(	*It!=Level->Brush()
@@ -533,7 +533,7 @@ void UEditorEngine::polySelectMatchingGroups(UModel *Model)
 			GFlags1[Poly.Actor->Group.GetIndex()]=1;
 		}
 	}
-	for (i=0; i<Model->Surfs->Num(); i++)
+	for (INT i=0; i<Model->Surfs->Num(); i++)
 		{
 		FBspSurf *Surf = &Model->Surfs->Element(i);
 		FPoly Poly; polyFindMaster(Model,i,Poly);
@@ -568,7 +568,7 @@ void UEditorEngine::polySelectMatchingItems(UModel *Model)
 			GFlags1[Poly.ItemName.GetIndex()]=1;
 		}
 	}
-	for( i=0; i<Model->Surfs->Num(); i++ )
+	for( INT i=0; i<Model->Surfs->Num(); i++ )
 	{
 		FBspSurf *Surf = &Model->Surfs->Element(i);
 		if( Surf->Actor )
@@ -731,7 +731,7 @@ void UEditorEngine::polySelectMatchingBrush(UModel *Model)
 				GFlags1[Poly->Actor->Brush->GetIndex()]=1;
 		Poly++;
 		};
-	for (i=0; i<Model->Surfs->Num(); i++)
+	for (INT i=0; i<Model->Surfs->Num(); i++)
 		{
 		FBspSurf *Poly = &Model->Surfs->Element(i);
 		if( Poly->Actor->Brush )
@@ -1131,7 +1131,7 @@ void SendTo( ULevel* Level, int bSendToFirst )
 	// Refill.
 	check(Level->Num()>=2);
 	Level->Remove(2,Level->Num()-2);
-	for( i=0; i<2; i++ )
+	for( int i=0; i<2; i++ )
 		for( int j=0; j<Count[i]; j++ )
 			Level->AddItem( Lists[i][j] );
 
