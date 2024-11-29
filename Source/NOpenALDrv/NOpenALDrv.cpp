@@ -22,11 +22,6 @@ IMPLEMENT_CLASS(UNOpenALAudioSubsystem);
 	UNOpenALAudioSubsystem implementation.
 -----------------------------------------------------------------------------*/
 
-#ifndef AL_SOFT_callback_buffer
-typedef ALsizei (AL_APIENTRY*ALBUFFERCALLBACKTYPESOFT)(ALvoid *userptr, ALvoid *sampledata, ALsizei numbytes);
-typedef void (AL_APIENTRY*LPALBUFFERCALLBACKSOFT)(ALuint buffer, ALenum format, ALsizei freq, ALBUFFERCALLBACKTYPESOFT callback, ALvoid *userptr);
-#endif
-
 void UNOpenALAudioSubsystem::InternalClassInitializer( UClass* Class )
 {
 	guardSlow(UNOpenALAudioSubsystem::InternalClassInitializer);
@@ -113,19 +108,13 @@ UBOOL UNOpenALAudioSubsystem::Init()
 	alSourcef( MusicSource, AL_ROLLOFF_FACTOR, 0.f );
 	alSourcef( MusicSource, AL_GAIN, MusicVolume / 255.f );
 
-	alGenBuffers( 1, &MusicBuffer );
-
-	LPALBUFFERCALLBACKSOFT palBufferCallbackSOFT = (LPALBUFFERCALLBACKSOFT)alGetProcAddress( "alBufferCallbackSOFT" );
-	if( palBufferCallbackSOFT )
+	alGenBuffers( ARRAY_COUNT( MusicBuffers ), MusicBuffers );
+	for( INT i = 0; i < ARRAY_COUNT( MusicBuffers ); ++i )
 	{
-		palBufferCallbackSOFT( MusicBuffer, AL_FORMAT_STEREO16, OutputRate, (ALBUFFERCALLBACKTYPESOFT)&MusicCallback, this );
-		alSourcei( MusicSource, AL_BUFFER, MusicBuffer );
+		alBufferData( MusicBuffers[i], AL_FORMAT_STEREO16, MusicBufferData, sizeof( MusicBufferData ), OutputRate );
+		FreeMusicBuffers[i] = MusicBuffers[i];
 	}
-	else
-	{
-		// TODO: set up a buffer queue
-		debugf( NAME_Warning, "alBufferCallbackSOFT is not available; music will be silent" );
-	}
+	NumFreeMusicBuffers = NUM_MUSIC_BUFFERS;
 
 	if( UseReverb )
 	{
@@ -170,7 +159,7 @@ void UNOpenALAudioSubsystem::Destroy()
 		// If we have a context, we probably have everything else. Kill it.
 		SetViewport( NULL ); // This will also stop all sounds.
 		alDeleteBuffers( Buffers.Num(), &Buffers(0) );
-		alDeleteBuffers( 1, &MusicBuffer );
+		alDeleteBuffers( ARRAY_COUNT( MusicBuffers ), MusicBuffers );
 		alDeleteSources( MAX_SOURCES, Sources );
 		alDeleteSources( 1, &MusicSource );
 		alcMakeContextCurrent( NULL );
@@ -254,12 +243,15 @@ void UNOpenALAudioSubsystem::SetViewport( UViewport* InViewport )
 	// Stop all sounds before viewport change.
 	for( INT i = 0; i < MAX_SOURCES; ++i )
 		StopVoice( i );
-	
-	// Stop and free music.
-	if( Music )
+
+	// Stop and free music if the viewport has changed.
+	if( InViewport != Viewport )
 	{
-		UnregisterMusic( Music );
-		Music = NULL;
+		if( Music )
+		{
+			UnregisterMusic( Music );
+			Music = NULL;
+		}
 	}
 
 	Viewport = InViewport;
@@ -301,6 +293,7 @@ void UNOpenALAudioSubsystem::UnregisterMusic( UMusic* Music )
 	if( Music->Handle )
 	{
 		StopMusic();
+		UpdateMusicBuffers();
 		if( MusicCtx )
 		{
 			xmp_end_player( MusicCtx );
@@ -411,8 +404,23 @@ void UNOpenALAudioSubsystem::UpdateVoice( INT Num, const ENVoiceOp Op )
 	alSourcef( Source, AL_ROLLOFF_FACTOR, ROLLOFF_FACTOR );
 	alSourcefv( Source, AL_POSITION, &ALLocation.X );
 	alSourcefv( Source, AL_VELOCITY, &ALVelocity.X );
-	alSourcei( Source, AL_BUFFER, Voice.Buffer );
 	alSourcei( Source, AL_LOOPING, Voice.Looping );
+
+	if( Voice.BufferChanged )
+	{
+		Voice.BufferChanged = false;
+		INT State = AL_STOPPED;
+		alGetSourcei( Source, AL_SOURCE_STATE, &State );
+		if( State == AL_PLAYING || State == AL_PAUSED )
+			alSourceStop( Source );
+		alSourcei( Source, AL_BUFFER, Voice.Buffer );
+		if( State == AL_PLAYING || State == AL_PAUSED )
+		{
+			alSourcePlay( Source );
+			if( State == AL_PAUSED )
+				alSourcePause( Source );
+		}
+	}
 
 	if( UseReverb && Op == NVOP_Play )
 		alSource3i( Source, AL_AUXILIARY_SEND_FILTER, (ALint)ReverbSlot, 0, AL_FILTER_NULL );
@@ -470,6 +478,7 @@ UBOOL UNOpenALAudioSubsystem::PlaySound( AActor* Actor, INT Id, USound* Sound, F
 	check( alIsBuffer( Buf ) );
 
 	Voice->Id = Id;
+	Voice->BufferChanged = ( Buf != Voice->Buffer );
 	Voice->Buffer = Buf;
 	Voice->Location = Location;
 	Voice->Velocity = Actor ? Actor->Velocity : FVector();
@@ -550,6 +559,8 @@ void UNOpenALAudioSubsystem::PlayMusic()
 	if( State != AL_PLAYING )
 		alSourcePlay( MusicSource );
 
+	MusicIsPlaying = true;
+
 	unguard;
 }
 
@@ -557,6 +568,7 @@ void UNOpenALAudioSubsystem::StopMusic()
 {
 	guard(UNOpenALAudioSubsystem::StopMusic)
 
+	MusicIsPlaying = false;
 	alSourceStop( MusicSource );
 
 	unguard;
@@ -753,20 +765,46 @@ void UNOpenALAudioSubsystem::Update( FPointRegion Region, FCoords& Listener )
 		}
 	}
 
+	UpdateMusicBuffers();
+
 	unguard;
 }
 
-ALsizei UNOpenALAudioSubsystem::MusicCallback( UNOpenALAudioSubsystem* This, ALvoid* Data, ALsizei Num )
+void UNOpenALAudioSubsystem::UpdateMusicBuffers()
 {
-	guard(UNOpenALAudioSubsystem::MusicCallback)
+	guard(UNOpenALAudioSubsystem::UpdateMusicBuffers)
 
-	if( !This->Music || This->MusicSection == 255 || !This->MusicCtx )
-		return 0;
+	// First dequeue the buffers that are done playing and put them into the buffer pool
+	ALint BuffersProcessed = 0;
+	ALint BuffersQueued = 0;
+	ALint State = AL_STOPPED;
+	alGetSourcei( MusicSource, AL_BUFFERS_PROCESSED, &BuffersProcessed );
+	alGetSourcei( MusicSource, AL_BUFFERS_QUEUED, &BuffersQueued );
+	alGetSourcei( MusicSource, AL_SOURCE_STATE, &State );
+	if( BuffersProcessed > 0 && NumFreeMusicBuffers < NUM_MUSIC_BUFFERS )
+	{
+		const INT NumToUnqueue = Min( NUM_MUSIC_BUFFERS - NumFreeMusicBuffers, BuffersProcessed );
+		alSourceUnqueueBuffers( MusicSource, NumToUnqueue, &FreeMusicBuffers[NumFreeMusicBuffers] );
+		NumFreeMusicBuffers += NumToUnqueue;
+	}
 
-	if( xmp_play_buffer( This->MusicCtx, Data, Num, 0 ) < 0 )
-		return 0;
+	if( !Music || !MusicIsPlaying || MusicSection == 255 || !MusicCtx )
+		return;
 
-	return Num;
+	// If music is playing, render and queue more buffers if available
+	while( BuffersQueued < NUM_MUSIC_BUFFERS && NumFreeMusicBuffers )
+	{
+		if( xmp_play_buffer( MusicCtx, MusicBufferData, sizeof( MusicBufferData ), 0 ) < 0 )
+			break;
+		alBufferData( FreeMusicBuffers[NumFreeMusicBuffers - 1], AL_FORMAT_STEREO16, MusicBufferData, sizeof( MusicBufferData ), OutputRate );
+		alSourceQueueBuffers( MusicSource, 1, &FreeMusicBuffers[NumFreeMusicBuffers - 1] );
+		--NumFreeMusicBuffers;
+		++BuffersQueued;
+	}
+
+	// If it stopped because it ran out of buffers, restart it
+	if( BuffersQueued > 0 && ( State == AL_INITIAL || State == AL_STOPPED ) )
+		alSourcePlay( MusicSource );
 
 	unguard;
 }

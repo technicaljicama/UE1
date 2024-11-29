@@ -13,6 +13,8 @@
 
 #define MAX_SOURCES 64
 
+#define NUM_MUSIC_BUFFERS 4
+
 #define INVALID_SOURCE ((ALuint)-1)
 #define INVALID_BUFFER ((ALuint)-1)
 
@@ -21,7 +23,7 @@
 
 #define DEFAULT_OUTPUT_RATE 44100
 
-#define STREAM_BUFSIZE 16384
+#define STREAM_BUFSIZE 32768
 
 // World scale related constants, same as in ALAudio 2.4.7.
 #define DISTANCE_SCALE 0.023255814f
@@ -85,8 +87,12 @@ private:
 	DOUBLE MusicTime;
 	BYTE MusicSection;
 	ALuint MusicSource;
-	ALuint MusicBuffer;
+	UBOOL MusicIsPlaying = false;
+
 	BYTE MusicBufferData[STREAM_BUFSIZE];
+	ALuint MusicBuffers[NUM_MUSIC_BUFFERS];
+	ALuint FreeMusicBuffers[NUM_MUSIC_BUFFERS];
+	INT NumFreeMusicBuffers;
 
 	enum ENVoiceOp
 	{
@@ -109,16 +115,16 @@ private:
 		FLOAT Pitch;
 		FLOAT Priority;
 		UBOOL Looping;
+		UBOOL BufferChanged = false;
 	} Voices[MAX_SOURCES];
 
 	void InitReverbEffect();
 	void UpdateReverb( FPointRegion& Region );
 	void UpdateVoice( INT Num, const ENVoiceOp Op = NVOP_None );
+	void UpdateMusicBuffers();
 	void StopVoice( INT Num );
 	void PlayMusic();
 	void StopMusic();
-
-	static ALsizei AL_APIENTRY MusicCallback( UNOpenALAudioSubsystem* This, ALvoid* Data, ALsizei Num );
 
 	inline FLOAT GetVoicePriority( const FVector& Location, FLOAT Volume, FLOAT Radius )
 	{
