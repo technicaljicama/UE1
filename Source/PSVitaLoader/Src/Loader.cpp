@@ -119,7 +119,7 @@ int main( int argc, const char** argv )
 	scePowerSetGpuXbarClockFrequency( 166 );
 	sceSysmoduleLoadModule( SCE_SYSMODULE_NET );
 
-	if ( vrtld_init( 0 ) < 0 )
+	if ( vrtld_init( VRTLD_TARGET2_IS_GOT ) < 0 )
 		FatalError( "could not init vrtld: %s", vrtld_dlerror() );
 
 	if ( !FindRootPath( GRootPath, sizeof(GRootPath) ) )
@@ -167,9 +167,17 @@ int main( int argc, const char** argv )
 	{
 		pmain( GMainArgc, GMainArgv );
 	}
-	catch ( ... )
+	catch ( const char* Err )
 	{
-		FatalError( "unhandled exception" );
+		FatalError( "unhandled exception: %s", Err );
+	}
+	catch ( char* Err )
+	{
+		FatalError( "unhandled exception: %s", Err );
+	}
+	catch ( INT Err )
+	{
+		FatalError( "unhandled exception: %d", Err );
 	}
 
 	vrtld_quit();

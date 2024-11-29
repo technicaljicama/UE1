@@ -24,7 +24,7 @@
 
 extern char GRootPath[];
 
-extern "C" const vrtld_export_t *__vrtld_exports;
+extern "C" const vrtld_export_t* __vrtld_exports;
 extern "C" const size_t __vrtld_num_exports;
 
 extern "C" const vrtld_export_t* __vrtld_override_exports;

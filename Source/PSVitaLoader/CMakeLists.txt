@@ -33,8 +33,7 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-  -Wl,--whole-archive pthread -Wl,--no-whole-archive
-  vrtld
+  -Wl,--whole-archive pthread vrtld -Wl,--no-whole-archive
   openal
   xmp
   SDL2

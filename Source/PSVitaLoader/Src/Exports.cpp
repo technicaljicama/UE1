@@ -25,7 +25,6 @@ extern "C"
 	extern void *__aeabi_idiv;
 	extern void *__aeabi_idivmod;
 	extern void *__aeabi_ul2d;
-	extern void *__dso_handle;
 }
 
 // Generic stub that returns 0
@@ -175,6 +174,8 @@ static const vrtld_export_t GAuxExports[] =
 	VRTLD_EXPORT_SYMBOL( alSource3i ),
 	VRTLD_EXPORT_SYMBOL( alSourcePause ),
 	VRTLD_EXPORT_SYMBOL( alSourcePlay ),
+	VRTLD_EXPORT_SYMBOL( alSourceQueueBuffers ),
+	VRTLD_EXPORT_SYMBOL( alSourceUnqueueBuffers ),
 	VRTLD_EXPORT_SYMBOL( alSourceStop ),
 	VRTLD_EXPORT_SYMBOL( alSourcef ),
 	VRTLD_EXPORT_SYMBOL( alSourcefv ),
@@ -214,7 +215,7 @@ static const vrtld_export_t GOverrideExports[] =
 	VRTLD_EXPORT( "readdir", (void *)wrap_readdir ),
 };
 
-const vrtld_export_t *__vrtld_exports = GAuxExports;
+const vrtld_export_t* __vrtld_exports = GAuxExports;
 const size_t __vrtld_num_exports = sizeof(GAuxExports) / sizeof(vrtld_export_t);
 
 const vrtld_export_t* __vrtld_override_exports = GOverrideExports;
