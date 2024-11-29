@@ -2129,7 +2129,8 @@ void APawn::SuggestJumpVelocity(FVector Dest, FVector &vel)
 	if (ticks > 0.0)
 	{
 		FLOAT velsize = vel.Size();
-		vel = vel/velsize;
+		if ( velsize > 0.f )
+			vel = vel/velsize;
 		velsize = Min(1.f * GroundSpeed, velsize/ticks); //FIXME - longwinded because of compiler bug
 		vel *= velsize;
 	}
