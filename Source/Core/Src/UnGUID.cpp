@@ -115,8 +115,8 @@ void get_ieee_node_identifier( byte* nodeid )
 	memcpy(nodeid + 0, &ip32, sizeof(ip32));
 	memcpy(nodeid + 4, &random16, sizeof(random16));
 #else
-	*(unsigned32*)nodeid[0] = ip32;
-	*(unsigned16*)nodeid[4] = random16;
+	*(unsigned32*)&nodeid[0] = ip32;
+	*(unsigned16*)&nodeid[4] = random16;
 #endif
 }
 
