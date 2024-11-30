@@ -290,16 +290,12 @@ void UNOpenALAudioSubsystem::UnregisterMusic( UMusic* Music )
 {
 	guard(UNOpenALAudioSubsystem::UnregisterMusic)
 
-	if( Music->Handle )
+	StopMusic();
+	UpdateMusicBuffers();
+	if( MusicCtx )
 	{
-		StopMusic();
-		UpdateMusicBuffers();
-		if( MusicCtx )
-		{
-			xmp_end_player( MusicCtx );
-			xmp_release_module( MusicCtx );
-		}
-		Music->Handle = NULL;
+		xmp_end_player( MusicCtx );
+		xmp_release_module( MusicCtx );
 	}
 
 	unguard;
