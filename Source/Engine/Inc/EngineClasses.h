@@ -1375,7 +1375,7 @@ enum ECsgOper
 class ENGINE_API ABrush : public AActor
 {
 public:
-    BYTE CsgOper;
+    BYTE CsgOper GCC_ALIGN(4);
     class UObject* UnusedLightMesh;
     FVector PostPivot;
     FScale MainScale;
@@ -1415,7 +1415,7 @@ enum EMoverEncroachType
 class ENGINE_API AMover : public ABrush
 {
 public:
-    BYTE MoverEncroachType;
+    BYTE MoverEncroachType GCC_ALIGN(4);
     BYTE MoverGlideType;
     BYTE BumpType;
     BYTE KeyNum;
@@ -1809,7 +1809,7 @@ public:
 class ENGINE_API AInventory : public AActor
 {
 public:
-    BYTE AutoSwitchPriority;
+    BYTE AutoSwitchPriority GCC_ALIGN(4);
     BYTE InventoryGroup;
     DWORD bActivatable:1;
     DWORD bDisplayableInv:1;
