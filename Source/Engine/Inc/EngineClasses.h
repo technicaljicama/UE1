@@ -1811,7 +1811,7 @@ class ENGINE_API AInventory : public AActor
 public:
     BYTE AutoSwitchPriority GCC_ALIGN(4);
     BYTE InventoryGroup;
-    DWORD bActivatable:1;
+    DWORD bActivatable:1 GCC_PACK(4);
     DWORD bDisplayableInv:1;
     DWORD bActive:1;
     DWORD bSleepTouch:1;
@@ -1819,7 +1819,7 @@ public:
     DWORD bAmbientGlow:1;
     DWORD bInstantRespawn:1;
     DWORD bRotatingPickup:1;
-    CHAR PickupMessage[64];
+    CHAR PickupMessage[64] GCC_ALIGN(4);
     FLOAT RespawnTime;
     FName PlayerLastTouched;
     FVector PlayerViewOffset;
@@ -1835,8 +1835,8 @@ public:
     FName ProtectionType2;
     INT Charge;
     INT ArmorAbsorption;
-    DWORD bIsAnArmor:1;
-    INT AbsorptionPriority;
+    DWORD bIsAnArmor:1 GCC_PACK(4);
+    INT AbsorptionPriority GCC_PACK(4);
     class AInventory* NextArmor;
     FLOAT MaxDesireability;
     class AInventorySpot* myMarker;
