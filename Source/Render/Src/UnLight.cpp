@@ -489,7 +489,9 @@ void FLightManager::ShadowMapGen( FTextureInfo& Tex, BYTE* SrcBits, BYTE* Dest1 
 		// Filter everything.
 		for( INT U=0; U<ShadowMaskU; U++ )
 		{
-			D = (D >> 8) | (((DWORD)*Src++) << (8+2));
+			D = D >> 8;
+			D += (U<ShadowMaskU-1) ? (((DWORD)*Src++) << (8+2)) : (D&0x200) ? 0xC00 : 0;
+
 
 			FILTER_TAB& Tab1 = FilterTab[D & 0x7f];
 			*Dests[0]++     += Tab1[0];
