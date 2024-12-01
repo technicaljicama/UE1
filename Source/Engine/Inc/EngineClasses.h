@@ -1791,11 +1791,11 @@ enum ETriggerType
 class ENGINE_API ATrigger : public ATriggers
 {
 public:
-    BYTE TriggerType;
+    BYTE TriggerType GCC_ALIGN(4);
     CHAR Message[80];
-    DWORD bTriggerOnceOnly:1;
+    DWORD bTriggerOnceOnly:1 GCC_PACK(4);
     DWORD bInitiallyActive:1;
-    class UClass* ClassProximityType;
+    class UClass* ClassProximityType GCC_PACK(4);
     FLOAT RepeatTriggerTime;
     FLOAT ReTriggerDelay;
     FLOAT TriggerTime;
@@ -1872,7 +1872,7 @@ public:
     BYTE ReloadCount;
     INT PickupAmmoCount;
     class AAmmo* AmmoType;
-    DWORD bPointing:1;
+    DWORD bPointing:1 GCC_PACK(4);
     DWORD bInstantHit:1;
     DWORD bAltInstantHit:1;
     DWORD bWarnTarget:1;
@@ -1881,7 +1881,7 @@ public:
     DWORD bChangeWeapon:1;
     DWORD bLockedOn:1;
     DWORD bSplashDamage:1;
-    FVector FireOffset;
+    FVector FireOffset GCC_PACK(4);
     class UClass* ProjectileClass;
     class UClass* AltProjectileClass;
     FLOAT ProjectileSpeed;
@@ -1918,8 +1918,8 @@ class ENGINE_API AInterpolationPoint : public AKeypoint
 public:
     INT Position;
     FLOAT RateModifier;
-    DWORD bEndOfPath:1;
-    class AInterpolationPoint* Prev;
+    DWORD bEndOfPath:1 GCC_PACK(4);
+    class AInterpolationPoint* Prev GCC_PACK(4);
     class AInterpolationPoint* Next;
 	DECLARE_CLASS_WITHOUT_CONSTRUCT(AInterpolationPoint,AKeypoint,0)
     NO_DEFAULT_CONSTRUCTOR(AInterpolationPoint)
@@ -1944,18 +1944,18 @@ class ENGINE_API ADecoration : public AActor
 {
 public:
     class UClass* EffectWhenDestroyed;
-    DWORD bPushable:1;
+    DWORD bPushable:1 GCC_PACK(4);
     DWORD bOnlyTriggerable:1;
     DWORD bSplash:1;
     DWORD bBobbing:1;
     DWORD bWasCarried:1;
-    class USound* PushSound;
+    class USound* PushSound GCC_PACK(4);
     INT numLandings;
     class UClass* contents;
     class UClass* content2;
     class UClass* content3;
     class USound* EndPushSound;
-    DWORD bPushSoundPlaying:1;
+    DWORD bPushSoundPlaying:1 GCC_PACK(4);
 	DECLARE_CLASS_WITHOUT_CONSTRUCT(ADecoration,AActor,0)
     NO_DEFAULT_CONSTRUCTOR(ADecoration)
 };
@@ -1963,13 +1963,13 @@ public:
 class ENGINE_API ACarcass : public ADecoration
 {
 public:
-    DWORD bPlayerCarcass:1;
-    BYTE flies;
+    DWORD bPlayerCarcass:1 GCC_PACK(4);
+    BYTE flies GCC_ALIGN(4);
     BYTE rats;
-    DWORD bReducedHeight:1;
+    DWORD bReducedHeight:1 GCC_PACK(4);
     DWORD bDecorative:1;
     DWORD bSlidingCarcass:1;
-    INT CumulativeDamage;
+    INT CumulativeDamage GCC_PACK(4);
     class APawn* Bugs;
 	DECLARE_CLASS_WITHOUT_CONSTRUCT(ACarcass,ADecoration,0)
     NO_DEFAULT_CONSTRUCTOR(ACarcass)
@@ -1979,8 +1979,8 @@ class ENGINE_API ANavigationPoint : public AActor
 {
 public:
     FName ownerTeam;
-    DWORD taken:1;
-    INT upstreamPaths[16];
+    DWORD taken:1 GCC_PACK(4);
+    INT upstreamPaths[16] GCC_ALIGN(4);
     INT Paths[16];
     INT PrunedPaths[16];
     INT visitedWeight;
@@ -1991,7 +1991,7 @@ public:
     class ANavigationPoint* prevOrdered;
     class ANavigationPoint* startPath;
     INT cost;
-    DWORD bPlayerOnly:1;
+    DWORD bPlayerOnly:1 GCC_PACK(4);
     DWORD bEndPoint:1;
     DWORD bEndPointOnly:1;
     void execdescribeSpec( FFrame& Stack, BYTE*& Result );
@@ -2060,8 +2060,8 @@ public:
 class ENGINE_API APlayerStart : public ANavigationPoint
 {
 public:
-    BYTE TeamNumber;
-    DWORD bSinglePlayerStart:1;
+    BYTE TeamNumber GCC_ALIGN(4);
+    DWORD bSinglePlayerStart:1 GCC_PACK(4);
     DWORD bCoopStart:1;
 	DECLARE_CLASS_WITHOUT_CONSTRUCT(APlayerStart,ANavigationPoint,0)
     NO_DEFAULT_CONSTRUCTOR(APlayerStart)
@@ -2070,15 +2070,15 @@ public:
 class ENGINE_API ATeleporter : public ANavigationPoint
 {
 public:
-    CHAR URL[64];
+    CHAR URL[64] GCC_ALIGN(4);
     FName ProductRequired;
-    DWORD bChangesVelocity:1;
+    DWORD bChangesVelocity:1 GCC_PACK(4);
     DWORD bChangesYaw:1;
     DWORD bReversesX:1;
     DWORD bReversesY:1;
     DWORD bReversesZ:1;
     DWORD bEnabled:1;
-    FVector TargetVelocity;
+    FVector TargetVelocity GCC_PACK(4);
     class AActor* TriggerActor;
     class AActor* TriggerActor2;
 	DECLARE_CLASS_WITHOUT_CONSTRUCT(ATeleporter,ANavigationPoint,0)
