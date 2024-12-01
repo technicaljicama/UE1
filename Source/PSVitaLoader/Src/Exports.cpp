@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #define AL_ALEXT_PROTOTYPES
 
+#include <errno.h>
 #include <dirent.h>
 #include <time.h>
 #include <netdb.h>
@@ -100,6 +101,18 @@ static const unsigned short** fake_ctype_b_loc(void)
 	return &tabptr;
 }
 
+// we only need this for sockets
+static int fake_ioctl( int fd, unsigned long op, const DWORD* arg )
+{
+	// the only thing that's ever passed into this is FIONBIO
+	return setsockopt( fd, SOL_SOCKET, SO_NONBLOCK, (const void*)arg, sizeof(DWORD) );
+}
+
+static int* fake_errno_location(void)
+{
+	return __errno();
+}
+
 // all the exports that were not caught by GEN_EXPORTS
 static const vrtld_export_t GAuxExports[] =
 {
@@ -136,6 +149,19 @@ static const vrtld_export_t GAuxExports[] =
 	VRTLD_EXPORT_SYMBOL( unlink ),
 	VRTLD_EXPORT_SYMBOL( utime ),
 	VRTLD_EXPORT_SYMBOL( vsprintf ),
+	VRTLD_EXPORT_SYMBOL( recvfrom ),
+	VRTLD_EXPORT_SYMBOL( getsockopt ),
+	VRTLD_EXPORT_SYMBOL( inet_addr ),
+	VRTLD_EXPORT_SYMBOL( sendto ),
+	VRTLD_EXPORT_SYMBOL( recv ),
+	VRTLD_EXPORT_SYMBOL( listen ),
+	VRTLD_EXPORT_SYMBOL( bind ),
+	VRTLD_EXPORT_SYMBOL( socket ),
+	VRTLD_EXPORT_SYMBOL( setsockopt ),
+	VRTLD_EXPORT_SYMBOL( select ),
+	VRTLD_EXPORT_SYMBOL( connect ),
+	VRTLD_EXPORT_SYMBOL( accept ),
+	VRTLD_EXPORT_SYMBOL( send ),
 	/* SDL2 functions */
 	VRTLD_EXPORT_SYMBOL( SDL_GetCPUCount ),
 	VRTLD_EXPORT_SYMBOL( SDL_GetKeyboardFocus ),
@@ -201,6 +227,8 @@ static const vrtld_export_t GAuxExports[] =
 	VRTLD_EXPORT( "__libc_start_main", (void *)ret0 ),
 	VRTLD_EXPORT( "__isoc99_sscanf", (void *)sscanf ),
 	VRTLD_EXPORT( "__ctype_b_loc", (void *)fake_ctype_b_loc ),
+	VRTLD_EXPORT( "ioctl", (void *)fake_ioctl ),
+	VRTLD_EXPORT( "__errno_location", (void *)fake_errno_location ),
 	/* libdl functions */
 	VRTLD_EXPORT( "dlopen", (void *)wrap_dlopen ),
 	VRTLD_EXPORT( "dlclose", (void *)vrtld_dlclose ),
