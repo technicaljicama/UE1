@@ -20,12 +20,12 @@ jobs:
           cmake --install build --config RelWithDebInfo
       - name: Prepare artifact for packaging
         run: |
-          mkdir -p bin/System
-          cp build/RelWithDebInfo/* bin/System/
-          cp Thirdparty/SDL2/lib/Win32/*.dll bin/System/
-          cp Thirdparty/openal-soft/lib/Win32/*.dll bin/System/
-          cp Thirdparty/libxmp-lite/lib/Win32/*.dll bin/System/
-          cp Engine/Config/*.ini bin/System/
+          mkdir bin\System
+          copy build\RelWithDebInfo\* bin\System\
+          copy Thirdparty\SDL2\lib\Win32\*.dll bin\System\
+          copy Thirdparty\openal-soft\lib\Win32\*.dll bin\System\
+          copy Thirdparty\libxmp-lite\lib\Win32\*.dll bin\System\
+          copy Engine\Config\*.ini bin\System\
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -35,6 +35,9 @@ jobs:
 
   build-i686-windows-gcc:
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
       - name: Install MSYS2
         uses: msys2/setup-msys2@v2
@@ -77,7 +80,7 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt-get update
           sudo apt-get install git gcc g++ gcc-multilib g++-multilib make cmake
-          sudo apt-get install libsdl2-dev libopenal-dev libxmp-dev libsdl2-dev:i386 libopenal-dev:i386 libxmp-dev:i386
+          sudo apt-get install libsdl2-dev libopenal-dev libxmp-dev=4.4.1-2 libsdl2-dev:i386 libopenal-dev:i386 libxmp-dev:i386=4.4.1-2
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Build Unreal
