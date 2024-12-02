@@ -6,6 +6,7 @@
 #include <time.h>
 #include <netdb.h>
 #include <utime.h>
+#include <pthread.h>
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>
@@ -108,9 +109,15 @@ static int fake_ioctl( int fd, unsigned long op, const DWORD* arg )
 	return setsockopt( fd, SOL_SOCKET, SO_NONBLOCK, (const void*)arg, sizeof(DWORD) );
 }
 
-static int* fake_errno_location(void)
+static int* fake_errno_location( void )
 {
 	return __errno();
+}
+
+// our pthread does not allow us to set thread names
+static int fake_pthread_setname_np( pthread_t Thread, const char* Name )
+{
+	return 0;
 }
 
 // all the exports that were not caught by GEN_EXPORTS
@@ -227,8 +234,9 @@ static const vrtld_export_t GAuxExports[] =
 	VRTLD_EXPORT( "__libc_start_main", (void *)ret0 ),
 	VRTLD_EXPORT( "__isoc99_sscanf", (void *)sscanf ),
 	VRTLD_EXPORT( "__ctype_b_loc", (void *)fake_ctype_b_loc ),
-	VRTLD_EXPORT( "ioctl", (void *)fake_ioctl ),
 	VRTLD_EXPORT( "__errno_location", (void *)fake_errno_location ),
+	VRTLD_EXPORT( "ioctl", (void *)fake_ioctl ),
+	VRTLD_EXPORT( "pthread_setname_np", (void *)fake_pthread_setname_np ),
 	/* libdl functions */
 	VRTLD_EXPORT( "dlopen", (void *)wrap_dlopen ),
 	VRTLD_EXPORT( "dlclose", (void *)vrtld_dlclose ),
