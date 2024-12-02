@@ -1,0 +1,98 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-i686-windows-msvc:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build Unreal
+        run: |
+          cmake -G"Visual Studio 17 2022" -Bbuild -AWin32 Source
+          cmake --build build --config RelWithDebInfo
+          cmake --install build --config RelWithDebInfo
+      - name: Prepare artifact for packaging
+        run: |
+          mkdir -p bin/System
+          cp build/RelWithDebInfo/* bin/System/
+          cp Thirdparty/SDL2/lib/Win32/*.dll bin/System/
+          cp Thirdparty/openal-soft/lib/Win32/*.dll bin/System/
+          cp Thirdparty/libxmp-lite/lib/Win32/*.dll bin/System/
+          cp Engine/Config/*.ini bin/System/
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unreal-i686-windows-msvc
+          path: bin/
+          retention-days: 0
+
+  build-i686-windows-gcc:
+    runs-on: windows-latest
+    steps:
+      - name: Install MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: true
+          install: >-
+            git
+            make
+            mingw-w64-i686-toolchain
+            mingw-w64-i686-SDL2
+            mingw-w64-i686-openal
+            mingw-w64-i686-libxmp
+            mingw-w64-i686-cmake
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build Unreal
+        run: |
+          cmake -G"Unix Makefiles" -Bbuild Source
+          cmake --build build -j4 -- -O
+          cmake --install build
+      - name: Prepare artifact for packaging
+        run: |
+          mkdir -p bin/System
+          cp build/RelWithDebInfo/* bin/System/
+          cp /mingw32/bin/{SDL2.dll,libgcc_s_dw2-1.dll,libwinpthread-1.dll,libopenal-1.dll,libxmp.dll} bin/System/
+          cp Engine/Config/*.ini bin/System/
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unreal-i686-windows-gcc
+          path: bin/
+          retention-days: 0
+
+  build-i686-linux-gcc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install git gcc g++ gcc-multilib g++-multilib make cmake
+          sudo apt-get install libsdl2-dev libopenal-dev libxmp-dev libsdl2-dev:i386 libopenal-dev:i386 libxmp-dev:i386
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build Unreal
+        run: |
+          cmake -G"Unix Makefiles" -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32 -Bbuild Source -j
+          cmake --build build
+          cmake --install build
+      - name: Prepare artifact for packaging
+        run: |
+          mkdir -p bin/System
+          cp build/RelWithDebInfo/* bin/System/
+          cp Engine/Config/*.ini bin/System/
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unreal-i686-linux-gcc
+          path: bin/
+          retention-days: 0
