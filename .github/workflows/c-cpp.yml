@@ -80,7 +80,13 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt-get update
           sudo apt-get install git gcc g++ gcc-multilib g++-multilib make cmake
-          sudo apt-get install libsdl2-dev libopenal-dev libxmp-dev=4.4.1-2 libsdl2-dev:i386 libopenal-dev:i386 libxmp-dev:i386=4.4.1-2
+          sudo apt-get install libsdl2-dev libopenal-dev libsdl2-dev:i386 libopenal-dev:i386
+          : # ubuntu-latest doesn't include libxmp for i386 anymore because fuck you
+          wget https://launchpad.net/ubuntu/+archive/primary/+files/libxmp-dev_4.4.1-2_{i386,amd64}.deb
+          wget https://launchpad.net/ubuntu/+archive/primary/+files/libxmp4_4.4.1-2_{i386,amd64}.deb
+          sudo dpkg -i libxmp4_4.4.1-2_{i386,amd64}.deb
+          sudo dpkg -i libxmp-dev_4.4.1-2_{i386,amd64}.deb
+
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Build Unreal
