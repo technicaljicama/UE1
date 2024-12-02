@@ -145,6 +145,7 @@ extern "C" DLL_EXPORT char GPackage[];
 #include "UnMem.h"			// Stack based memory management.
 #include "UnCId.h"			// Cache ID's.
 #include "UnConfig.h"		// Config cache.
+#include "UnThread.h"		// Multithreading.
 
 /*-----------------------------------------------------------------------------
 	Core templates.

@@ -456,16 +456,13 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 		{
 			// Create thread to resolve the address.
 			GetServerConnection()->ResolveInfo = new FResolveInfo( *URL.Host );
-#ifdef PLATFORM_WIN32
-			CreateThread( NULL, 0, ResolveThreadEntry, GetServerConnection()->ResolveInfo, 0, &GetServerConnection()->ResolveInfo->ThreadId );
-#else
-			GetServerConnection()->ResolveInfo->ThreadId = 1;
-			pthread_t	ResolveThread;
-			pthread_attr_t ThreadAttributes;
-			pthread_attr_init( &ThreadAttributes );
-			pthread_attr_setdetachstate( &ThreadAttributes, PTHREAD_CREATE_DETACHED );
-			pthread_create( &ResolveThread, &ThreadAttributes, &ResolveThreadEntry, this );
-#endif
+			appThreadSpawn(
+				ResolveThreadEntry,
+				(void*)GetServerConnection()->ResolveInfo,
+				"ResolveThread",
+				true,
+				&GetServerConnection()->ResolveInfo->ThreadId
+			);
 		}
 
 		// Set socket URL.

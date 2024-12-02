@@ -135,6 +135,9 @@ UBOOL UNOpenALAudioSubsystem::Init()
 	USound::Audio = this;
 	UMusic::Audio = this;
 
+	// Spawn music streaming thread.
+	StartMusicThread();
+
 	return true;
 
 	unguard;
@@ -143,6 +146,8 @@ UBOOL UNOpenALAudioSubsystem::Init()
 void UNOpenALAudioSubsystem::Destroy()
 {
 	guard(UNOpenALAudioSubsystem::Destroy)
+
+	StopMusicThread();
 
 	USound::Audio = NULL;
 	UMusic::Audio = NULL;
@@ -184,6 +189,8 @@ void UNOpenALAudioSubsystem::ShutdownAfterError()
 {
 	guard(UNOpenALAudioSubsystem::Destroy)
 
+	StopMusicThread();
+
 	USound::Audio = NULL;
 	UMusic::Audio = NULL;
 
@@ -214,6 +221,8 @@ void UNOpenALAudioSubsystem::ShutdownAfterError()
 void UNOpenALAudioSubsystem::PostEditChange()
 {
 	guard(UNOpenALAudioSubsystem::Destroy)
+
+	FScopedLock Lock( MusicMutex );
 
 	if( DopplerFactor < 0.f )
 		DopplerFactor = 0.f;
@@ -263,6 +272,8 @@ void UNOpenALAudioSubsystem::RegisterMusic( UMusic* Music )
 {
 	guard(UNOpenALAudioSubsystem::RegisterMusic)
 
+	FScopedLock Lock( MusicMutex );
+
 	if( Music->Handle || !Music->Data.Num() )
 		return;
 
@@ -290,8 +301,10 @@ void UNOpenALAudioSubsystem::UnregisterMusic( UMusic* Music )
 {
 	guard(UNOpenALAudioSubsystem::UnregisterMusic)
 
+	FScopedLock Lock( MusicMutex );
+
 	StopMusic();
-	UpdateMusicBuffers();
+	ClearMusicBuffers();
 	if( MusicCtx )
 	{
 		xmp_end_player( MusicCtx );
@@ -548,6 +561,8 @@ void UNOpenALAudioSubsystem::PlayMusic()
 {
 	guard(UNOpenALAudioSubsystem::PlayMusic)
 
+	FScopedLock Lock( MusicMutex );
+
 	xmp_set_position( MusicCtx, MusicSection );
 
 	ALint State = 0;
@@ -563,6 +578,8 @@ void UNOpenALAudioSubsystem::PlayMusic()
 void UNOpenALAudioSubsystem::StopMusic()
 {
 	guard(UNOpenALAudioSubsystem::StopMusic)
+
+	FScopedLock Lock( MusicMutex );
 
 	MusicIsPlaying = false;
 	alSourceStop( MusicSource );
@@ -730,6 +747,8 @@ void UNOpenALAudioSubsystem::Update( FPointRegion Region, FCoords& Listener )
 				MusicDone = true;
 			}
 
+			MusicMutex.Lock();
+
 			if( MusicDone )
 			{
 				if( Music && MusicChanged )
@@ -740,10 +759,13 @@ void UNOpenALAudioSubsystem::Update( FPointRegion Region, FCoords& Listener )
 			{
 				alSourcef( MusicSource, AL_GAIN, Max(MusicFade, 0.f) * MusicVolume / 255.f );
 			}
+
+			MusicMutex.Unlock();
 		}
 
 		if( Music == NULL )
 		{
+			FScopedLock Lock( MusicMutex );
 			MusicFade = 1.f;
 			alSourcef( MusicSource, AL_GAIN, Max(MusicFade, 0.f) * MusicVolume / 255.f );
 			Music = Viewport->Actor->Song;
@@ -761,14 +783,14 @@ void UNOpenALAudioSubsystem::Update( FPointRegion Region, FCoords& Listener )
 		}
 	}
 
-	UpdateMusicBuffers();
-
 	unguard;
 }
 
 void UNOpenALAudioSubsystem::UpdateMusicBuffers()
 {
 	guard(UNOpenALAudioSubsystem::UpdateMusicBuffers)
+
+	FScopedLock Lock( MusicMutex );
 
 	// First dequeue the buffers that are done playing and put them into the buffer pool
 	ALint BuffersProcessed = 0;
@@ -801,6 +823,29 @@ void UNOpenALAudioSubsystem::UpdateMusicBuffers()
 	// If it stopped because it ran out of buffers, restart it
 	if( BuffersQueued > 0 && ( State == AL_INITIAL || State == AL_STOPPED ) )
 		alSourcePlay( MusicSource );
+
+	unguard;
+}
+
+void UNOpenALAudioSubsystem::ClearMusicBuffers()
+{
+	guard(UNOpenALAudioSubsystem::ClearMusicBuffers)
+
+	FScopedLock Lock( MusicMutex );
+
+	appMemset( (void*)MusicBufferData, 0, sizeof(MusicBufferData) );
+
+	ALint BuffersProcessed = 0;
+	alGetSourcei( MusicSource, AL_BUFFERS_PROCESSED, &BuffersProcessed );
+	if( BuffersProcessed > 0 && NumFreeMusicBuffers < NUM_MUSIC_BUFFERS )
+	{
+		const INT NumToUnqueue = Min( NUM_MUSIC_BUFFERS - NumFreeMusicBuffers, BuffersProcessed );
+		alSourceUnqueueBuffers( MusicSource, NumToUnqueue, &FreeMusicBuffers[NumFreeMusicBuffers] );
+		NumFreeMusicBuffers += NumToUnqueue;
+	}
+
+	for( INT i = 0; i < NumFreeMusicBuffers; ++i )
+		alBufferData( FreeMusicBuffers[i], AL_FORMAT_STEREO16, MusicBufferData, sizeof( MusicBufferData ), OutputRate );
 
 	unguard;
 }
@@ -882,6 +927,7 @@ UBOOL UNOpenALAudioSubsystem::Exec( const char* Cmd, FOutputDevice* Out )
 	{
 		if( Music && MusicCtx )
 		{
+			FScopedLock Lock( MusicMutex );
 			INT Pos = atoi( Cmd );
 			Out->Logf( "Set music position to %d", Pos );
 			xmp_set_position( MusicCtx, Pos );
@@ -891,6 +937,7 @@ UBOOL UNOpenALAudioSubsystem::Exec( const char* Cmd, FOutputDevice* Out )
 	}
 	else if( ParseCommand( &Cmd, "MusicInterp" ) )
 	{
+		FScopedLock Lock( MusicMutex );
 		MusicInterpolation = Clamp( atoi( Cmd ), 0, XMP_INTERP_SPLINE );
 		if( MusicCtx )
 			xmp_set_player( MusicCtx, XMP_PLAYER_INTERP, MusicInterpolation );
@@ -900,4 +947,48 @@ UBOOL UNOpenALAudioSubsystem::Exec( const char* Cmd, FOutputDevice* Out )
 	return false;
 
 	unguard;
+}
+
+void UNOpenALAudioSubsystem::StartMusicThread()
+{
+	guard(UNOpenALAudioSubsystem::StartMusicThread)
+
+	// This isn't an atomic because we only set it before the thread starts and before we wait on it to join.
+	MusicThreadRunning = true;
+
+	MusicThread = appThreadSpawn( MusicThreadProc, (void*)this, "MusicThread", true, nullptr );
+	check(MusicThread);
+
+	unguard;
+}
+
+void UNOpenALAudioSubsystem::StopMusicThread()
+{
+	guard(UNOpenALAudioSubsystem::StopMusicThread)
+
+	if( MusicThread )
+	{
+		MusicThreadRunning = false;
+		appThreadJoin( MusicThread );
+		MusicThread = nullptr;
+	}
+
+	unguard;
+}
+
+#ifdef PLATFORM_WIN32
+DWORD __stdcall UNOpenALAudioSubsystem::MusicThreadProc( void* Audio )
+#else
+void* UNOpenALAudioSubsystem::MusicThreadProc( void* Audio )
+#endif
+{
+	UNOpenALAudioSubsystem* This = (UNOpenALAudioSubsystem*)Audio;
+
+	while( This->MusicThreadRunning )
+	{
+		This->UpdateMusicBuffers();
+		appSleep( 0.1f );
+	}
+
+	return (THREAD_RET)0;
 }

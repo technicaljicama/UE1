@@ -94,6 +94,10 @@ private:
 	ALuint FreeMusicBuffers[NUM_MUSIC_BUFFERS];
 	INT NumFreeMusicBuffers;
 
+	volatile UBOOL MusicThreadRunning;
+	FMutex MusicMutex { "MusicMutex" };
+	UTHREAD MusicThread;
+
 	enum ENVoiceOp
 	{
 		NVOP_None,
@@ -121,10 +125,15 @@ private:
 	void InitReverbEffect();
 	void UpdateReverb( FPointRegion& Region );
 	void UpdateVoice( INT Num, const ENVoiceOp Op = NVOP_None );
-	void UpdateMusicBuffers();
 	void StopVoice( INT Num );
 	void PlayMusic();
 	void StopMusic();
+
+	void UpdateMusicBuffers();
+	void ClearMusicBuffers();
+
+	void StartMusicThread();
+	void StopMusicThread();
 
 	inline FLOAT GetVoicePriority( const FVector& Location, FLOAT Volume, FLOAT Radius )
 	{
@@ -133,4 +142,10 @@ private:
 		else
 			return Volume;
 	}
+
+	#ifdef PLATFORM_WIN32
+	static DWORD __stdcall MusicThreadProc( void* Audio );
+	#else
+	static void* MusicThreadProc( void* Audio );
+	#endif
 };

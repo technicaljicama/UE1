@@ -19,7 +19,6 @@ Revision history:
 #include <net/if.h>
 #include <netdb.h>
 #include <errno.h>
-#include <pthread.h>
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
