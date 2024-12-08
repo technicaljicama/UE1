@@ -114,9 +114,9 @@ jobs:
       - name: Install dependencies
         run: |
           dpkg --add-architecture armhf
-          apt-get update
-          apt-get install git make cmake crossbuild-essential-armhf
-          apt-get install libsdl2-dev libopenal-dev libxmp-dev libsdl2-dev:armhf libopenal-dev:armhf libxmp-dev:armhf
+          apt-get -y update
+          apt-get -y install git make cmake crossbuild-essential-armhf
+          apt-get -y install libsdl2-dev libopenal-dev libxmp-dev libsdl2-dev:armhf libopenal-dev:armhf libxmp-dev:armhf
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Build Unreal
