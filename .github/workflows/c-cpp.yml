@@ -105,3 +105,33 @@ jobs:
           name: unreal-i686-linux-gcc
           path: bin/
           retention-days: 0
+
+  build-arm-psvita-gcc:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo dpkg --add-architecture armhf
+          sudo apt-get update
+          sudo apt-get install git make cmake crossbuild-essential-armhf
+          sudo apt-get install libsdl2-dev libopenal-dev libxmp-dev libsdl2-dev:armhf libopenal-dev:armhf libxmp-dev:armhf
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build Unreal
+        run: |
+          cmake -G"Unix Makefiles" -DCMAKE_CROSSCOMPILING=ON -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc-12 -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++-12 -Bbuild -DBUILD_FOR_PSVITA=ON .
+          cmake --build build -j
+          cmake --install build
+      - name: Prepare artifact for packaging
+        run: |
+          mkdir -p bin/System
+          cp build/RelWithDebInfo/* bin/System/
+          cp Engine/Config/*.ini bin/System/
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unreal-arm-psvita-gcc
+          path: bin/
+          retention-days: 0
