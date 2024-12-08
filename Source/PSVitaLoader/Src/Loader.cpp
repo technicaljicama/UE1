@@ -46,35 +46,6 @@ static bool FindRootPath( char* Out, int OutLen )
 	return false;
 }
 
-// we can't catch exceptions that originate from the shared libs, presumably because __dso_handle is different,
-// so instead we catch and rethrow them in the terminate handler to at least see what was thrown
-static void __attribute__((noreturn)) TerminateHandler()
-{
-	std::exception_ptr ExPtr = std::current_exception();
-	const auto* ExType = ExPtr.__cxa_exception_type();
-
-	Logf( "unhandled exception of type %s, rethrowing", ExType ? ExType->name() : "???" );
-
-	try
-	{
-		std::rethrow_exception( ExPtr );
-	}
-	catch ( const char* Err )
-	{
-		FatalError( "Unhandled exception:\n%s", Err );
-	}
-	catch ( char* Err )
-	{
-		FatalError( "Unhandled exception:\n%s", Err );
-	}
-	catch ( INT Err )
-	{
-		FatalError( "Unhandled exception:\n%d", Err );
-	}
-
-	abort();
-}
-
 int main( int argc, const char** argv )
 {
 	sceTouchSetSamplingState( SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_STOP );
@@ -119,8 +90,6 @@ int main( int argc, const char** argv )
 		FatalError( "Could not find main() in Unreal.bin:\n%s", vrtld_dlerror() );
 
 	vglInitWithCustomThreshold( 0, 960, 544, VGL_MEM_THRESHOLD, 0, 0, 0, SCE_GXM_MULTISAMPLE_NONE );
-
-	std::set_terminate( TerminateHandler );
 
 	GMainArgc = 1;
 	snprintf( GMainArgvData[0], sizeof(*GMainArgvData), "%sUnreal.bin", GRootPath );

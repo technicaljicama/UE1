@@ -19,7 +19,7 @@
 ------------------------------------------------------------------------------------*/
 
 #define MAX_PATH 1024
-#define MAX_ARGV_NUM 8
+#define MAX_ARGV_NUM 4
 #define DATA_PATH "data/unreal/System/"
 
 extern char GRootPath[];
