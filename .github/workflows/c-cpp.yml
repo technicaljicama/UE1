@@ -121,7 +121,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Build Unreal
         run: |
-          cmake -G"Unix Makefiles" -DCMAKE_CROSSCOMPILING=ON -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc-12 -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++-12 -Bbuild -DBUILD_FOR_PSVITA=ON .
+          cmake -G"Unix Makefiles" -DCMAKE_CROSSCOMPILING=ON -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc-12 -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++-12 -Bbuild -DBUILD_FOR_PSVITA=ON Source
           cmake --build build -j
           cmake --install build
       - name: Prepare artifact for packaging
