@@ -31,3 +31,4 @@ extern "C" const vrtld_export_t* __vrtld_override_exports;
 extern "C" const size_t __vrtld_num_override_exports;
 
 void Logf( const char* Fmt, ... );
+void __attribute__((noreturn)) FatalError( const char* Fmt, ... );

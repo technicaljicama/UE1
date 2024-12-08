@@ -19,7 +19,7 @@ set(VITA_APP_NAME "Unreal")
 set(VITA_TITLEID  "UNRL00001")
 set(VITA_MKSFOEX_FLAGS "-d ATTRIBUTE2=12")
 
-set(SRC_FILES "Src/Loader.cpp" "Src/Exports.cpp")
+set(SRC_FILES "Src/Loader.cpp" "Src/Exports.cpp" "Src/Utils.cpp")
 
 add_definitions(-DPLATFORM_ARM -DPLATFORM_POSIX -DPLATFORM_PSVITA -DPLATFORM_LITTLE_ENDIAN -DPLATFORM_SDL)
 add_compile_options(-O2 -fsigned-char -fno-short-enums -ffunction-sections -fno-optimize-sibling-calls -Wno-write-strings -Wl,-q)

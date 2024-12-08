@@ -25,41 +25,6 @@ int GMainArgc = 1;
 char GMainArgvData[MAX_ARGV_NUM][MAX_PATH];
 const char* GMainArgv[MAX_ARGV_NUM];
 
-void Logf( const char* Fmt, ... )
-{
-	va_list va;
-	va_start( va, Fmt );
-	vfprintf( stderr, Fmt, va );
-	fprintf( stderr, "\n" );
-	va_end( va );
-}
-
-static void __attribute__((noreturn)) FatalError( const char* Fmt, ... )
-{
-	va_list va;
-	FILE* f;
-	char Error[1024];
-	char Path[MAX_PATH];
-
-	va_start( va, Fmt );
-	vsnprintf( Error, sizeof(Error), Fmt, va );
-	va_end( va );
-
-	Logf( "FATAL ERROR: %s", Error );
-
-	snprintf( Path, sizeof(Path), "%sfatal.log", GRootPath );
-	f = fopen( Path, "w" );
-	if ( f )
-	{
-		fprintf( f, "FATAL ERROR: %s\n", Error );
-		fclose( f );
-	}
-
-	vrtld_quit();
-
-	abort();
-}
-
 static bool FindRootPath( char* Out, int OutLen )
 {
 	static const char *Drives[] = { "uma0", "imc0", "ux0" };
@@ -96,15 +61,15 @@ static void __attribute__((noreturn)) TerminateHandler()
 	}
 	catch ( const char* Err )
 	{
-		FatalError( "unhandled exception: %s", Err );
+		FatalError( "Unhandled exception:\n%s", Err );
 	}
 	catch ( char* Err )
 	{
-		FatalError( "unhandled exception: %s", Err );
+		FatalError( "Unhandled exception:\n%s", Err );
 	}
 	catch ( INT Err )
 	{
-		FatalError( "unhandled exception: %d", Err );
+		FatalError( "Unhandled exception:\n%d", Err );
 	}
 
 	abort();
@@ -120,13 +85,13 @@ int main( int argc, const char** argv )
 	sceSysmoduleLoadModule( SCE_SYSMODULE_NET );
 
 	if ( vrtld_init( VRTLD_TARGET2_IS_GOT ) < 0 )
-		FatalError( "could not init vrtld: %s", vrtld_dlerror() );
+		FatalError( "Could not init vrtld:\n%s", vrtld_dlerror() );
 
 	if ( !FindRootPath( GRootPath, sizeof(GRootPath) ) )
-		FatalError( "could not find Unreal directory" );
+		FatalError( "Could not find Unreal directory" );
 
 	if ( chdir( GRootPath ) < 0 )
-		FatalError( "could not chdir to  '%s'", GRootPath );
+		FatalError( "Could not chdir to\n%s", GRootPath );
 
 	Logf( "root directory: `%s`", GRootPath );
 
@@ -134,11 +99,11 @@ int main( int argc, const char** argv )
 
 	GCoreElf = vrtld_dlopen( "Core.so", VRTLD_GLOBAL | VRTLD_LAZY );
 	if ( !GCoreElf )
-		FatalError( "could not load Core.so: %s", vrtld_dlerror() );
+		FatalError( "Could not load Core.so:\n%s", vrtld_dlerror() );
 
 	GEngineElf = vrtld_dlopen( "Engine.so", VRTLD_GLOBAL | VRTLD_LAZY );
 	if ( !GEngineElf )
-		FatalError( "could not load Core.so: %s", vrtld_dlerror() );
+		FatalError( "Could not load Core.so:\n%s", vrtld_dlerror() );
 
 	// then force vrtld to reloc and init the libs
 	vrtld_dlsym( GCoreElf, "?" );
@@ -147,11 +112,11 @@ int main( int argc, const char** argv )
 
 	GMainElf = vrtld_dlopen( "Unreal.bin", VRTLD_GLOBAL | VRTLD_NOW );
 	if ( !GMainElf )
-		FatalError( "could not load Unreal.bin: %s", vrtld_dlerror() );
+		FatalError( "Could not load Unreal.bin:\n%s", vrtld_dlerror() );
 
 	unreal_main_fn pmain = (unreal_main_fn)vrtld_dlsym( GMainElf, "main" );
 	if ( !pmain )
-		FatalError( "could not find main() in Unreal.bin: %s", vrtld_dlerror() );
+		FatalError( "Could not find main() in Unreal.bin:\n%s", vrtld_dlerror() );
 
 	vglInitWithCustomThreshold( 0, 960, 544, VGL_MEM_THRESHOLD, 0, 0, 0, SCE_GXM_MULTISAMPLE_NONE );
 
@@ -169,17 +134,21 @@ int main( int argc, const char** argv )
 	}
 	catch ( const char* Err )
 	{
-		FatalError( "unhandled exception: %s", Err );
+		FatalError( "Unhandled exception:\n%s", Err );
 	}
 	catch ( char* Err )
 	{
-		FatalError( "unhandled exception: %s", Err );
+		FatalError( "Unhandled exception:\n%s", Err );
 	}
 	catch ( INT Err )
 	{
-		FatalError( "unhandled exception: %d", Err );
+		FatalError( "Unhandled exception:\n%d", Err );
 	}
 
+	Logf( "exited main, shutting down" );
+
 	vrtld_quit();
+	sceKernelExitProcess( 0 );
+
 	return 0;
 }
