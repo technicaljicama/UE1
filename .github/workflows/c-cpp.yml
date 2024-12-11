@@ -80,9 +80,9 @@ jobs:
       - name: Install dependencies
         run: |
           dpkg --add-architecture i386
-          apt-get update
-          apt-get install git gcc g++ gcc-multilib g++-multilib make cmake
-          apt-get install libsdl2-dev libopenal-dev libxmp-dev libsdl2-dev:i386 libopenal-dev:i386 libxmp-dev:i386
+          apt-get -y update
+          apt-get -y install git gcc g++ gcc-multilib g++-multilib make cmake
+          apt-get -y install libsdl2-dev libopenal-dev libxmp-dev libsdl2-dev:i386 libopenal-dev:i386 libxmp-dev:i386
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Build Unreal
