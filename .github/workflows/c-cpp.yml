@@ -126,7 +126,7 @@ jobs:
           git clone https://github.com/vitasdk/vdpm
           pushd vdpm
           ./bootstrap-vitasdk.sh
-          ./vdpm -f openal-soft taihen kubridge SceShaccCgExt vitaShaRK libmathneon
+          ./vdpm -f openal-soft taihen kubridge SceShaccCgExt vitaShaRK libmathneon libxmp
           popd
       - name: Build and install vitaGL
         run: |
