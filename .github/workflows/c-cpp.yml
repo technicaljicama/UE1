@@ -125,6 +125,7 @@ jobs:
         run: |
           git clone https://github.com/vitasdk/vdpm
           pushd vdpm
+          alias sudo=
           ./bootstrap-vitasdk.sh
           ./vdpm -f openal-soft taihen kubridge SceShaccCgExt vitaShaRK libmathneon
           popd
