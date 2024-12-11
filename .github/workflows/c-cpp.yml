@@ -108,6 +108,7 @@ jobs:
       image: debian:bookworm
     env:
       VITASDK: /usr/local/vitasdk
+    shell: bash
     steps:
       - name: Install host dependencies
         run: |
