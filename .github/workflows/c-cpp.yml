@@ -166,7 +166,7 @@ jobs:
           mkdir -p bin/unreal/System
           cp build/RelWithDebInfo/* bin/unreal/System/
           cp Engine/Config/*.ini bin/unreal/System/
-          cp build/UnrealLoader.vpk bin/unreal.vpk
+          cp build_psvita/UnrealLoader.vpk bin/unreal.vpk
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
