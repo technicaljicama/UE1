@@ -79,10 +79,10 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install git gcc g++ gcc-multilib g++-multilib make cmake
-          sudo apt-get install libsdl2-dev libopenal-dev libxmp-dev libsdl2-dev:i386 libopenal-dev:i386 libxmp-dev:i386
+          dpkg --add-architecture i386
+          apt-get update
+          apt-get install git gcc g++ gcc-multilib g++-multilib make cmake
+          apt-get install libsdl2-dev libopenal-dev libxmp-dev libsdl2-dev:i386 libopenal-dev:i386 libxmp-dev:i386
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Build Unreal
