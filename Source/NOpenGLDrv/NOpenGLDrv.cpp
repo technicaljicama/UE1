@@ -374,7 +374,7 @@ void UNOpenGLRenderDevice::ReadPixels( FColor* Pixels )
 	guard(UNOpenGLRenderDevice::ReadPixels);
 
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 0 );
-	glReadPixels( 0, 0, Viewport->SizeX, Viewport->SizeY, GL_RGBA, GL_UNSIGNED_BYTE, (void*)Pixels );
+	glReadPixels( 0, 0, Viewport->SizeX, Viewport->SizeY, GL_BGRA, GL_UNSIGNED_BYTE, (void*)Pixels );
 
 	unguard;
 }

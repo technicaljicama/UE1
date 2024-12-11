@@ -67,6 +67,7 @@ void UNOpenGLESRenderDevice::InternalClassInitializer( UClass* Class )
 	new(Class, "Overbright",     RF_Public)UBoolProperty( CPP_PROPERTY(Overbright),     "Options", CPF_Config );
 	new(Class, "DetailTextures", RF_Public)UBoolProperty( CPP_PROPERTY(DetailTextures), "Options", CPF_Config );
 	new(Class, "UseVAO",         RF_Public)UBoolProperty( CPP_PROPERTY(UseVAO),         "Options", CPF_Config );
+	new(Class, "UseBGRA",        RF_Public)UBoolProperty( CPP_PROPERTY(UseBGRA),        "Options", CPF_Config );
 	unguardSlow;
 }
 
@@ -76,6 +77,7 @@ UNOpenGLESRenderDevice::UNOpenGLESRenderDevice()
 	Overbright = true;
 	NoFiltering = false;
 	UseVAO = false;
+	UseBGRA = true;
 }
 
 UBOOL UNOpenGLESRenderDevice::Init( UViewport* InViewport )
@@ -111,11 +113,25 @@ UBOOL UNOpenGLESRenderDevice::Init( UViewport* InViewport )
 	IdxDataPtr = IdxData;
 	IdxCount = 0;
 
-	if ( UseVAO )
+	if( UseVAO )
 	{
 		glGenBuffers( 1, &GLBuf );
 		glBindBuffer( GL_ARRAY_BUFFER, GLBuf );
 		glBufferData( GL_ARRAY_BUFFER, VtxDataSize, (void*)VtxData, GL_DYNAMIC_DRAW );
+	}
+
+	if( UseBGRA )
+	{
+		// check if BGRA is actually supported
+		if( !( GLAD_GL_APPLE_texture_format_BGRA8888 || GLAD_GL_EXT_texture_format_BGRA8888 || GLAD_GL_MESA_bgra ) )
+		{
+			debugf( "GLES2: BGRA8888 enabled, but not supported; disabling" );
+			UseBGRA = false;
+		}
+		else
+		{
+			debugf( "GLES2: BGRA8888 supported" );
+		}
 	}
 
 	// Set permanent state.
@@ -449,6 +465,19 @@ void UNOpenGLESRenderDevice::ReadPixels( FColor* Pixels )
 
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 0 );
 	glReadPixels( 0, 0, Viewport->SizeX, Viewport->SizeY, GL_RGBA, GL_UNSIGNED_BYTE, (void*)Pixels );
+
+	// Swap RGBA -> BGRA.
+	FColor* Ptr = Pixels;
+	for( INT Y = 0; Y < Viewport->SizeY; ++Y )
+	{
+		for( INT X = 0; X < Viewport->SizeX; ++X, ++Ptr )
+		{
+			FColor Old = *Ptr;
+			Ptr->R = Old.B;
+			Ptr->G = Old.G;
+			Ptr->B = Old.R;
+		}
+	}
 
 	unguard;
 }
@@ -896,9 +925,15 @@ void UNOpenGLESRenderDevice::UploadTexture( FTextureInfo& Info, UBOOL Masked, UB
 					*Dst++ = ( Pal[*Src++] | ALPHA_MASK );
 			}
 		}
+		else if( UseBGRA )
+		{
+			// BGRA8888 (or 7777) and we can upload it as-is.
+			UploadBuf = Mip->DataPtr;
+			UploadFormat = GL_BGRA_EXT;
+		}
 		else
 		{
-			// BGRA8888 (or 7777), but we must swap it because it's not supported natively most of the time.
+			// BGRA8888 (or 7777), but we must swap it because it's not supported natively.
 			UploadBuf = Compose;
 			UploadFormat = GL_RGBA;
 			BYTE* Dst = (BYTE*)Compose;
