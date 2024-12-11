@@ -120,7 +120,7 @@ jobs:
           apt-get -y install crossbuild-essential-armhf
           apt-get -y install libsdl2-dev libopenal-dev libxmp-dev libsdl2-dev:armhf libopenal-dev:armhf libxmp-dev:armhf
       - name: Set PATH
-        run: echo "$VITASDK" >> $GITHUB_PATH
+        run: echo "$VITASDK/bin" >> $GITHUB_PATH
       - name: Install VitaSDK and vdpm packages
         run: |
           git clone https://github.com/vitasdk/vdpm
