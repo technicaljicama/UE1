@@ -74,6 +74,7 @@ private:
 	INT DisplayIndex;
 	SDL_Rect DisplaySize;
 	SWORD JoyAxis[SDL_CONTROLLER_AXIS_MAX];
+	UBOOL QuitRequested;
 
 	// Info saved during captures and fullscreen sessions.
 	INT SavedX, SavedY;
