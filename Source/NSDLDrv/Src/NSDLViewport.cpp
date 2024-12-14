@@ -85,12 +85,12 @@ const BYTE UNSDLViewport::JoyAxisMap[SDL_CONTROLLER_AXIS_MAX] =
 //
 const FLOAT UNSDLViewport::JoyAxisDefaultScale[SDL_CONTROLLER_AXIS_MAX] =
 {
-	/* AXIS_LEFT_X          */ +1.f,
-	/* AXIS_LEFT_Y          */ -1.f,
-	/* AXIS_RIGHT_X         */ +1.f,
-	/* AXIS_RIGHT_Y         */ +1.f,
-	/* AXIS_LTRIGGER        */ +1.f,
-	/* AXIS_RTRIGGER        */ +1.f,
+	/* AXIS_LEFT_X          */ +60.f,
+	/* AXIS_LEFT_Y          */ -60.f,
+	/* AXIS_RIGHT_X         */ +60.f,
+	/* AXIS_RIGHT_Y         */ +60.f,
+	/* AXIS_LTRIGGER        */ +60.f,
+	/* AXIS_RTRIGGER        */ +60.f,
 };
 
 //
@@ -692,6 +692,8 @@ void UNSDLViewport::UpdateInput( UBOOL Reset )
 
 	SDL_Event Ev;
 	INT Tmp;
+	const FLOAT CurTime = appSeconds();
+	const FLOAT DeltaTime = CurTime - InputUpdateTime;
 
 	if( Reset )
 		appMemset( (void*)JoyAxis, 0, sizeof(JoyAxis) );
@@ -810,12 +812,14 @@ void UNSDLViewport::UpdateInput( UBOOL Reset )
 		{
 			const FLOAT FltValue = Clamp( Value / 32767.f, -1.f, 1.f );
 			FLOAT Scale = ( Key >= IK_JoyX && Key <= IK_JoyZ ) ? Client->ScaleXYZ : Client->ScaleRUV;
-			Scale *= JoyAxisDefaultScale[i];
+			Scale *= JoyAxisDefaultScale[i] * DeltaTime;
 			if ( ( Client->InvertV && Key == IK_JoyV ) || ( Client->InvertY && Key == IK_JoyY ) )
 				Scale = -Scale;
 			CauseInputEvent( Key, IST_Axis, FltValue * Scale );
 		}
 	}
+
+	InputUpdateTime = CurTime;
 
 	unguard;
 }
