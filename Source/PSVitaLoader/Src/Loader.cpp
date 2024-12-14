@@ -89,7 +89,7 @@ int main( int argc, const char** argv )
 	if ( !pmain )
 		FatalError( "Could not find main() in Unreal.bin:\n%s", vrtld_dlerror() );
 
-	vglInitWithCustomThreshold( 0, 960, 544, VGL_MEM_THRESHOLD, 0, 0, 0, SCE_GXM_MULTISAMPLE_NONE );
+	vglInitWithCustomThreshold( 0, 960, 544, VGL_MEM_THRESHOLD, 0, 0, 0, SCE_GXM_MULTISAMPLE_2X );
 
 	GMainArgc = 1;
 	snprintf( GMainArgvData[0], sizeof(*GMainArgvData), "%sUnreal.bin", GRootPath );
