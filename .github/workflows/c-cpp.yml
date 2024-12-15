@@ -173,3 +173,29 @@ jobs:
           name: unreal-arm-psvita-gcc
           path: bin/
           retention-days: 0
+
+  publish-latest-build:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    needs: [build-i686-windows-msvc, build-i686-windows-gcc, build-i686-linux-gcc, build-arm-psvita-gcc]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: ci-artifacts
+      - name: Publish latest dev-build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir ci-release
+          pushd ci-artifacts
+          tar czf ../ci-release/unreal-i686-linux-gcc.tar.gz unreal-i686-linux-gcc
+          zip -r ../ci-release/unreal-i686-windows-gcc.tar.gz unreal-i686-windows-gcc
+          zip -r ../ci-release/unreal-i686-windows-msvc.tar.gz unreal-i686-windows-msvc
+          zip -r ../ci-release/unreal-arm-psvita-gcc.zip unreal-arm-psvita-gcc
+          popd
+          git tag --force ci-dev-build port
+          git push --force origin ci-dev-build
+          gh release upload --clobber ci-dev-build ci-release/*
