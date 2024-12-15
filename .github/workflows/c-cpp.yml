@@ -167,6 +167,8 @@ jobs:
           cp build/RelWithDebInfo/* bin/unreal/System/
           cp Engine/Config/*.ini bin/unreal/System/
           cp build_psvita/UnrealLoader.vpk bin/unreal.vpk
+          sed -i -e 's/ViewportX=800/ViewportX=960/g' -e 's/ViewportY=600/ViewportY=544/g' -e 's/StartupFullscreen=False/StartupFullscreen=True/g' bin/unreal/System/Default.ini
+          sed -i -e 's/ViewportX=800/ViewportX=960/g' -e 's/ViewportY=600/ViewportY=544/g' -e 's/StartupFullscreen=False/StartupFullscreen=True/g' bin/unreal/System/Unreal.ini
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
