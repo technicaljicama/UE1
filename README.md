@@ -1,7 +1,7 @@
 ## What?
 
 Unreal Engine 1 v200 source with modifications to make it run on modern systems.  
-Requires assets from the original Unreal v200 retail release. Other versions have not been tested.
+Requires assets from the original Unreal v200 retail release or from the v205 demo. Other versions have not been tested.
 
 ## Changes from original source
 
@@ -9,37 +9,122 @@ Requires assets from the original Unreal v200 retail release. Other versions hav
 * Added GLES2 and fixed pipeline GL graphics drivers (NOpenGLESDrv and NOpenGLDrv).
 * Added OpenAL + libxmp audio driver (NOpenALDrv).
 * Added GCC support and fixed a bunch of related bugs.
-* 32-bit Windows and Linux builds are supported.
+* Supported platforms: Windows (x86), Linux (x86, ARM32) and PSVita (ARM32).
 * Editor UI is not supported.
 
-## Building and running
+## Running
 
-**With GCC on MINGW32 or Linux i686:**
-```
-cmake -Bbuild -G"Unix Makefiles" Source
-cmake --build build && cmake --install build --config Debug
-```
+### Linux and Windows
+1. Install the original retail v200 release of Unreal or the v205 demo.
+2. Copy over the new files:
+   * If you downloaded a ZIP from the Releases section:
+     1. Unzip said ZIP to the `Unreal` folder. Overwrite everything.
+   * If you built the game yourself:
+     1. Copy the .dll/.so/.exe/.bin files you built to `Unreal/System`. Overwrite everything.
+     2. Copy the contents of `Engine/Config` to `Unreal/System`. Overwrite everything.
+3. Run `System/Unreal.exe`.
 
-**With GCC on Linux x86_64:**
-```
-cmake -Bbuild -G"Unix Makefiles" Source -DCMAKE_C_COMPILER=i686-linux-gnu-gcc -DCMAKE_CXX_COMPILER=i686-linux-gnu-g++
-cmake --build build && cmake --install build --config Debug
-```
+### PSVita
+1. Ensure you have kubridge and libshacccg installed.
+2. Install the original retail v200 release of Unreal or the v205 demo onto your PC.
+3. Copy the contents of the `Unreal` folder to `ux0:/data/unreal/` on your PSVita.
+4. Copy the `unreal` folder from `unreal-arm-psvita-gcc.zip` to `ux0:/data/`. Overwrite everything.
+5. Install `unreal.vpk` from `unreal-arm-psvita-gcc.zip`.
+6. Run Unreal.
 
-**With VS2019:**
-```
-cmake -Bbuild -G"Visual Studio 16 2019" -A Win32 Source
-cmake --build build && cmake --install build --config Debug
-```
+## Building
 
-This will copy all resulting libraries and executables to `build/Debug`.
+### Windows x86 (MSYS2/MinGW)
+1. Install MSYS2.
+2. Open the `MINGW32` prompt. **Do not** use the `MINGW64` or `MSYS` prompts.
+3. Install dependencies: `pacman -S git make mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-SDL2 mingw-w64-i686-openal mingw-w64-i686-libxmp`
+4. Build:
+   ```
+   cmake -G"Unix Makefiles" -Bbuild Source
+   cmake --build build -j4 -- -O && cmake --install build
+   ```
+5. The resulting files will be in `build/RelWithDebInfo` by default.
 
-**To run:**
-* copy the above DLLs/EXEs to the `System` directory of your Unreal install;  
-* copy the configs from `Engine/Config` to the `System` directory;
-* run `Unreal.exe` or `Unreal.bin`.
+### Windows x86 (Visual Studio)
+1. Install VS2019 or VS2022. Dependencies are included in the repo.
+2. Build:
+   ```
+   cmake -Bbuild -G"Visual Studio 16 2019" -A Win32 Source # or -G"Visual Studio 17 2022"
+   cmake --build build && cmake --install build --config RelWithDebInfo
+   ```
+3. The resulting files will be in `build/RelWithDebInfo` by default.
 
-On Linux you might have to run all the `ini` and `int` files through `dos2unix`.
+### Linux x86
+1. Install git, make, cmake, gcc, g++, sdl2, libopenal, libxmp.
+   * If cross-compiling from x86_64, also install 32-bit versions of the libraries and gcc-multilib/g++-multilib.
+   * On Debian x86_64 this process looks something like this:
+     ```
+     sudo dpkg --add-architecture i386
+     sudo apt-get -y update
+     sudo apt-get -y install git gcc g++ gcc-multilib g++-multilib make cmake
+     sudo apt-get -y install libsdl2-dev libopenal-dev libxmp-dev libsdl2-dev:i386 libopenal-dev:i386 libxmp-dev:i386
+     ```
+2. Build:
+   ```
+   cmake -G"Unix Makefiles" -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32 -Bbuild Source # if on x86_64
+   cmake -G"Unix Makefiles" -Bbuild Source # if on i686
+   cmake --build build -j4 -- -O && cmake --install build
+   ```
+3. The resulting files will be in `build/RelWithDebInfo` by default.
+
+### Linux ARM
+1. Install git, make, cmake, gcc, g++, sdl2, libopenal, libxmp.
+   * If cross-compiling from ARM64, also install armhf versions of the libraries and arm-linux-gnueabihf-gcc/g++.
+   * On Debian x86_64 or ARM64 this process looks something like this:
+     ```
+     sudo dpkg --add-architecture armhf
+     sudo apt-get -y update
+     sudo apt-get -y install git gcc g++ crossbuild-essential-armhf make cmake
+     sudo apt-get -y install libsdl2-dev libopenal-dev libxmp-dev libsdl2-dev:armhf libopenal-dev:armhf libxmp-dev:armhf
+     ```
+2. Build:
+   ```
+   cmake -G"Unix Makefiles" -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc-12 -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++-12 -Bbuild Source
+   cmake --build build -j4 -- -O && cmake --install build
+   ```
+3. The resulting files will be in `build/RelWithDebInfo` by default.
+
+### PSVita (on Linux or WSL)
+1. Follow the instructions above to build the game for ARM Linux, **but** add `-DBUILD_FOR_PSVITA=ON` to the first cmake invocation, i.e.:
+   ```
+   cmake -G"Unix Makefiles" -DCMAKE_CROSSCOMPILING=ON -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc-12 -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++-12 -Bbuild -DBUILD_FOR_PSVITA=ON Source
+   ```
+3. Install VitaSDK with all VDPM packages and ensure the `VITASDK` environment variable is set and `$VITASDK/bin` is in your `PATH`.
+4. Build and install vitaGL:
+   ```
+   git clone --recursive https://github.com/Rinnegatamante/vitaGL
+   make -C vitaGL HAVE_GLSL_SUPPORT=1 CIRCULAR_VERTEX_POOL=2 -j install
+   ```
+5. Build and install SDL2:
+   ```
+   git clone --recursive --branch vitagl https://github.com/Northfear/SDL
+   pushd SDL
+   cmake -S. -Bbuild -DCMAKE_TOOLCHAIN_FILE=${VITASDK}/share/vita.toolchain.cmake -DCMAKE_BUILD_TYPE=Release -DVIDEO_VITA_VGL=ON
+   cmake --build build -- -j
+   cmake --install build
+   popd
+   ```
+6. Build and install vita-rtld:
+   ```
+   git clone https://github.com/fgsfdsfgs/vita-rtld
+   pushd vita-rtld
+   cmake -S. -Bbuild -DCMAKE_TOOLCHAIN_FILE=${VITASDK}/share/vita.toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+   cmake --build build -- -j
+   cmake --install build
+   popd
+   ```
+7. Build the VPK:
+   ```
+   cmake -G"Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="${VITASDK}/share/vita.toolchain.cmake" -Bbuild_psvita -DCMAKE_BUILD_TYPE=RelWithDebInfo Source/PSVitaLoader
+   cmake --build build_psvita -j
+   ```
+8. The libraries will be in `build/RelWithDebInfo` by default. They have to be copied to `ux0:/data/unreal/System`.
+9. The VPK will be in `build_psvita/`. It has to be installed on the target PSVita.
 
 ## Note
 
