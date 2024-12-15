@@ -58,6 +58,8 @@ int main( int argc, const char** argv )
 	if ( vrtld_init( VRTLD_TARGET2_IS_GOT ) < 0 )
 		FatalError( "Could not init vrtld:\n%s", vrtld_dlerror() );
 
+	atexit( vrtld_quit );
+
 	if ( !FindRootPath( GRootPath, sizeof(GRootPath) ) )
 		FatalError( "Could not find Unreal directory" );
 
@@ -115,9 +117,6 @@ int main( int argc, const char** argv )
 	}
 
 	Logf( "exited main, shutting down" );
-
-	vrtld_quit();
-	sceKernelExitProcess( 0 );
 
 	return 0;
 }
