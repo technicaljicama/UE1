@@ -192,8 +192,8 @@ jobs:
           mkdir ci-release
           pushd ci-artifacts
           tar czf ../ci-release/unreal-i686-linux-gcc.tar.gz unreal-i686-linux-gcc
-          zip -r ../ci-release/unreal-i686-windows-gcc.tar.gz unreal-i686-windows-gcc
-          zip -r ../ci-release/unreal-i686-windows-msvc.tar.gz unreal-i686-windows-msvc
+          zip -r ../ci-release/unreal-i686-windows-gcc.zip unreal-i686-windows-gcc
+          zip -r ../ci-release/unreal-i686-windows-msvc.zip unreal-i686-windows-msvc
           zip -r ../ci-release/unreal-arm-psvita-gcc.zip unreal-arm-psvita-gcc
           popd
           git tag --force ci-dev-build master
