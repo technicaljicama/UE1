@@ -13,6 +13,7 @@
 enum EUniformIndex
 {
 	UF_Mtx,
+	UF_Brightness,
 	UF_Texture0,
 	UF_Texture1,
 	UF_Texture2,
@@ -124,6 +125,7 @@ class DLL_EXPORT UNOpenGLESRenderDevice : public URenderDevice
 	// Current state.
 	DWORD CurrentShaderFlags;
 	DWORD CurrentPolyFlags;
+	FLOAT CurrentBrightness;
 	FLOAT RProjZ, Aspect;
 	FLOAT RFX2, RFY2;
 	glm::mat4 MtxProj;
@@ -146,6 +148,7 @@ class DLL_EXPORT UNOpenGLESRenderDevice : public URenderDevice
 	// URenderDevice interface.
 	virtual UBOOL Init( UViewport* InViewport ) override;
 	virtual void Exit() override;
+	virtual void PostEditChange() override;
 	virtual void Flush() override;
 	virtual UBOOL Exec( const char* Cmd, FOutputDevice* Out ) override;
 	virtual void Lock( FPlane FlashScale, FPlane FlashFog, FPlane ScreenClear, DWORD RenderLockFlags, BYTE* InHitData, INT* InHitSize ) override;

@@ -20,6 +20,8 @@ varying lowp vec4 vVtxColor;
 varying lowp vec4 vVtxFog;
 #endif
 
+uniform lowp float uBrightness;
+
 #ifdef SF_Texture0
 uniform sampler2D uTexture0;
 #endif
@@ -90,6 +92,8 @@ void main()
 #ifdef SF_VtxFog
 	Out.rgb = vVtxFog.rgb + Out.rgb * (1.0 - vVtxFog.a);
 #endif
+
+	Out.rgb *= 0.5 + uBrightness;
 
 	gl_FragColor = Out;
 }

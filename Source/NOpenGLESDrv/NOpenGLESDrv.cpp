@@ -78,6 +78,7 @@ UNOpenGLESRenderDevice::UNOpenGLESRenderDevice()
 	NoFiltering = false;
 	UseVAO = false;
 	UseBGRA = true;
+	CurrentBrightness = -1.f;
 }
 
 UBOOL UNOpenGLESRenderDevice::Init( UViewport* InViewport )
@@ -160,6 +161,7 @@ UBOOL UNOpenGLESRenderDevice::Init( UViewport* InViewport )
 
 	CurrentPolyFlags = PF_Occlude;
 	CurrentShaderFlags = 0;
+	CurrentBrightness = -1.f;
 	Viewport = InViewport;
 
 	return true;
@@ -180,6 +182,15 @@ void UNOpenGLESRenderDevice::Exit()
 		Compose = NULL;
 	}
 	ComposeSize = 0;
+
+	unguard;
+}
+
+void UNOpenGLESRenderDevice::PostEditChange()
+{
+	guard(UNOpenGLESRenderDevice::PostEditChange)
+
+	Super::PostEditChange();
 
 	unguard;
 }
@@ -216,6 +227,18 @@ void UNOpenGLESRenderDevice::Lock( FPlane FlashScale, FPlane FlashFog, FPlane Sc
 	glClearColor( 1.f, ScreenClear.Y, ScreenClear.Z, ScreenClear.W );
 	glClearDepthf( 1.f );
 	glDepthFunc( GL_LEQUAL );
+
+	FLOAT TargetBrightness = CurrentBrightness;
+	if( Viewport && Viewport->Client )
+		TargetBrightness = Viewport->Client->Brightness;
+	else if( CurrentBrightness < 0.f )
+		TargetBrightness = 0.5f;
+
+	if( CurrentBrightness != TargetBrightness )
+	{
+		CurrentBrightness = TargetBrightness;
+		UniformsChanged[UF_Brightness] = true;
+	}
 
 	SetBlend( PF_Occlude );
 	SetShader( CurrentShaderFlags );
@@ -506,6 +529,13 @@ void UNOpenGLESRenderDevice::UpdateUniforms()
 		UniformsChanged[UF_Mtx] = false;
 	}
 
+	if( UniformsChanged[UF_Brightness] )
+	{
+		FlushTriangles();
+		if( Viewport && Viewport->Client )
+			glUniform1f( ShaderInfo->Uniforms[UF_Brightness], Viewport->Client->Brightness );
+	}
+
 	for( INT i = UF_Texture0; i <= UF_Texture3; ++i )
 	{
 		if( UniformsChanged[i] && ShaderInfo->Uniforms[i] >= 0 )
@@ -554,7 +584,7 @@ UNOpenGLESRenderDevice::FCachedShader* UNOpenGLESRenderDevice::CreateShader( DWO
 	};
 
 	static const char* UniformNames[UF_Count] = {
-		"uMtx", "uTexture0", "uTexture1", "uTexture2", "uTexture3"
+		"uMtx", "uBrightness", "uTexture0", "uTexture1", "uTexture2", "uTexture3"
 	};
 
 	static const char* AttribNames[AT_Count] = {
