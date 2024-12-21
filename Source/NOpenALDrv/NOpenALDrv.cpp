@@ -220,7 +220,9 @@ void UNOpenALAudioSubsystem::ShutdownAfterError()
 
 void UNOpenALAudioSubsystem::PostEditChange()
 {
-	guard(UNOpenALAudioSubsystem::Destroy)
+	guard(UNOpenALAudioSubsystem::PostEditChange)
+
+	Super::PostEditChange();
 
 	FScopedLock Lock( MusicMutex );
 
