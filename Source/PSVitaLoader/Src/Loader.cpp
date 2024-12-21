@@ -155,6 +155,9 @@ int main( int argc, const char** argv )
 		FatalError( "Unhandled exception:\n%d", Err );
 	}
 
+	// don't call this if we've left main, the game will save by itself at this point
+	GSuspendCallback = nullptr;
+
 	Logf( "exited main, shutting down" );
 
 	return 0;
