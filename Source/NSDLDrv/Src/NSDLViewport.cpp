@@ -690,22 +690,65 @@ void UNSDLViewport::UpdateInput( UBOOL Reset )
 {
 	guard(UNSDLViewport::UpdateInput);
 
+	if( Reset )
+		appMemset( (void*)JoyAxis, 0, sizeof(JoyAxis) );
+
+	unguard;
+}
+
+//
+// If the cursor is currently being captured, stop capturing, clipping, and 
+// hiding it, and move its position back to where it was when it was initially
+// captured.
+//
+void UNSDLViewport::SetMouseCapture( UBOOL Capture, UBOOL Clip, UBOOL OnlyFocus )
+{
+	guard(UNSDLViewport::SetMouseCapture);
+
+	// If only focus, reject.
+	if( OnlyFocus )
+		if( hWnd != SDL_GetMouseFocus() )
+			return;
+
+	// If capturing, windows requires clipping in order to keep focus.
+	Clip |= Capture;
+
+	// Handle capturing.
+	SDL_SetRelativeMouseMode( (SDL_bool)Capture );
+
+	unguard;
+}
+
+UBOOL UNSDLViewport::CauseInputEvent( INT iKey, EInputAction Action, FLOAT Delta )
+{
+	guard(UWindowsViewport::CauseInputEvent);
+
+	// Route to engine if a valid key
+	if( iKey > 0 )
+		return Client->Engine->InputEvent( this, (EInputKey)iKey, Action, Delta );
+	else
+		return 0;
+
+	unguard;
+}
+
+UBOOL UNSDLViewport::TickInput()
+{
+	guard(UNSDLViewport::TickInput);
+
 	SDL_Event Ev;
 	INT Tmp;
 	const FLOAT CurTime = appSeconds();
 	const FLOAT DeltaTime = CurTime - InputUpdateTime;
-
-	if( Reset )
-		appMemset( (void*)JoyAxis, 0, sizeof(JoyAxis) );
 
 	while( SDL_PollEvent( &Ev ) )
 	{
 		switch( Ev.type )
 		{
 			case SDL_QUIT:
-				// signal to client next time it calls TickInput
+				// signal to client and remember set a flag just in case
 				QuitRequested = true;
-				return;
+				return true;
 			case SDL_TEXTINPUT:
 				for( const char *p = Ev.text.text; *p && p < Ev.text.text + sizeof( Ev.text.text ); ++p )
 				{
@@ -821,48 +864,9 @@ void UNSDLViewport::UpdateInput( UBOOL Reset )
 
 	InputUpdateTime = CurTime;
 
-	unguard;
-}
-
-//
-// If the cursor is currently being captured, stop capturing, clipping, and 
-// hiding it, and move its position back to where it was when it was initially
-// captured.
-//
-void UNSDLViewport::SetMouseCapture( UBOOL Capture, UBOOL Clip, UBOOL OnlyFocus )
-{
-	guard(UNSDLViewport::SetMouseCapture);
-
-	// If only focus, reject.
-	if( OnlyFocus )
-		if( hWnd != SDL_GetMouseFocus() )
-			return;
-
-	// If capturing, windows requires clipping in order to keep focus.
-	Clip |= Capture;
-
-	// Handle capturing.
-	SDL_SetRelativeMouseMode( (SDL_bool)Capture );
-
-	unguard;
-}
-
-UBOOL UNSDLViewport::CauseInputEvent( INT iKey, EInputAction Action, FLOAT Delta )
-{
-	guard(UWindowsViewport::CauseInputEvent);
-
-	// Route to engine if a valid key
-	if( iKey > 0 )
-		return Client->Engine->InputEvent( this, (EInputKey)iKey, Action, Delta );
-	else
-		return 0;
-
-	unguard;
-}
-
-UBOOL UNSDLViewport::TickInput()
-{
 	return QuitRequested;
+
+	unguard;
 }
 
 /*-----------------------------------------------------------------------------
