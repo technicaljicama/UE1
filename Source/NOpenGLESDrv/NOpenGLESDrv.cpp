@@ -532,8 +532,7 @@ void UNOpenGLESRenderDevice::UpdateUniforms()
 	if( UniformsChanged[UF_Brightness] )
 	{
 		FlushTriangles();
-		if( Viewport && Viewport->Client )
-			glUniform1f( ShaderInfo->Uniforms[UF_Brightness], Viewport->Client->Brightness );
+		glUniform1f( ShaderInfo->Uniforms[UF_Brightness], CurrentBrightness );
 	}
 
 	for( INT i = UF_Texture0; i <= UF_Texture3; ++i )
