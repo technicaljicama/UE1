@@ -533,6 +533,7 @@ void UNOpenGLESRenderDevice::UpdateUniforms()
 	{
 		FlushTriangles();
 		glUniform1f( ShaderInfo->Uniforms[UF_Brightness], CurrentBrightness );
+		UniformsChanged[UF_Brightness] = false;
 	}
 
 	for( INT i = UF_Texture0; i <= UF_Texture3; ++i )
