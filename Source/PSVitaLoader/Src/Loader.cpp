@@ -7,6 +7,7 @@
 #include "PSVitaLauncherPrivate.h"
 
 typedef int (*unreal_main_fn)(int argc, const char **argv);
+typedef void (*unreal_suspend_fn)( UBOOL bIsSuspended );
 
 // 200MB libc heap, 512K main thread stack, 16MB for loading game DLLs
 // the rest goes to vitaGL
@@ -24,6 +25,8 @@ void* GMainElf = nullptr;
 int GMainArgc = 1;
 char GMainArgvData[MAX_ARGV_NUM][MAX_PATH];
 const char* GMainArgv[MAX_ARGV_NUM];
+
+unreal_suspend_fn GSuspendCallback = nullptr;
 
 static bool FindRootPath( char* Out, int OutLen )
 {
@@ -44,6 +47,34 @@ static bool FindRootPath( char* Out, int OutLen )
 
 	// not found
 	return false;
+}
+
+static INT PowerCallback( INT NotifyID, INT NotifyCnt, INT PowerInfo, void* Common )
+{
+	if( !GSuspendCallback )
+		return 0;
+
+	if ( PowerInfo & ( SCE_POWER_CB_APP_RESUME | SCE_POWER_CB_APP_RESUMING ) )
+	{
+		Logf( "PowerCallback: resuming..." );
+		GSuspendCallback( false );
+	}
+	else if ( PowerInfo & ( SCE_POWER_CB_BUTTON_PS_PRESS | SCE_POWER_CB_APP_SUSPEND | SCE_POWER_CB_SYSTEM_SUSPEND ) )
+	{
+		Logf( "PowerCallback: suspending..." );
+		GSuspendCallback( true );
+	}
+
+	return 0;
+}
+
+static INT CallbackThread( DWORD Argc, void* Argv )
+{
+	const INT CbID = sceKernelCreateCallback( "Power Callback", 0, PowerCallback, nullptr );
+	scePowerRegisterCallback( CbID );
+	while( true )
+		sceKernelDelayThreadCB( 10000000 );
+	return 0;
 }
 
 int main( int argc, const char** argv )
@@ -78,9 +109,9 @@ int main( int argc, const char** argv )
 	if ( !GEngineElf )
 		FatalError( "Could not load Core.so:\n%s", vrtld_dlerror() );
 
-	// then force vrtld to reloc and init the libs
-	vrtld_dlsym( GCoreElf, "?" );
-	vrtld_dlsym( GEngineElf, "?" );
+	// then force vrtld to reloc and init the libs, and get the suspend cb pointer
+	GSuspendCallback = (unreal_suspend_fn)vrtld_dlsym( GCoreElf, "appHandleSuspendResume" );
+	vrtld_dlsym( GEngineElf, "GPackage" );
 	vrtld_dlerror();
 
 	GMainElf = vrtld_dlopen( "Unreal.bin", VRTLD_GLOBAL | VRTLD_NOW );
@@ -90,6 +121,14 @@ int main( int argc, const char** argv )
 	unreal_main_fn pmain = (unreal_main_fn)vrtld_dlsym( GMainElf, "main" );
 	if ( !pmain )
 		FatalError( "Could not find main() in Unreal.bin:\n%s", vrtld_dlerror() );
+
+	if( GSuspendCallback )
+	{
+		Logf( "suspend callback at %p, starting power callback thread...", GSuspendCallback );
+		SceUID Th = sceKernelCreateThread( "CallbackThread", CallbackThread, 0x10000100, 0x10000, 0, 0, nullptr );
+		if( Th >= 0 )
+			sceKernelStartThread( Th, 0, nullptr );
+	}
 
 	vglInitWithCustomThreshold( 0, 960, 544, VGL_MEM_THRESHOLD, 0, 0, 0, SCE_GXM_MULTISAMPLE_2X );
 

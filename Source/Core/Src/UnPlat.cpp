@@ -1440,6 +1440,16 @@ void SetConfigBool
 	unguard;
 }
 
+//
+// Write all currently registered configs.
+//
+UBOOL SaveAllConfigs()
+{
+	guard(SaveAllConfigs);
+	return GConfigCache.SaveAllConfigs();
+	unguard;
+}
+
 /*-----------------------------------------------------------------------------
 	Guids.
 -----------------------------------------------------------------------------*/
@@ -1566,6 +1576,20 @@ CORE_API const char* appPackage()
 #endif
 	}
 	return AppPackage;
+}
+
+/*-----------------------------------------------------------------------------
+	Callback for some platforms to call when the process is being suspended or resumed.
+-----------------------------------------------------------------------------*/
+
+extern "C" CORE_API void appHandleSuspendResume( UBOOL bIsSuspending )
+{
+	// When suspending, force-write all config changes.
+	if( GIsStarted && GSys && bIsSuspending )
+	{
+		debugf( "App might be suspending, saving configs..." );
+		SaveAllConfigs();
+	}
 }
 
 /*-----------------------------------------------------------------------------

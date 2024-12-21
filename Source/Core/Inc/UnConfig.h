@@ -140,6 +140,8 @@ public:
 
 	FConfigFile* FindConfig( const char* Filename, UBOOL CreateIfNotFound );
 
+	UBOOL SaveAllConfigs();
+
 protected:
 	char DefaultIni[MAX_INI_NAME + 1];
 	TArray<FConfigFile*> Configs;

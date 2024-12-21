@@ -272,6 +272,19 @@ FConfigFile* FConfigCache::FindConfig( const char* InFilename, UBOOL CreateIfNot
 	unguard;
 }
 
+UBOOL FConfigCache::SaveAllConfigs()
+{
+	guard(FConfigCache::SaveAllConfigs);
+	UBOOL Ret = true;
+	for( TIterator<FConfigFile*> It(Configs); It; ++It )
+	{
+		if ( !It.GetCurrent()->Write() )
+			Ret = false;
+	}
+	return Ret;
+	unguard;
+}
+
 /*-----------------------------------------------------------------------------
-	The End.
------------------------------------------------------------------------------*/
+   The End.
+ -----------------------------------------------------------------------------*/
