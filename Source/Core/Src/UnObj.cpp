@@ -2307,7 +2307,9 @@ UBOOL FObjectManager::SavePackage( UObject* InParent, UObject* Base, DWORD TopLe
 	}
 	catch( char* Error )
 	{
-		// Delete the temporary file.
+		// Close and delete the temporary file.
+		if( Linker )
+			Linker->Close();
 		appUnlink( TempFilename );
 		if( NoWarn )
 			debugf( NAME_Warning, LocalizeError("FailedSaveFile"), Filename, Error );
@@ -2316,6 +2318,8 @@ UBOOL FObjectManager::SavePackage( UObject* InParent, UObject* Base, DWORD TopLe
 	}
 	if( Linker )
 	{
+		// Explicit close just in case.
+		Linker->Close();
 		delete Linker;
 	}
 	uunclock(Time); debugf(NAME_Log,"Save=%f",GSecondsPerCycle*1000*Time);

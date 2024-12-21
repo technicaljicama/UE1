@@ -547,7 +547,11 @@ void appInit()
 	appEnableFastMath( 0 );
 
 	// Handle operator new allocation errors.
-	std::set_new_handler(UnrealAllocationErrorHandler);
+	std::set_new_handler( UnrealAllocationErrorHandler );
+
+	// Remove stray Save.tmp if it's still present for some reason.
+	snprintf( Temp, sizeof(Temp), "%s/Save.tmp", GSys->SavePath );
+	appUnlink( Temp );
 }
 
 //

@@ -159,10 +159,7 @@ public:
 	~FArchiveFileSave()
 	{
 		guard(FArchiveFileSave::~FArchiveFileSave);
-		Flush();
-		if( File )
-			appFclose( File );
-		File = NULL;
+		Close();
 		unguard;
 	}
 	virtual void Seek( INT InPos )
@@ -202,6 +199,15 @@ public:
 			if( appFwrite( Buffer, 1, BufferCount, File ) != BufferCount )
 				throw( LocalizeError("WriteFailed"), Filename );
 		BufferCount=0;
+	}
+	void Close()
+	{
+		if( File )
+		{
+			Flush();
+			appFclose( File );
+			File = NULL;
+		}
 	}
 	INT   BufferCount;
 	BYTE  Buffer[4096];
