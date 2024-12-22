@@ -97,7 +97,10 @@ void get_ieee_node_identifier( byte* nodeid )
 	static unsigned32 ip32 = 0;
 	unsigned16 random16;
 
-#ifndef PLATFORM_WIN32
+#ifdef PLATFORM_PSVITA
+	// gethostname/gethostbyname are unavailable when WLAN is turned off
+	ip32 = 0x0100007f; // 127.0.0.1
+#elif !defined(PLATFORM_WIN32)
 	struct hostent *hinfo;
 	char hname[256];
 	if (ip32 == 0)
