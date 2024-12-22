@@ -938,13 +938,15 @@ CORE_API UBOOL appMoveFile( const char* Src, const char* Dest )
 {
 	guard(appMoveFile);
 
+	unlink( Dest );
+
 #ifdef PLATFORM_WIN32
 	//warning: MoveFileEx is broken on Windows 95 (Microsoft bug).
-	unlink( Dest );
 	UBOOL Success = MoveFile( Src, Dest )!=0;
 #else
 	UBOOL Success = rename( Src, Dest )==0;
 #endif
+
 	if( !Success )
 		debugf( NAME_Warning, "Error moving file '%s' to '%s'", Src, Dest );
 
