@@ -30,37 +30,6 @@
 	Editor private definitions.
 -----------------------------------------------------------------------------*/
 
-//
-// Quality level for rebuilding Bsp.
-//
-enum EBspOptimization
-{
-	BSP_Lame,
-	BSP_Good,
-	BSP_Optimal
-};
-
-//
-// Things to set in mapSetBrush.
-//
-enum EMapSetBrushFlags				
-{
-	MSB_BrushColor	= 1,			// Set brush color.
-	MSB_Group		= 2,			// Set group.
-	MSB_PolyFlags	= 4,			// Set poly flags.
-};
-
-//
-// Possible positions of a child Bsp node relative to its parent (for BspAddToNode).
-//
-enum ENodePlace 
-{
-	NODE_Back		= 0, // Node is in back of parent              -> Bsp[iParent].iBack.
-	NODE_Front		= 1, // Node is in front of parent             -> Bsp[iParent].iFront.
-	NODE_Plane		= 2, // Node is coplanar with parent           -> Bsp[iParent].iPlane.
-	NODE_Root		= 3, // Node is the Bsp root and has no parent -> Bsp[0].
-};
-
 EDITOR_API extern class FGlobalTopicTable GTopics;
 
 /*-----------------------------------------------------------------------------

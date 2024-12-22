@@ -1,9 +1,5 @@
 project(Editor CXX)
 
-if(NOT TARGET_IS_WINDOWS)
-  message(FATAL_ERROR "Editor is for Windows only.")
-endif()
-
 set(SRC_FILES
   "Src/CoolBsp.cpp"
   "Src/UnBsp.cpp"
@@ -23,9 +19,16 @@ set(SRC_FILES
   "Src/UnSyntax.cpp"
   "Src/UnTopics.cpp"
   "Src/UnVisi.cpp"
-  "Src/EdHook.cpp"
   "Src/Editor.cpp"
 )
+
+if(NOT TARGET_IS_WINDOWS OR NOT BUILD_WINDRV)
+  message(STATUS "Building stripped down Editor.")
+  list(APPEND SRC_FILES "Src/NullEdHook.cpp")
+else()
+  message(STATUS "Building Win32 GUI Editor.")
+  list(APPEND SRC_FILES "Src/Win32EdHook.cpp")
+endif()
 
 add_library(${PROJECT_NAME} SHARED ${SRC_FILES})
 
@@ -36,6 +39,9 @@ target_include_directories(${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/Src
 )
 
-target_link_libraries(${PROJECT_NAME} Window Engine Core)
+target_link_libraries(${PROJECT_NAME} Engine Core)
+if(TARGET_IS_WINDOWS AND BUILD_WINDRV)
+  target_link_libraries(${PROJECT_NAME} Window)
+endif()
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE EDITOR_EXPORTS)

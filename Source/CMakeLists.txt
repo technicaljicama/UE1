@@ -15,7 +15,7 @@ endif()
 # Options
 
 option(USE_SDL "Use NSDLDrv instead of WinDrv" ON)
-option(BUILD_EDITOR "Build Editor (Windows only)" OFF)
+option(BUILD_EDITOR "Build Editor (GUI support requires Windows)" ON)
 option(BUILD_SOFTDRV "Build SoftDrv (x86/MSVC only)" OFF)
 option(BUILD_NOPENGLDRV "Build NOpenGLDrv" OFF)
 option(BUILD_NOPENGLESDRV "Build NOpenGLESDrv" ON)
@@ -232,7 +232,7 @@ else()
   set(BUILD_NOPENGLESDRV OFF)
 endif()
 
-if(BUILD_WINDRV OR BUILD_EDITOR)
+if(BUILD_WINDRV)
   add_subdirectory(Window)
   add_subdirectory(WinDrv)
   list(APPEND INSTALL_TARGETS Window WinDrv)
@@ -264,7 +264,7 @@ if(BUILD_NOPENALDRV)
 endif()
 
 if(BUILD_EDITOR)
-  # this requires WinDrv
+  # GUI requires WinDrv
   add_subdirectory(Editor)
   list(APPEND INSTALL_TARGETS Editor)
 endif()

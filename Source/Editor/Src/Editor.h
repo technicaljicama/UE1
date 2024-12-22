@@ -90,6 +90,37 @@ enum ETexAlign
 	TEXALIGN_WallColumn		= 5,	// Align as wall on column.
 };
 
+//
+// Possible positions of a child Bsp node relative to its parent (for BspAddToNode).
+//
+enum ENodePlace 
+{
+	NODE_Back		= 0, // Node is in back of parent              -> Bsp[iParent].iBack.
+	NODE_Front		= 1, // Node is in front of parent             -> Bsp[iParent].iFront.
+	NODE_Plane		= 2, // Node is coplanar with parent           -> Bsp[iParent].iPlane.
+	NODE_Root		= 3, // Node is the Bsp root and has no parent -> Bsp[0].
+};
+
+//
+// Quality level for rebuilding Bsp.
+//
+enum EBspOptimization
+{
+	BSP_Lame,
+	BSP_Good,
+	BSP_Optimal
+};
+
+//
+// Things to set in mapSetBrush.
+//
+enum EMapSetBrushFlags				
+{
+	MSB_BrushColor	= 1,			// Set brush color.
+	MSB_Group		= 2,			// Set group.
+	MSB_PolyFlags	= 4,			// Set poly flags.
+};
+
 /*-----------------------------------------------------------------------------
 	FEditorHitObserver.
 -----------------------------------------------------------------------------*/
@@ -426,7 +457,7 @@ class EDITOR_API UEditorEngine : public UEngine, public FNotifyHook
 	virtual INT		bspAddVector		(UModel *Model, FVector *V, int Exact);
 	virtual INT		bspAddPoint			(UModel *Model, FVector *V, int Exact);
 	virtual int		bspNodeToFPoly		(UModel *Model, INT iNode, FPoly *EdPoly);
-	virtual void	bspBuild			(UModel *Model, enum EBspOptimization Opt, INT Balance, INT RebuildSimplePolys, INT iNode );
+	virtual void	bspBuild			(UModel* Model, EBspOptimization Opt, INT Balance, INT RebuildSimplePolys, INT iNode);
 	virtual void	bspRefresh			(UModel *Model,int NoRemapSurfs);
 	virtual void	bspCleanup 			(UModel *Model);
 	virtual void	bspBuildBounds		(UModel *Model);

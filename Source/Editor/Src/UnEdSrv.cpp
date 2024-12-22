@@ -63,12 +63,20 @@ UBOOL UEditorEngine::SafeExec( const char* InStr, FOutputDevice* Out )
 				{
 					Texture->SetFlags( RF_Public|RF_Standalone );
 					DWORD TexFlags=0;
+					UTexture* BumpMap = Texture->BumpMap;
+					UTexture* DetailTexture = Texture->DetailTexture;
+					UTexture* MacroTexture = Texture->MacroTexture;
+					UTexture* AnimNext = Texture->AnimNext;
 					Parse( Str, "TexFlags=", TexFlags );
 					Parse( Str, "FLAGS=",    Texture->PolyFlags );
-					ParseObject<UTexture>( Str, "BUMP=", Texture->BumpMap, ANY_PACKAGE );
-					ParseObject<UTexture>( Str, "DETAIL=", Texture->DetailTexture, ANY_PACKAGE );
-					ParseObject<UTexture>( Str, "MTEX=", Texture->MacroTexture, ANY_PACKAGE );
-					ParseObject<UTexture>( Str, "NEXT=", Texture->AnimNext, ANY_PACKAGE );
+					ParseObject<UTexture>( Str, "BUMP=", BumpMap, ANY_PACKAGE );
+					ParseObject<UTexture>( Str, "DETAIL=", DetailTexture, ANY_PACKAGE );
+					ParseObject<UTexture>( Str, "MTEX=", MacroTexture, ANY_PACKAGE );
+					ParseObject<UTexture>( Str, "NEXT=", AnimNext, ANY_PACKAGE );
+					Texture->BumpMap = BumpMap;
+					Texture->DetailTexture = DetailTexture;
+					Texture->MacroTexture = MacroTexture;
+					Texture->AnimNext = AnimNext;
 					Texture->CreateMips( DoMips, 1 );
 					Texture->CreateColorRange();
 					debugf( NAME_Log, "Imported %s", Texture->GetFullName() );

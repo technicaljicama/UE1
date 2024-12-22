@@ -539,7 +539,7 @@ void MoveActors( ULevel* Level, FVector Delta, FRotator DeltaRot, UBOOL Constrai
 -----------------------------------------------------------------------------*/
 
 struct FPolyVertex {
-	FPolyVertex::FPolyVertex( INT i, INT j ) : PolyIndex(i), VertexIndex(j) {};
+	FPolyVertex( INT i, INT j ) : PolyIndex(i), VertexIndex(j) {};
 	INT PolyIndex;
 	INT VertexIndex;
 };
