@@ -769,7 +769,10 @@ void APawn::physWalking(FLOAT deltaTime, INT Iterations)
 						bHitSlopedWall = 1;
 					FLOAT DesiredDist = subMove.Size();
 					FLOAT ActualDist = (Location - subLoc).Size2D();
-					remainingTime += timeTick * (1 - Min(1.f,ActualDist/DesiredDist)); 
+					if (DesiredDist == 0.0f)
+						remainingTime = 0;
+					else
+						remainingTime += timeTick * (1 - Min(1.f,ActualDist/DesiredDist)); 
 					Velocity.Z = 0.0;
 					eventFalling();
 					if (Physics == PHYS_Walking)
