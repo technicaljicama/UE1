@@ -589,8 +589,9 @@ void ULevel::Tick( ELevelTick TickType, FLOAT DeltaSeconds )
 	if( Info->bPlayersOnly )
 		TickType = LEVELTICK_ViewportsOnly;
 
-	// Clamp time between 200 fps and 2.5 fps.
-	DeltaSeconds = Clamp(DeltaSeconds,0.005f,0.40f);
+	// Clamp time between 1000 fps and 2.5 fps.
+	// Generally it is more useful to outright disable this line as 1000+ FPS will speed the game up.
+	DeltaSeconds = Clamp(DeltaSeconds,0.001f,0.40f);
 
 	// If caller wants time update only, or we are paused, skip the rest.
 	if
