@@ -19,7 +19,7 @@ IMPLEMENT_CLASS(UNOpenGLRenderDevice);
 // so we potentially need two copies of any palettized texture in the cache
 // unlike in newer unreal versions the low cache bits are actually used, so we have use one of the
 // actually unused higher bits for this purpose, thereby breaking 64-bit compatibility for now
-#define MASKED_TEXTURE_TAG (1 << 60)
+#define MASKED_TEXTURE_TAG (1ULL << 60)
 
 // FColor is adjusted for endianness
 #define ALPHA_MASK 0xff000000
@@ -30,16 +30,23 @@ IMPLEMENT_CLASS(UNOpenGLRenderDevice);
 // and it also would be nice to overbright them
 #define LIGHTMAP_OVERBRIGHT 1.4f
 
+#define GL_CHECK_EXT(ext) GLAD_GL_ ## ext
+#define GL_CHECK_VER(maj, min) (((maj) * 10 + (min)) >= (GLVersion.major * 10 + GLVersion.minor))
+
 void UNOpenGLRenderDevice::InternalClassInitializer( UClass* Class )
 {
 	guardSlow(UNOpenGLRenderDevice::InternalClassInitializer);
-	new(Class, "NoFiltering", RF_Public)UBoolProperty( CPP_PROPERTY(NoFiltering), "Options", CPF_Config );
+	new(Class, "NoFiltering",  RF_Public)UBoolProperty( CPP_PROPERTY(NoFiltering),  "Options", CPF_Config );
+	new(Class, "UseHwPalette", RF_Public)UBoolProperty( CPP_PROPERTY(UseHwPalette), "Options", CPF_Config );
+	new(Class, "UseBGRA",      RF_Public)UBoolProperty( CPP_PROPERTY(UseBGRA),      "Options", CPF_Config );
 	unguardSlow;
 }
 
 UNOpenGLRenderDevice::UNOpenGLRenderDevice()
 {
 	NoFiltering = false;
+	UseHwPalette = true;
+	UseBGRA = true;
 }
 
 UBOOL UNOpenGLRenderDevice::Init( UViewport* InViewport )
@@ -54,6 +61,18 @@ UBOOL UNOpenGLRenderDevice::Init( UViewport* InViewport )
 
 	SupportsFogMaps = true;
 	SupportsDistanceFog = true;
+
+	if( UseHwPalette && !GL_CHECK_EXT( EXT_paletted_texture ) )
+	{
+		debugf( NAME_Warning, "EXT_paletted_texture not available, disabling UseHwPalette" );
+		UseHwPalette = false;
+	}
+
+	if( UseBGRA && !GL_CHECK_VER( 1, 2 ) && !GL_CHECK_EXT( EXT_bgra ) )
+	{
+		debugf( NAME_Warning, "EXT_bgra not available, disabling UseBGRA" );
+		UseBGRA = false;
+	}
 
 	debugf( NAME_Log, "Got OpenGL %d.%d", GLVersion.major, GLVersion.minor );
 
@@ -566,6 +585,101 @@ void UNOpenGLRenderDevice::SetTexture( INT TMU, FTextureInfo& Info, DWORD PolyFl
 	unguard;
 }
 
+void UNOpenGLRenderDevice::EnsureComposeSize( const DWORD NewSize )
+{
+	if( NewSize > ComposeSize )
+	{
+		Compose = (BYTE*)appRealloc( Compose, NewSize, "GLComposeBuf" );
+	}
+	verify( Compose );
+}
+
+void UNOpenGLRenderDevice::ConvertTextureMipI8( const FMipmap* Mip, const FColor* Palette, const UBOOL Masked, BYTE*& UploadBuf, GLenum& UploadFormat, GLenum& InternalFormat )
+{
+	// 8-bit indexed. We have to fix the alpha component since it's mostly garbage.
+	DWORD i;
+	if( UseHwPalette )
+	{
+		// GL has support for palettized textures, use it. Still have to fix the alpha.
+		DWORD* DstPal = (DWORD*)Compose;
+		const DWORD* SrcPal = (const DWORD*)Palette;
+		EnsureComposeSize( 256 * 4 );
+		UploadBuf = Mip->DataPtr;
+		InternalFormat = GL_COLOR_INDEX8_EXT;
+		UploadFormat = GL_COLOR_INDEX8_EXT;
+		i = 0;
+		// index 0 is transparent in masked textures
+		if( Masked )
+		{
+			*DstPal++ = 0;
+			++i;
+		}
+		// 255 alpha on the rest of the palette
+		for( ; i < 256; ++i )
+			*DstPal++ = *SrcPal++ | ALPHA_MASK;
+		// set palette pointer
+		glColorTableEXT( GL_TEXTURE_2D, GL_RGBA8, 256, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)Compose );
+	}
+	else
+	{
+		// No support for palettized textures. Expand to RGBA8888 and fix alpha.
+		DWORD* Dst = (DWORD*)Compose;
+		const BYTE* Src = (const BYTE*)Mip->DataPtr;
+		const DWORD* Pal = (const DWORD*)Palette;
+		const DWORD Count = Mip->USize * Mip->VSize;
+		EnsureComposeSize( Count * 4 );
+		UploadBuf = Compose;
+		UploadFormat = GL_RGBA;
+		InternalFormat = GL_RGBA8;
+		if( Masked )
+		{
+			// index 0 is transparent
+			for( i = 0; i < Count; ++i, ++Src )
+				*Dst++ = *Src ? ( Pal[*Src] | ALPHA_MASK ) : 0;
+		}
+		else
+		{
+			// index 0 is whatever
+			for( i = 0; i < Count; ++i )
+				*Dst++ = ( Pal[*Src++] | ALPHA_MASK );
+		}
+	}
+}
+
+void UNOpenGLRenderDevice::ConvertTextureMipBGRA7777( const FMipmap* Mip, BYTE*& UploadBuf, GLenum& UploadFormat, GLenum& InternalFormat )
+{
+	// BGRA8888. This is actually a BGRA7777 lightmap, so we need to scale it.
+	BYTE* Dst = (BYTE*)Compose;
+	const BYTE* Src = (const BYTE*)Mip->DataPtr;
+	const DWORD Count = Mip->USize * Mip->VSize;
+	EnsureComposeSize( Count * 4 );
+	UploadBuf = Compose;
+	InternalFormat = GL_RGBA8;
+	if( UseBGRA )
+	{
+		UploadFormat = GL_BGRA;
+		for( DWORD i = 0; i < Count; ++i )
+		{
+			*Dst++ = (*Src++) << 1;
+			*Dst++ = (*Src++) << 1;
+			*Dst++ = (*Src++) << 1;
+			*Dst++ = (*Src++) << 1;
+		}
+	}
+	else
+	{
+		// Swap BGRA -> RGBA
+		UploadFormat = GL_RGBA;
+		for( DWORD i = 0; i < Count; ++i, Src += 4 )
+		{
+			*Dst++ = Src[2] << 1;
+			*Dst++ = Src[1] << 1;
+			*Dst++ = Src[0] << 1;
+			*Dst++ = Src[3] << 1;
+		}
+	}
+}
+
 void UNOpenGLRenderDevice::UploadTexture( FTextureInfo& Info, UBOOL Masked, UBOOL NewTexture )
 {
 	guard(UNOpenGLRenderDevice::UploadTexture);
@@ -576,63 +690,23 @@ void UNOpenGLRenderDevice::UploadTexture( FTextureInfo& Info, UBOOL Masked, UBOO
 		return;
 	}
 
-	// We're gonna be using the compose buffer, so expand it to fit.
-	INT NewComposeSize = Info.Mips[0]->USize * Info.Mips[0]->VSize * 4;
-	if( NewComposeSize > ComposeSize )
-	{
-		Compose = (BYTE*)appRealloc( Compose, NewComposeSize, "GLComposeBuf" );
-	}
-	verify( Compose );
-
 	// Upload all mips.
 	for( INT MipIndex = 0; MipIndex < Info.NumMips; ++MipIndex )
 	{
 		const FMipmap* Mip = Info.Mips[MipIndex];
-		if( !Mip || !Mip->DataPtr ) break;
 		BYTE* UploadBuf;
 		GLenum UploadFormat;
+		GLenum InternalFormat;
+		if( !Mip || !Mip->DataPtr )
+			break;
 		// Convert texture if needed.
 		if( Info.Palette )
-		{
-			// 8-bit indexed. We have to fix the alpha component since it's mostly garbage.
-			UploadBuf = Compose;
-			UploadFormat = GL_RGBA;
-			DWORD* Dst = (DWORD*)Compose;
-			const BYTE* Src = (const BYTE*)Mip->DataPtr;
-			const DWORD* Pal = (const DWORD*)Info.Palette;
-			const DWORD Count = Mip->USize * Mip->VSize;
-			if( Masked )
-			{
-				// index 0 is transparent
-				for( DWORD i = 0; i < Count; ++i, ++Src )
-					*Dst++ = *Src ? ( Pal[*Src] | ALPHA_MASK ) : 0;
-			}
-			else
-			{
-				// index 0 is whatever
-				for( DWORD i = 0; i < Count; ++i )
-					*Dst++ = ( Pal[*Src++] | ALPHA_MASK );
-			}
-		}
+			ConvertTextureMipI8( Mip, Info.Palette, Masked, UploadBuf, UploadFormat, InternalFormat );
 		else
-		{
-			// BGRA8888. This is actually a BGRA7777 lightmap, so we need to scale it.
-			UploadBuf = Compose;
-			UploadFormat = GL_BGRA;
-			BYTE* Dst = (BYTE*)Compose;
-			const BYTE* Src = (const BYTE*)Mip->DataPtr;
-			const DWORD Count = Mip->USize * Mip->VSize;
-			for( DWORD i = 0; i < Count; ++i )
-			{
-				*Dst++ = (*Src++) << 1;
-				*Dst++ = (*Src++) << 1;
-				*Dst++ = (*Src++) << 1;
-				*Dst++ = (*Src++) << 1;
-			}
-		}
+			ConvertTextureMipBGRA7777( Mip, UploadBuf, UploadFormat, InternalFormat );
 		// Upload to GL.
 		if( NewTexture )
-			glTexImage2D( GL_TEXTURE_2D, MipIndex, GL_RGBA8, Mip->USize, Mip->VSize, 0, UploadFormat, GL_UNSIGNED_BYTE, (void*)UploadBuf );
+			glTexImage2D( GL_TEXTURE_2D, MipIndex, InternalFormat, Mip->USize, Mip->VSize, 0, UploadFormat, GL_UNSIGNED_BYTE, (void*)UploadBuf );
 		else
 			glTexSubImage2D( GL_TEXTURE_2D, MipIndex, 0, 0, Mip->USize, Mip->VSize, UploadFormat, GL_UNSIGNED_BYTE, (void*)UploadBuf );
 	}

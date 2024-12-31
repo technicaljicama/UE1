@@ -20,6 +20,8 @@ class DLL_EXPORT UNOpenGLRenderDevice : public URenderDevice
 
 	// Options.
 	UBOOL NoFiltering;
+	UBOOL UseHwPalette;
+	UBOOL UseBGRA;
 
 	// All currently cached textures.
 	struct FCachedTexture
@@ -87,4 +89,7 @@ class DLL_EXPORT UNOpenGLRenderDevice : public URenderDevice
 	void SetTexture( INT TMU, FTextureInfo& Info, DWORD PolyFlags, FLOAT PanBias );
 	void ResetTexture( INT TMU );
 	void UploadTexture( FTextureInfo& Info, UBOOL Masked, UBOOL NewTexture );
+	void EnsureComposeSize( const DWORD NewSize );
+	void ConvertTextureMipI8( const FMipmap* Mip, const FColor* Palette, const UBOOL Masked, BYTE*& UploadBuf, GLenum& UploadFormat, GLenum& InternalFormat );
+	void ConvertTextureMipBGRA7777( const FMipmap* Mip, BYTE*& UploadBuf, GLenum& UploadFormat, GLenum& InternalFormat );
 };
