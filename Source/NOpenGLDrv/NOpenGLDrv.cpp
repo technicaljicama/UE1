@@ -31,7 +31,7 @@ IMPLEMENT_CLASS(UNOpenGLRenderDevice);
 #define LIGHTMAP_OVERBRIGHT 1.4f
 
 #define GL_CHECK_EXT(ext) GLAD_GL_ ## ext
-#define GL_CHECK_VER(maj, min) (((maj) * 10 + (min)) >= (GLVersion.major * 10 + GLVersion.minor))
+#define GL_CHECK_VER(maj, min) (((maj) * 10 + (min)) <= (GLVersion.major * 10 + GLVersion.minor))
 
 void UNOpenGLRenderDevice::InternalClassInitializer( UClass* Class )
 {
