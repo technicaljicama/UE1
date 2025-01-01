@@ -13,7 +13,7 @@ Revision history:
 
 extern CORE_API FGlobalPlatform GTempPlatform;
 extern "C" {HINSTANCE hInstance;}
-extern "C" {char GPackage[64]="Launch";}
+extern "C" {char THIS_PACKAGE[64]="Launch";}
 
 /*-----------------------------------------------------------------------------
 	WinMain.
@@ -48,7 +48,7 @@ INT WINAPI WinMain( HINSTANCE hInInstance, HINSTANCE hPrevInstance, char* InCmdL
 	hInstance = hInInstance;
 
 	// Set package name.
-	appStrcpy( GPackage, appPackage() );
+	appStrcpy( THIS_PACKAGE, appPackage() );
 
 	// Init mode.
 	GIsServer = 1;

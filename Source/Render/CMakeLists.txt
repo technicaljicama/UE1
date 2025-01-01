@@ -12,7 +12,7 @@ set(SRC_FILES
   "Src/Render.cpp"
 )
 
-add_library(${PROJECT_NAME} SHARED ${SRC_FILES})
+add_library(${PROJECT_NAME} ${LIB_TYPE} ${SRC_FILES})
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -23,4 +23,4 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} Engine Core)
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE RENDER_EXPORTS)
+target_compile_definitions(${PROJECT_NAME} PRIVATE RENDER_EXPORTS UPACKAGE_NAME=${PROJECT_NAME})

@@ -72,6 +72,11 @@ enum {CACHE_LINE_SIZE   = 32}; // Cache line size.
 #define __stdcall
 #endif
 
+#ifdef UNREAL_STATIC
+#undef DLL_IMPORT
+#define DLL_IMPORT
+#endif
+
 // Variable arguments.
 #define GET_VARARGS(msg,fmt)	\
 {	\
@@ -102,9 +107,11 @@ enum {CACHE_LINE_SIZE   = 32}; // Cache line size.
 // Hidden attribute, used for GPackage.
 #ifdef PLATFORM_WIN32
 #define GCC_HIDDEN
-#else
+#elif !defined(UNREAL_STATIC)
 #define GCC_HIDDEN __attribute__((visibility("hidden")))
 #endif
+
+#define GCC_USED __attribute__((used))
 
 // Unsigned base types.
 typedef uint16_t _WORD;  // 16-bit signed.
@@ -165,7 +172,10 @@ static_assert((char)-1 < 0, "char must be signed.");
 #endif
 
 // Package implementation.
-#ifdef PLATFORM_WIN32
+#ifdef UNREAL_STATIC
+	#define IMPLEMENT_PACKAGE_PLATFORM(pkgname) \
+		extern "C" {BYTE GCC_USED DLL_EXPORT GLoaded##pkgname;}
+#elif defined(PLATFORM_WIN32)
 	#define IMPLEMENT_PACKAGE_PLATFORM(pkgname) \
 		extern "C" {HINSTANCE hInstance;} \
 		INT __declspec(dllexport) __attribute__((stdcall)) DllMain( HINSTANCE hInInstance, DWORD Reason, void* Reserved ) \

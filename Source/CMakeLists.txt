@@ -23,6 +23,18 @@ option(BUILD_NULLSOUNDDRV "Build SoundDrv (Null driver)" ON)
 option(BUILD_NOPENALDRV "Build NOpenALDrv" ON)
 option(BUILD_WINDRV "Build WinDrv" OFF)
 option(BUILD_FOR_PSVITA "Build binaries that can be loaded by so_loader on the Vita" OFF)
+option(BUILD_STATIC "Link everything into a single binary" OFF)
+
+if(BUILD_STATIC)
+  if(MSVC)
+    message(FATAL_ERROR "Static mode is not supported with MSVC")
+  endif()
+  set(LIB_TYPE STATIC)
+  add_definitions(-DUNREAL_STATIC)
+  message(STATUS "Static mode enabled")
+else()
+  set(LIB_TYPE SHARED)
+endif()
 
 # Determine target arch and get normalized arch string
 
@@ -154,6 +166,9 @@ else()
   endif()
   add_compile_options(-ffunction-sections -fno-strict-aliasing)
   add_compile_options(-Wno-write-strings)
+  if(UNREAL_STATIC)
+    add_link_options(-rdynamic)
+  endif()
 endif()
 
 # Dependencies

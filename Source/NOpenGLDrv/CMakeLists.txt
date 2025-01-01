@@ -6,7 +6,7 @@ endif()
 
 set(SRC_FILES "NOpenGLDrv.cpp" "${CMAKE_SOURCE_DIR}/../Thirdparty/glad/glad.c")
 
-add_library(${PROJECT_NAME} SHARED ${SRC_FILES})
+add_library(${PROJECT_NAME} ${LIB_TYPE} ${SRC_FILES})
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -20,4 +20,4 @@ target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY})
 
 target_link_libraries(${PROJECT_NAME} Render Engine Core)
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE NOPENGLDRV_EXPORTS)
+target_compile_definitions(${PROJECT_NAME} PRIVATE NOPENGLDRV_EXPORTS UPACKAGE_NAME=${PROJECT_NAME})

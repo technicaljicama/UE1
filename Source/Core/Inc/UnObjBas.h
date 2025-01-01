@@ -388,7 +388,7 @@ public: \
 		ClassName::Super::StaticClass, \
 		FGuid(ClassName::GUID1,ClassName::GUID2,ClassName::GUID3,ClassName::GUID4), \
 		#ClassName, \
-		FName(GPackage), \
+		FName(THIS_PACKAGE), \
 		(void(*)(void*))ClassName::InternalConstructor, \
 		(void(*)(UClass*))ClassName::InternalClassInitializer \
 	); } \
@@ -397,7 +397,7 @@ public: \
 
 // Define the package of the current DLL being compiled.
 #define IMPLEMENT_PACKAGE(pkg) \
-	extern "C" { DLL_EXPORT GCC_HIDDEN char GPackage[] = #pkg; } \
+	extern "C" { DLL_EXPORT GCC_HIDDEN char THIS_PACKAGE[] = #pkg; } \
 	IMPLEMENT_PACKAGE_PLATFORM(pkg)
 
 /*----------------------------------------------------------------------------

@@ -66,6 +66,8 @@ enum {CACHE_LINE_SIZE   = 32}; // Cache line size.
 // Hidden attribute, used for GPackage.
 #define GCC_HIDDEN
 
+#define GCC_USED
+
 // Unsigned base types.
 typedef unsigned char		BYTE;		// 8-bit  unsigned.
 typedef unsigned short		_WORD;		// 16-bit unsigned.

@@ -581,6 +581,72 @@ void appExit()
 	FGlobalPlatform misc.
 -----------------------------------------------------------------------------*/
 
+#ifdef UNREAL_STATIC
+
+//
+// Load a library.
+//
+CORE_API void* appGetDllHandle( const char* Filename )
+{
+	guard(appGetDllHandle);
+
+	char Test[1024];
+	const char* PackageName = Filename;
+	char* Cur;
+
+	check(Filename);
+
+	// Get GLoadedPackage symbol name from full path.
+	while( ( Cur = appStrchr( PackageName, '/' ) ) != NULL )
+		PackageName = Cur + 1;
+	while( ( Cur = appStrchr( PackageName, '\\' ) ) != NULL )
+		PackageName = Cur + 1;
+	appSprintf( Test, "GLoaded%s", PackageName );
+	if( (Cur = appStrchr( Test, '.' )) != NULL )
+		*Cur = '\0';
+
+#ifdef PLATFORM_WIN32
+	void* Result = (void*)GetModuleHandle( nullptr );
+	if( Result )
+	{
+		if( !GetProcAddress( (HMODULE)Result, Test ) )
+		{
+			debugf( "Package %s (%s) not found in executable", PackageName, Test );
+			Result = nullptr;
+		}
+	}
+	else
+	{
+		debugf( "GetModuleHandle failed: 0x%08x", Filename, GetLastError() );
+	}
+#else
+	char* Error;
+	void* Result;
+
+	dlerror();	// Clear any error condition.
+
+	// Check if the library was linked to the executable.
+	Result = (void*)dlopen( NULL, RTLD_NOW );
+	Error = dlerror();
+	if( Error != NULL )
+	{
+		debugf( "dlerror(): %s", Error );
+	}
+	else
+	{
+		(void*)dlsym( Result, Test );
+		Error = dlerror();
+		if( Error == NULL )
+			return Result;
+	}
+#endif
+
+	return Result;
+	unguard;
+}
+
+#else
+
 //
 // Load a library.
 //
@@ -616,21 +682,6 @@ CORE_API void* appGetDllHandle( const char* Filename )
 
 	dlerror();	// Clear any error condition.
 
-	// Check if the library was linked to the executable.
-	Result = (void*)dlopen( NULL, RTLD_NOW );
-	Error = dlerror();
-	if( Error != NULL )
-	{
-		debugf( "dlerror(): %s", Error );
-	}
-	else
-	{
-		(void*)dlsym( Result, Test );
-		Error = dlerror();
-		if( Error == NULL )
-			return Result;
-	}
-
 	// Load the new library.
 	Result = (void*)dlopen( Filename, RTLD_NOW );
 	if( Result == NULL )
@@ -645,6 +696,8 @@ CORE_API void* appGetDllHandle( const char* Filename )
 	unguard;
 }
 
+#endif
+
 //
 // Free a library.
 //
@@ -654,7 +707,9 @@ CORE_API void appFreeDllHandle( void* DllHandle )
 	check(DllHandle);
 
 #ifdef PLATFORM_WIN32
+#ifndef UNREAL_STATIC
 	FreeLibrary( (HMODULE)DllHandle );
+#endif
 #else
 	dlclose( DllHandle );
 #endif

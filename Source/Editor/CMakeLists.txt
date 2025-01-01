@@ -30,7 +30,7 @@ else()
   list(APPEND SRC_FILES "Src/Win32EdHook.cpp")
 endif()
 
-add_library(${PROJECT_NAME} SHARED ${SRC_FILES})
+add_library(${PROJECT_NAME} ${LIB_TYPE} ${SRC_FILES})
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -44,4 +44,4 @@ if(TARGET_IS_WINDOWS AND BUILD_WINDRV)
   target_link_libraries(${PROJECT_NAME} Window)
 endif()
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE EDITOR_EXPORTS)
+target_compile_definitions(${PROJECT_NAME} PRIVATE EDITOR_EXPORTS UPACKAGE_NAME=${PROJECT_NAME})

@@ -9,7 +9,7 @@ set(SRC_FILES
   "Src/SoftDrv.cpp"
 )
 
-add_library(${PROJECT_NAME} SHARED ${SRC_FILES})
+add_library(${PROJECT_NAME} ${LIB_TYPE} ${SRC_FILES})
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -20,4 +20,4 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} Render Engine Core)
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE SOFTDRV_EXPORTS)
+target_compile_definitions(${PROJECT_NAME} PRIVATE SOFTDRV_EXPORTS UPACKAGE_NAME=${PROJECT_NAME})

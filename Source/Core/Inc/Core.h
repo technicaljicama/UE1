@@ -125,7 +125,14 @@ CORE_API extern UBOOL					GNoAutoReplace;
 CORE_API extern FConfigCache	GConfigCache;
 
 // Per module globals.
-extern "C" DLL_EXPORT char GPackage[];
+#ifdef UNREAL_STATIC
+#define THIS_PACKAGE_PASTE(A, B) A ## B
+#define THIS_PACKAGE_EVAL(A, B) THIS_PACKAGE_PASTE(A, B)
+#define THIS_PACKAGE THIS_PACKAGE_EVAL(GPackage, UPACKAGE_NAME)
+#else
+#define THIS_PACKAGE GPackage
+#endif
+extern "C" DLL_EXPORT char THIS_PACKAGE[];
 
 // Normal includes.
 #include "UnFile.h"			// Low level utility code.

@@ -27,7 +27,7 @@ if(NOT MSVC AND NOT (CMAKE_BUILD_TYPE STREQUAL "Debug"))
   set_source_files_properties("Src/UnProp.cpp" PROPERTIES COMPILE_FLAGS -Og)
 endif()
 
-add_library(${PROJECT_NAME} SHARED ${SRC_FILES})
+add_library(${PROJECT_NAME} ${LIB_TYPE} ${SRC_FILES})
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -36,7 +36,7 @@ target_include_directories(${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/Src
 )
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE CORE_EXPORTS)
+target_compile_definitions(${PROJECT_NAME} PRIVATE CORE_EXPORTS UPACKAGE_NAME=${PROJECT_NAME})
 
 if(USE_SDL)
   target_link_libraries(${PROJECT_NAME} PRIVATE ${SDL2_LIBRARY})

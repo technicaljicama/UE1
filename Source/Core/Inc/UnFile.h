@@ -193,11 +193,11 @@ CORE_API void VARARGS appThrowf( const char* Fmt, ... );
 	Localization.
 -----------------------------------------------------------------------------*/
 
-CORE_API const char* Localize( const char* Section, const char* Key, const char* Package=GPackage, const char* LangExt=NULL );
-CORE_API const char* LocalizeError( const char* Key, const char* Package=GPackage, const char* LangExt=NULL );
-CORE_API const char* LocalizeProgress( const char* Key, const char* Package=GPackage, const char* LangExt=NULL );
-CORE_API const char* LocalizeQuery( const char* Key, const char* Package=GPackage, const char* LangExt=NULL );
-CORE_API const char* LocalizeGeneral( const char* Key, const char* Package=GPackage, const char* LangExt=NULL );
+CORE_API const char* Localize( const char* Section, const char* Key, const char* Package=THIS_PACKAGE, const char* LangExt=NULL );
+CORE_API const char* LocalizeError( const char* Key, const char* Package=THIS_PACKAGE, const char* LangExt=NULL );
+CORE_API const char* LocalizeProgress( const char* Key, const char* Package=THIS_PACKAGE, const char* LangExt=NULL );
+CORE_API const char* LocalizeQuery( const char* Key, const char* Package=THIS_PACKAGE, const char* LangExt=NULL );
+CORE_API const char* LocalizeGeneral( const char* Key, const char* Package=THIS_PACKAGE, const char* LangExt=NULL );
 CORE_API const char* GetLanguage();
 CORE_API void SetLanguage( const char* LanguageExt );
 

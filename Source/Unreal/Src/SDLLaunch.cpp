@@ -8,7 +8,7 @@
 extern CORE_API FGlobalPlatform GTempPlatform;
 extern DLL_IMPORT UBOOL GTickDue;
 extern "C" {HINSTANCE hInstance;}
-extern "C" {char GCC_HIDDEN GPackage[64]="Launch";}
+extern "C" {char GCC_HIDDEN THIS_PACKAGE[64]="Launch";}
 
 // FExecHook.
 class FExecHook : public FExec
@@ -145,7 +145,7 @@ int main( int argc, const char** argv )
 	GIsStarted = 1;
 
 	// Set package name.
-	appStrcpy( GPackage, appPackage() );
+	appStrcpy( THIS_PACKAGE, appPackage() );
 
 	// Init mode.
 	GIsServer = 1;
