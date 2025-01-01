@@ -109,6 +109,8 @@ enum {CACHE_LINE_SIZE   = 32}; // Cache line size.
 #define GCC_HIDDEN
 #elif !defined(UNREAL_STATIC)
 #define GCC_HIDDEN __attribute__((visibility("hidden")))
+#else
+#define GCC_HIDDEN
 #endif
 
 #define GCC_USED __attribute__((used))
