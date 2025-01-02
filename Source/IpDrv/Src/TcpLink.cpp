@@ -58,7 +58,9 @@ int InitWSAMain( ATcpLink *ATInst )
 		else
 		{
 			// Set to non-blocking Berkley mode.
+#ifndef PSP
 			ioctlsocket( ATInst->MainSocket, FIONBIO, &ulCmdArg );	// 1 for non-blocking
+#endif
 			// Set lingering options for a Hard close
 			ling.l_onoff  = 1;	// linger on
 			ling.l_linger = 0;	// timeout in seconds
@@ -142,7 +144,7 @@ void ATcpLink::execGetIPByName( FFrame& Stack, BYTE*& Result )
 	{
 		// Check for dotted IP address string
 		lAddr = inet_addr( Domain );
-
+#ifndef PSP
 		// If not an address, then try to resolve it as a hostname
 		if( (lAddr == INADDR_NONE) &&
 			(strcmp( Domain, "255.255.255.255" ) != 0) )
@@ -162,7 +164,7 @@ void ATcpLink::execGetIPByName( FFrame& Stack, BYTE*& Result )
 				*(DWORD*)Result = 0;
 			}
 		}
-
+#endif
 	}
 
 	unguardexec;

@@ -23,7 +23,7 @@ option(BUILD_NULLSOUNDDRV "Build SoundDrv (Null driver)" ON)
 option(BUILD_NOPENALDRV "Build NOpenALDrv" ON)
 option(BUILD_WINDRV "Build WinDrv" OFF)
 option(BUILD_FOR_PSVITA "Build binaries that can be loaded by so_loader on the Vita" OFF)
-option(BUILD_STATIC "Link everything into a single binary" OFF)
+option(BUILD_STATIC "Link everything into a single binary" ON)
 
 if(BUILD_STATIC)
   if(MSVC)

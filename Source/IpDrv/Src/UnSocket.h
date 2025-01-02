@@ -34,7 +34,9 @@ typedef char* LPSTR;
 #define WSAHOST_NOT_FOUND HOST_NOT_FOUND
 #define WSANO_DATA NO_ADDRESS
 #define closesocket close
+#ifndef PSP
 #define ioctlsocket ioctl
+#endif
 #define WSAGetLastError() errno
 #define IPBYTE(A, N) ((BYTE*)&A.s_addr)[N-1]
 #endif

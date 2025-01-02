@@ -331,11 +331,15 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 		return 0;
 
 	// Get this host name.
+#ifndef PSP
 	if( gethostname( HostName, 256 ) )
 	{
+#endif
 		appSprintf( Error256, "Not Connected To The Internet" );
 		return 0;
+#ifndef PSP
 	}
+#endif
     debugf( NAME_Init, "WinSock gethostname: %s", HostName );
 	char Home[256];
 	if( Parse(appCmdLine(),"MULTIHOME=",Home,ARRAY_COUNT(Home)) )
@@ -416,12 +420,15 @@ UBOOL UTcpNetDriver::Init( UBOOL Connect, FNetworkNotify* InNotify, FURL& URL, c
 		return 0;
 	}
 	DWORD NoBlock=1;
+#ifndef PSP
 	if( ioctlsocket( Socket, FIONBIO, &NoBlock ) )
 	{
+#endif
 		appSprintf( Error256, "WinSock: ioctlsocket failed (%s)", SocketError() );
 		return 0;
+#ifndef PSP
 	}
-
+#endif
 	// Connect to remote.
 	if( Connect )
 	{

@@ -14,6 +14,12 @@
 #define __INTEL__	1
 #endif
 
+#ifdef PSP
+// #include <utime.h>
+// #include <sys/time.h>
+
+#endif
+
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -125,7 +131,7 @@ typedef int16_t  SWORD;  // 16-bit signed.
 typedef int64_t  SQWORD; // 64-bit signed.
 
 // Other base types.
-typedef int32_t  UBOOL;  // Boolean 0 (false) or 1 (true).
+
 typedef double   DOUBLE; // 64-bit IEEE double.
 
 #ifndef PLATFORM_WIN32 // On Windows these are defined in minwindef.h.
@@ -133,12 +139,20 @@ typedef double   DOUBLE; // 64-bit IEEE double.
 typedef uint8_t  BYTE;   // 8-bit  unsigned.
 typedef uint32_t DWORD;  // 32-bit unsigned.
 // Signed base types.
+#ifdef PSP
+typedef int  INT;    // 32-bit signed.
+typedef int  UBOOL;  // Boolean 0 (false) or 1 (true).
+#else
 typedef int32_t  INT;    // 32-bit signed.
+typedef int32_t  UBOOL;  // Boolean 0 (false) or 1 (true).
+#endif
 typedef int64_t __int64; // 64-bit signed.
 // Other base types.
 typedef float    FLOAT;  // 32-bit IEEE floating point.
 #endif
 
+// typedef int32_t int;
+// #endif
 // If C++ exception handling is disabled, force guarding to be off.
 #ifdef PLATFORM_NO_EXCEPTIONS
 	#undef  DO_GUARD
@@ -190,7 +204,9 @@ static_assert((char)-1 < 0, "char must be signed.");
 
 // Windows aliases for POSIX functions or types.
 #ifndef PLATFORM_WIN32
+#ifndef PSP
 #define _utime utime
+#endif
 #define _stat stat
 #define _isnan(x) isnan(x)
 #define stricmp(x, y) strcasecmp((x), (y))

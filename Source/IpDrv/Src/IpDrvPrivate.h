@@ -16,7 +16,9 @@ Revision history:
 #else
 #include <unistd.h>
 #include <arpa/inet.h>
+#ifndef PSP
 #include <net/if.h>
+#endif
 #include <netdb.h>
 #include <errno.h>
 #include <fcntl.h>

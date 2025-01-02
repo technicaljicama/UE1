@@ -78,13 +78,16 @@ void AUdpLink::execBindPort( FFrame& Stack, BYTE*& Result )
 					if( bind( Socket, (sockaddr*)&Addr, sizeof(Addr) )==0 )
 					{
 						DWORD NoBlock = 1;
+#ifndef PSP
 						if( ioctlsocket( Socket, FIONBIO, &NoBlock )==0 )
 						{
 							// Success.
 							*(DWORD*)Result = 1;
 							return;
 						}
-						else Stack.ScriptWarn( 0, "BindPort: ioctlsocket failed" );
+						else 
+#endif
+							Stack.ScriptWarn( 0, "BindPort: ioctlsocket failed" );
 					} else Stack.ScriptWarn( 0, "BindPort: bind failed" );
 				} else Stack.ScriptWarn( 0, "BindPort: setsockopt failed" );
 			} else Stack.ScriptWarn( 0, "BindPort: socket failed" );

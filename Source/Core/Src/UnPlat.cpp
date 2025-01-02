@@ -25,7 +25,9 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
+#ifndef PSP
 #include <dlfcn.h>
+#endif
 #include <fcntl.h>
 #include <utime.h>
 #include <sys/time.h>
@@ -622,7 +624,7 @@ CORE_API void* appGetDllHandle( const char* Filename )
 #else
 	char* Error;
 	void* Result;
-
+#ifndef PSP
 	dlerror();	// Clear any error condition.
 
 	// Check if the library was linked to the executable.
@@ -639,6 +641,7 @@ CORE_API void* appGetDllHandle( const char* Filename )
 		if( Error == NULL )
 			return Result;
 	}
+#endif
 #endif
 
 	return Result;
@@ -711,7 +714,9 @@ CORE_API void appFreeDllHandle( void* DllHandle )
 	FreeLibrary( (HMODULE)DllHandle );
 #endif
 #else
+#ifndef PSP
 	dlclose( DllHandle );
+#endif
 #endif
 
 	unguard;
@@ -729,7 +734,11 @@ CORE_API void* appGetDllExport( void* DllHandle, const char* ProcName )
 #ifdef PLATFORM_WIN32
 	return (void*)GetProcAddress( (HMODULE)DllHandle, ProcName );
 #else
+#ifdef PSP
+	return NULL;
+#else
 	return (void*)dlsym( DllHandle, ProcName );
+#endif
 #endif
 
 	unguard;
@@ -917,7 +926,9 @@ UBOOL appFindPackageFile( const char* In, const FGuid* Guid, char* Out )
 			if( i==ARRAY_COUNT(GSys->Paths) )
 			{
 				// Update cache access time.
+#ifndef PSP
 				_utime( Out, NULL );
+#endif
 			}
 			return 1;
 		}

@@ -39,7 +39,9 @@ CORE_API UTHREAD appThreadSpawn( THREAD_FUNC Func, void* Arg, const char* Name, 
 	}
 	else
 	{
+#ifndef PSP
 		pthread_setname_np( *Thread, Name );
+#endif
 		if( OutThreadId )
 			*OutThreadId = ++ThreadId;
 	}
