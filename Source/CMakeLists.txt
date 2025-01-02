@@ -139,7 +139,7 @@ else()
   else()
     add_definitions(-DPLATFORM_CASE_SENSITIVE_FS)
   endif()
-  set(CMAKE_EXECUTABLE_SUFFIX ".bin")
+  # set(CMAKE_EXECUTABLE_SUFFIX ".bin")
 endif()
 
 if(USE_SDL)

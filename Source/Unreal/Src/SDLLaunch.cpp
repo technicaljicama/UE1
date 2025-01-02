@@ -1,4 +1,12 @@
+#ifdef PSP
 #define SDL_MAIN_HANDLED
+#include <pspkernel.h>
+
+PSP_MODULE_INFO("Unreal", PSP_MODULE_USER, 1, 1);
+PSP_MAIN_THREAD_ATTR(PSP_THREAD_ATTR_USER | THREAD_ATTR_VFPU);
+PSP_HEAP_SIZE_KB(-1);
+PSP_HEAP_THRESHOLD_SIZE_KB(1024);
+#endif
 #include "SDL2/SDL.h"
 #ifdef PLATFORM_WIN32
 #include <windows.h>
@@ -43,14 +51,15 @@ void HandleError()
 UEngine* InitEngine()
 {
 	guard(InitEngine);
-
+	printf("Init\n");
 	// Platform init.
 	appInit();
+	printf("Init\n");
 	GDynMem.Init( 65536 );
-
+printf("Init\n");
 	// Init subsystems.
 	GSceneMem.Init( 32768 );
-
+printf("Init\n");
 	// First-run menu.
 	UBOOL FirstRun=0;
 	GetConfigBool( "FirstRun", "FirstRun", FirstRun );
@@ -72,7 +81,7 @@ UEngine* InitEngine()
 		// Editor.
 		EngineClass = GObj.LoadClass( UEngine::StaticClass, NULL, "ini:Engine.Engine.EditorEngine", NULL, LOAD_NoFail | LOAD_KeepImports, NULL );
 	}
-
+printf("Init\n");
 	// Init engine.
 	UEngine* Engine = ConstructClassObject<UEngine>( EngineClass );
 	Engine->Init();
