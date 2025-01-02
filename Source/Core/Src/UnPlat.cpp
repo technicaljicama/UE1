@@ -641,6 +641,8 @@ CORE_API void* appGetDllHandle( const char* Filename )
 		if( Error == NULL )
 			return Result;
 	}
+#else
+	debugf( "%s", Filename );
 #endif
 #endif
 

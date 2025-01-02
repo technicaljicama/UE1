@@ -80,7 +80,7 @@ UBOOL UNOpenALAudioSubsystem::Init()
 
 	const ALint AttrList[] = {
 		ALC_FREQUENCY, OutputRate,
-		ALC_SOFT_HRTF, UseHRTF,
+		UseHRTF,
 		0
 	};
 

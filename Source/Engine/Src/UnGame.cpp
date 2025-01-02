@@ -9,7 +9,7 @@
 #include "EnginePrivate.h"
 #include "UnRender.h"
 #include "UnNet.h"
-
+#include "../../NSDLDrv/Inc/NSDLDrv.h"
 /*-----------------------------------------------------------------------------
 	Object class implementation.
 -----------------------------------------------------------------------------*/
@@ -89,8 +89,9 @@ void UGameEngine::Init()
 	if( GIsClient )
 	{	
 		// Init client.
-		UClass* ClientClass = GObj.LoadClass( UClient::StaticClass, NULL, "ini:Engine.Engine.ViewportManager", NULL, LOAD_NoFail | LOAD_KeepImports, NULL );
-		Client = ConstructClassObject<UClient>( ClientClass );
+		// UClass* ClientClass = GObj.LoadClass( UClient::StaticClass, NULL, "ini:Engine.Engine.ViewportManager", NULL, LOAD_NoFail | LOAD_KeepImports, NULL );
+		// Client = ConstructClassObject<UClient>( ClientClass );
+		Client = new UNSDLClient;
 		Client->Init( this );
 
 		// Init rendering.

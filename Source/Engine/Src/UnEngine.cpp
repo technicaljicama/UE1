@@ -8,7 +8,7 @@
 
 #include "EnginePrivate.h"
 #include "UnRender.h"
-
+#include "../../NOpenALDrv/NOpenALDrvPrivate.h"
 /*-----------------------------------------------------------------------------
 	Object class implementation.
 -----------------------------------------------------------------------------*/
@@ -80,8 +80,9 @@ void UEngine::Init()
 	&&	GIsClient
 	&&	!ParseParam(appCmdLine(),"NOSOUND") )
 	{
-		UClass* AudioClass = GObj.LoadClass( UAudioSubsystem::StaticClass, NULL, "ini:Engine.Engine.AudioDevice", NULL, LOAD_NoFail | LOAD_KeepImports, NULL );
-		Audio = ConstructClassObject<UAudioSubsystem>( AudioClass );
+		// UClass* AudioClass = GObj.LoadClass( UAudioSubsystem::StaticClass, NULL, "ini:Engine.Engine.AudioDevice", NULL, LOAD_NoFail | LOAD_KeepImports, NULL );
+		// Audio = ConstructClassObject<UAudioSubsystem>(AudioClass  );
+		Audio = new UNOpenALAudioSubsystem;
 		if( !Audio->Init() )
 		{
 			debugf( NAME_Log, "Audio initialization failed" );
