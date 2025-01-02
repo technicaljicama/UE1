@@ -166,9 +166,6 @@ else()
   endif()
   add_compile_options(-ffunction-sections -fno-strict-aliasing)
   add_compile_options(-Wno-write-strings)
-  if(UNREAL_STATIC AND NOT TARGET_IS_WINDOWS)
-    add_compile_options(-rdynamic)
-  endif()
 endif()
 
 # Dependencies

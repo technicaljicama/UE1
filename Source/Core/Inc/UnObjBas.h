@@ -393,7 +393,9 @@ public: \
 		(void(*)(UClass*))ClassName::InternalClassInitializer \
 	); } \
 	/* Static variable. */ \
-	UClass* ClassName::StaticClass = &autoclass##ClassName;
+	UClass* ClassName::StaticClass = &autoclass##ClassName; \
+	/* Static export, if needed. */ \
+	STATIC_EXPORT( ClassName, autoclass##ClassName )
 
 // Define the package of the current DLL being compiled.
 #define IMPLEMENT_PACKAGE(pkg) \
