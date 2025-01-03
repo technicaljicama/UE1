@@ -25,7 +25,8 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
-#ifndef PSP
+
+#ifndef UNREAL_STATIC
 #include <dlfcn.h>
 #endif
 #include <fcntl.h>
@@ -607,46 +608,10 @@ CORE_API void* appGetDllHandle( const char* Filename )
 	if( (Cur = appStrchr( Test, '.' )) != NULL )
 		*Cur = '\0';
 
-#ifdef PLATFORM_WIN32
-	void* Result = (void*)GetModuleHandle( nullptr );
-	if( Result )
-	{
-		if( !GetProcAddress( (HMODULE)Result, Test ) )
-		{
-			debugf( "Package %s (%s) not found in executable", PackageName, Test );
-			Result = nullptr;
-		}
-	}
-	else
-	{
-		debugf( "GetModuleHandle failed: 0x%08x", Filename, GetLastError() );
-	}
-#else
-	char* Error;
-	void* Result;
-#ifndef PSP
-	dlerror();	// Clear any error condition.
 
-	// Check if the library was linked to the executable.
-	Result = (void*)dlopen( NULL, RTLD_NOW );
-	Error = dlerror();
-	if( Error != NULL )
-	{
-		debugf( "dlerror(): %s", Error );
-	}
-	else
-	{
-		(void*)dlsym( Result, Test );
-		Error = dlerror();
-		if( Error == NULL )
-			return Result;
-	}
-#else
-	debugf( "%s", Filename );
-#endif
-#endif
 
-	return Result;
+	return appGetStaticExport( Test );
+
 	unguard;
 }
 
@@ -711,10 +676,10 @@ CORE_API void appFreeDllHandle( void* DllHandle )
 	guard(appFreeDllHandle);
 	check(DllHandle);
 
-#ifdef PLATFORM_WIN32
-#ifndef UNREAL_STATIC
+#if defined(UNREAL_STATIC)
+	// nothing
+#elif defined(PLATFORM_WIN32)
 	FreeLibrary( (HMODULE)DllHandle );
-#endif
 #else
 #ifndef PSP
 	dlclose( DllHandle );
@@ -733,7 +698,9 @@ CORE_API void* appGetDllExport( void* DllHandle, const char* ProcName )
 	check(DllHandle);
 	check(ProcName);
 
-#ifdef PLATFORM_WIN32
+#if defined(UNREAL_STATIC)
+	return appGetStaticExport( ProcName );
+#elif defined(PLATFORM_WIN32)
 	return (void*)GetProcAddress( (HMODULE)DllHandle, ProcName );
 #else
 #ifdef PSP
@@ -1196,7 +1163,7 @@ void appError( const char* Msg )
 #ifdef PLATFORM_WIN32
 	DebugBreak(); 
 #else
-	__builtin_trap();
+	// __builtin_trap();
 #endif
 #else
 	if( GIsCriticalError )

@@ -489,6 +489,7 @@ CORE_API TArray<FString> appFindFiles( const char* Spec )
 		appSprintf( Path, "./" );
 
 	// Open directory, get first entry.
+	printf("%s\n", Path);
 	Dirp = opendir( Path );
 	if (Dirp == NULL)
 			return Result;
@@ -572,7 +573,7 @@ CORE_API TArray<FString> appFindFiles( const char* Spec )
 CORE_API FILE* appFopen( const char* Path, const char* Mode )
 {
 	FILE* F = fopen( Path, Mode );
-
+	printf("%s\n", Path);
 #ifdef PLATFORM_CASE_SENSITIVE_FS
 	if( F ) return F;
 
@@ -615,7 +616,7 @@ CORE_API FILE* appFopen( const char* Path, const char* Mode )
 		DirName = "./";
 		FileName = DirNameBuf;
 	}
-
+printf("open%s\n", DirName);
 	// Scan the directory.
 	DIR* Dir = opendir( DirName );
 	if( !Dir ) return F;

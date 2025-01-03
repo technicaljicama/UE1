@@ -153,6 +153,7 @@ extern "C" DLL_EXPORT char THIS_PACKAGE[];
 #include "UnCId.h"			// Cache ID's.
 #include "UnConfig.h"		// Config cache.
 #include "UnThread.h"		// Multithreading.
+#include "UnStaticExports.h"	// Package exports for static builds.
 
 /*-----------------------------------------------------------------------------
 	Core templates.

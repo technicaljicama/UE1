@@ -190,7 +190,8 @@ static_assert((char)-1 < 0, "char must be signed.");
 // Package implementation.
 #ifdef UNREAL_STATIC
 	#define IMPLEMENT_PACKAGE_PLATFORM(pkgname) \
-		extern "C" {BYTE GCC_USED DLL_EXPORT GLoaded##pkgname;}
+		extern "C" {BYTE GCC_USED DLL_EXPORT GLoaded##pkgname;} \
+		STATIC_EXPORT( GLoaded##pkgname, GLoaded##pkgname )
 #elif defined(PLATFORM_WIN32)
 	#define IMPLEMENT_PACKAGE_PLATFORM(pkgname) \
 		extern "C" {HINSTANCE hInstance;} \

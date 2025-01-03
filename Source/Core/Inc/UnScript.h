@@ -188,7 +188,8 @@ BYTE CORE_API GRegisterIntrinsic( int iIntrinsic, void* Func );
 //
 #define AUTOREGISTER_INTRINSIC(cls,num,func) \
 	extern "C" { DLL_EXPORT void (cls::*int##cls##func)( FFrame& Stack, BYTE*& Result ) =&cls::func; } \
-	static BYTE func##Temp = GRegisterIntrinsic(num,*(void**)&int##cls##func);
+	static BYTE func##Temp = GRegisterIntrinsic(num,*(void**)&int##cls##func); \
+	STATIC_EXPORT( cls##func, int##cls##func )
 
 /*-----------------------------------------------------------------------------
 	Macros.
