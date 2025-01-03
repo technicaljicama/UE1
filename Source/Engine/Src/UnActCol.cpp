@@ -509,6 +509,7 @@ FCheckResult* FCollisionHash::ActorLineCheck
 		{
 			for( INT Z=Z0; Z<=Z1; Z++ )
 			{
+#ifndef PSP //invalid read
 				INT iLocation;
 				for( FCollisionLink* Link = GetHashLink( X, Y, Z, iLocation ); Link; Link=Link->Next )
 				{
@@ -526,6 +527,7 @@ FCheckResult* FCollisionHash::ActorLineCheck
 						}
 					}
 				}
+#endif
 			}
 		}
 	}

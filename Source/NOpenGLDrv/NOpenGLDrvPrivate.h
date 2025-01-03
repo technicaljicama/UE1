@@ -2,7 +2,9 @@
 	Dependencies.
 ------------------------------------------------------------------------------------*/
 #ifndef PSP
-#include "glad.h"
+// #include "glad.h"
+#include <GL/gl.h>
+#include <GL/glut.h>
 #else
 #include <GL/gl.h>
 #include <GL/glut.h>

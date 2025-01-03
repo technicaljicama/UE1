@@ -1,7 +1,7 @@
 #ifdef PSP
 #define SDL_MAIN_HANDLED
 #include <pspkernel.h>
-
+#include <psppower.h>
 PSP_MODULE_INFO("Unreal", PSP_MODULE_USER, 1, 1);
 PSP_MAIN_THREAD_ATTR(PSP_THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 PSP_HEAP_SIZE_KB(-1);
@@ -150,6 +150,9 @@ int main( int argc, const char** argv )
 	hInstance = NULL;
 	// Remember arguments since we don't have GetCommandLine().
 	appSetCmdLine( argc, argv );
+#endif
+#ifdef PSP
+	scePowerSetClockFrequency(333, 333, 166);
 #endif
 
 	GIsStarted = 1;

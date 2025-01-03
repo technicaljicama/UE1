@@ -696,7 +696,6 @@ void UNOpenGLRenderDevice::ConvertTextureMipBGRA7777( const FMipmap* Mip, BYTE*&
 		}
 	}
 }
-
 void UNOpenGLRenderDevice::UploadTexture( FTextureInfo& Info, UBOOL Masked, UBOOL NewTexture )
 {
 	guard(UNOpenGLRenderDevice::UploadTexture);
@@ -722,10 +721,10 @@ void UNOpenGLRenderDevice::UploadTexture( FTextureInfo& Info, UBOOL Masked, UBOO
 		else
 			ConvertTextureMipBGRA7777( Mip, UploadBuf, UploadFormat, InternalFormat );
 		// Upload to GL.
-		if( NewTexture )
-			glTexImage2D( GL_TEXTURE_2D, MipIndex, InternalFormat, Mip->USize, Mip->VSize, 0, UploadFormat, GL_UNSIGNED_BYTE, (void*)UploadBuf );
-		else
-			glTexSubImage2D( GL_TEXTURE_2D, MipIndex, 0, 0, Mip->USize, Mip->VSize, UploadFormat, GL_UNSIGNED_BYTE, (void*)UploadBuf );
+		// if( NewTexture )
+			glTexImage2D( GL_TEXTURE_2D, MipIndex, UploadFormat, Mip->USize, Mip->VSize, 0, UploadFormat, GL_UNSIGNED_BYTE, (void*)UploadBuf );
+		// else
+			// glTexSubImage2D( GL_TEXTURE_2D, MipIndex, 0, 0, Mip->USize, Mip->VSize, UploadFormat, GL_UNSIGNED_BYTE, (void*)UploadBuf );
 	}
 
 	unguard;
