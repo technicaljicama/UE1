@@ -39,7 +39,7 @@ endif()
 if(BUILD_STATIC)
   set(LINK_PACKAGES ${INSTALL_TARGETS})
   list(REMOVE_ITEM LINK_PACKAGES ${PROJECT_NAME})
-  target_link_libraries(${PROJECT_NAME} -Wl,--whole-archive ${LINK_PACKAGES} -Wl,--no-whole-archive -lm -lGL -lpspvram -lpspaudio -lpspvfpu -lpspdisplay -lpspgu -lpspge -lpsphprm -lpspctrl -lpsppower)
+  target_link_libraries(${PROJECT_NAME} -Wl,--whole-archive ${LINK_PACKAGES} -Wl,--no-whole-archive -lm -lGL -lglut -lpspvram -lpspaudio -lpspvfpu -lpspdisplay -lpspgu -lpspge -lpsphprm -lpspctrl -lpsppower)
 
   if(NOT TARGET_IS_WINDOWS)
     target_link_options(${PROJECT_NAME} PRIVATE )

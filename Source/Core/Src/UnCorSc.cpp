@@ -2885,7 +2885,7 @@ void UObject::ProcessEvent( UFunction* Function, void* Parms )
 		{
 			// Call intrinsic function and copy the return value back.
 			BYTE* Result = NewStack.Locals+Function->ReturnValueOffset, *Dest=Result;
-			(this->*Function->Func)( NewStack, Result );
+			// (this->*Function->Func)( NewStack, Result );
 			if( Result != Dest )
 				appMemcpy( Dest, Result, Function->ParmsSize - Function->ReturnValueOffset );
 		}

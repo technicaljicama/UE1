@@ -586,7 +586,7 @@ void UClass::Bind()
 
 		// Find export from the DLL.
 		UPackage* ClassPackage = CastChecked<UPackage>(GetParent());
-		UClass* ClassPtr = (UClass*)ClassPackage->GetDllExport( ProcName, 0 );
+		UClass* ClassPtr = (UClass*) ProcName;
 		if( ClassPtr )
 			Constructor = ClassPtr->Constructor;
 		else if( !GIsEditor )
@@ -1408,7 +1408,7 @@ void UFunction::Bind()
 			char Proc[256];
 			appSprintf( Proc, "int%sexec%s", GetOwnerClass()->GetNameCPP(), GetName() );
 			UPackage* ClassPackage = CastChecked<UPackage>( GetOwnerClass()->GetParent() );
-			void** Ptr = (void**)ClassPackage->GetDllExport( Proc, 1 );
+			void** Ptr = (void**)( Proc );
 			if( Ptr )
 				*(void**)&Func = *Ptr;
 		}

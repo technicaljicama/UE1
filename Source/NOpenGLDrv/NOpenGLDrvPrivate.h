@@ -1,9 +1,13 @@
 /*------------------------------------------------------------------------------------
 	Dependencies.
 ------------------------------------------------------------------------------------*/
-
+#ifndef PSP
 #include "glad.h"
-#include "RenderPrivate.h"
+#else
+#include <GL/gl.h>
+#include <GL/glut.h>
+#endif
+#include "../../Render/Inc/RenderPrivate.h"
 
 /*------------------------------------------------------------------------------------
 	OpenGL rendering private definitions.

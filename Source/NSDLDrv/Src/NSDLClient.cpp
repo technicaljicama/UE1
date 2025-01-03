@@ -2,8 +2,8 @@
 #include <ctype.h>
 
 #include "NSDLDrv.h"
-#include "UnRender.h"
-
+// #include "UnRender.h"
+#include "../../NOpenGLDrv/NOpenGLDrvPrivate.h"
 IMPLEMENT_CLASS( UNSDLClient );
 
 /*-----------------------------------------------------------------------------
@@ -340,10 +340,10 @@ void UNSDLClient::TryRenderDevice( UViewport* Viewport, const char* ClassName, U
 	}
 
 	// Find device driver.
-	UClass* RenderClass = GObj.LoadClass( URenderDevice::StaticClass, NULL, ClassName, NULL, LOAD_KeepImports, NULL );
-	if( RenderClass )
+	// UClass* RenderClass = GObj.LoadClass( URenderDevice::StaticClass, NULL, ClassName, NULL, LOAD_KeepImports, NULL );
+	if( 1 )
 	{
-		Viewport->RenDev = ConstructClassObject<URenderDevice>( RenderClass );
+		Viewport->RenDev = new UNOpenGLRenderDevice;//ConstructClassObject<URenderDevice>( RenderClass );
 		if( Viewport->Client->Engine->Audio && !GIsEditor )
 			Viewport->Client->Engine->Audio->SetViewport( NULL );
 		if( Viewport->RenDev->Init( Viewport ) )

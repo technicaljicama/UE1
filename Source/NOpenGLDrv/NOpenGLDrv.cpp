@@ -1,6 +1,11 @@
 #include "SDL2/SDL.h"
+#ifndef PSP
 #include "glad.h"
-
+#else
+#include <GL/gl.h>
+#define glColorTableEXT glColorTable
+void glActiveTexture(int a) { };
+#endif
 #include "NOpenGLDrvPrivate.h"
 
 /*-----------------------------------------------------------------------------
@@ -29,10 +34,10 @@ IMPLEMENT_CLASS(UNOpenGLRenderDevice);
 
 // and it also would be nice to overbright them
 #define LIGHTMAP_OVERBRIGHT 1.4f
-
+#ifndef PSP
 #define GL_CHECK_EXT(ext) GLAD_GL_ ## ext
 #define GL_CHECK_VER(maj, min) (((maj) * 10 + (min)) <= (GLVersion.major * 10 + GLVersion.minor))
-
+#endif
 void UNOpenGLRenderDevice::InternalClassInitializer( UClass* Class )
 {
 	guardSlow(UNOpenGLRenderDevice::InternalClassInitializer);
@@ -52,30 +57,42 @@ UNOpenGLRenderDevice::UNOpenGLRenderDevice()
 UBOOL UNOpenGLRenderDevice::Init( UViewport* InViewport )
 {
 	guard(UNOpenGLRenderDevice::Init)
-
+#ifndef PSP
 	if( !gladLoadGLLoader( &SDL_GL_GetProcAddress ) )
 	{
 		debugf( NAME_Warning, "Could not load GL: %s", SDL_GetError() );
 		return false;
 	}
-
+#else/*
+	int ar = 1;
+	char* argv[1] = {"Unreal"};
+	glutInit(&ar, argv);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);  
+	glutInitWindowSize(480, 272); 
+	glutCreateWindow("Unreal");*/
+#endif
 	SupportsFogMaps = true;
 	SupportsDistanceFog = true;
-
+#ifndef PSP
 	if( UseHwPalette && !GL_CHECK_EXT( EXT_paletted_texture ) )
 	{
 		debugf( NAME_Warning, "EXT_paletted_texture not available, disabling UseHwPalette" );
+#endif
 		UseHwPalette = false;
+#ifndef PSP
 	}
-
+#endif
+#ifndef PSP
 	if( UseBGRA && !GL_CHECK_VER( 1, 2 ) && !GL_CHECK_EXT( EXT_bgra ) )
 	{
+#endif
 		debugf( NAME_Warning, "EXT_bgra not available, disabling UseBGRA" );
 		UseBGRA = false;
+#ifndef PSP
 	}
 
 	debugf( NAME_Log, "Got OpenGL %d.%d", GLVersion.major, GLVersion.minor );
-
+#endif
 	ComposeSize = 256 * 256 * 4;
 	Compose = (BYTE*)appMalloc( ComposeSize, "GLComposeBuf" );
 	verify( Compose );

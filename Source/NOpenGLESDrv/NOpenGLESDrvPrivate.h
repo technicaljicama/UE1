@@ -2,9 +2,9 @@
 	Dependencies.
 ------------------------------------------------------------------------------------*/
 
-#include "glad.h"
+// #include "glad.h"
 #include "glm/matrix.hpp"
-#include "RenderPrivate.h"
+#include "../../Render/Inc/RenderPrivate.h"
 
 /*------------------------------------------------------------------------------------
 	OpenGL rendering private definitions.
